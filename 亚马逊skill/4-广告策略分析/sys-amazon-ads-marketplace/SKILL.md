@@ -1,6 +1,6 @@
 ---
-name: amazon-ads-mcp
-description: Guide for using the Marketplace Ad Pros MCP server to manage and analyze Amazon Advertising accounts. Use when working with Amazon Ads campaigns, performance reports, bid/budget recommendations, keyword research, or product data through the MCP tools.
+name: sys-amazon-ads-marketplace
+description: "Guide for using the Marketplace Ad Pros MCP server to manage Amazon Advertising accounts, campaigns, reports, bids, and budgets. Use for Amazon Ads MCP work."
 metadata:
   author: marketplace-ad-pros
   version: "1.0"

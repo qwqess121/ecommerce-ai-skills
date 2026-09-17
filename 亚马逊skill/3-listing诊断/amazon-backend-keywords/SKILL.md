@@ -1,6 +1,6 @@
 ---
 name: amazon-backend-keywords
-description: "Amazon backend search term optimization and strategy. 250-byte limit management, keyword deduplication, prioritization frameworks, and search visibility optimization. Use when the user asks about backend keywords, search terms, Amazon SEO, or keyword optimization."
+description: "Amazon backend search term optimization: 250-byte limit, dedup, prioritization. Use when asked about backend keywords, search terms, or listing SEO."
 metadata: {"nexscope":{"emoji":"🔍","category":"amazon"}}
 ---
 

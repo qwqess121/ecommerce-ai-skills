@@ -1,6 +1,6 @@
 ---
 name: amazon-display-ads
-description: "Amazon Sponsored Display campaign strategy and optimization. Audience targeting, retargeting campaigns, creative optimization, and performance management. Use when the user asks about Amazon display ads, audience targeting, retargeting, or Sponsored Display campaigns."
+description: "Amazon Sponsored Display strategy: audience targeting, retargeting, creative, and performance management. Use when asked about display ads or Sponsored Display."
 metadata: {"nexscope":{"emoji":"🎯","category":"amazon"}}
 ---
 

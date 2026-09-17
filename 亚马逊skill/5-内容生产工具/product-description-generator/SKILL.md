@@ -1,6 +1,6 @@
 ---
 name: product-description-generator
-description: "E-commerce product description generator for any platform. Generates optimized titles, bullet points, descriptions, and backend keywords using competitor research + keyword scoring + FABE copywriting. Two modes: (A) Create — generate listing from product specs with optional competitor analysis, (B) Optimize — improve existing listing with keyword gap analysis. Supports Amazon, eBay, Walmart, Shopify, Etsy, TikTok Shop, Lazada, Shopee. No API key required. Use when: (1) writing a new product listing, (2) analyzing what makes competitors rank, (3) improving an underperforming listing."
+description: "Generate e-commerce listings (title, bullets, description, backend keywords) via FABE copy and keyword scoring. Supports Amazon, Walmart, Shopify, TikTok Shop."
 metadata: {"nexscope":{"emoji":"📝","category":"ecommerce"}}
 ---
 

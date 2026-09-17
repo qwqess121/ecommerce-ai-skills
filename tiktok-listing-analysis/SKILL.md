@@ -1,3 +1,8 @@
+---
+name: tiktok-listing-analysis
+description: "TikTok Shop Listing 诊断与竞品分析（v6.2）。输入商品链接/ID/关键词/店铺名，输出 13 维度诊断与竞品分析 HTML 报告。用户需要诊断 TK Shop Listing、做竞品对比或生成诊断报告时使用。"
+---
+
 # TikTok Shop Listing 诊断 + 竞品分析（v6.2）
 
 > 输入一个 TikTok Shop 产品链接/ID/关键词/店铺名 → 输出一份 **Listing 诊断 + 竞品分析** 报告（HTML，发布为在线 Artifact）。

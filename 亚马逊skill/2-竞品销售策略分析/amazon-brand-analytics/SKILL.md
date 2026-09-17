@@ -1,6 +1,6 @@
 ---
 name: amazon-brand-analytics
-description: "Amazon Brand Analytics interpretation and strategic insights for Brand Registry owners. Decode Search Frequency Rank (SFR) data, analyze Market Basket patterns, interpret Item Comparison reports, and extract demographic insights to optimize product strategy and advertising spend. Works with Brand Analytics data from all Amazon marketplaces. Requires Brand Registry access. Use when: (1) analyzing Search Frequency Rank data for keyword opportunities, (2) interpreting Market Basket data for cross-sell and bundling, (3) understanding Item Comparison competitive positioning, (4) extracting customer demographic insights, (5) optimizing product portfolio based on customer behavior, (6) building data-driven advertising strategies."
+description: "Interpret Amazon Brand Analytics: Search Frequency Rank, Market Basket, Item Comparison, demographics. Use when analyzing SFR, basket data, or Brand Registry insights."
 metadata: {"nexscope":{"emoji":"📊","category":"amazon"}}
 ---
 

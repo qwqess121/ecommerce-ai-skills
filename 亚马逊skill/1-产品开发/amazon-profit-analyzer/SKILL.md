@@ -1,6 +1,6 @@
 ---
 name: amazon-profit-analyzer
-description: "Comprehensive Amazon profit analysis and revenue optimization. Revenue waterfall analysis, hidden fee identification, ACoS impact assessment, return cost calculation, and profitability optimization strategies. Use when the user asks about Amazon profit analysis, profitability calculation, fee analysis, margin optimization, or revenue breakdown."
+description: "Amazon profit and fee analysis: revenue waterfall, hidden fees, ACoS impact, return costs, margin optimization. Use when asked about Amazon profit, fees, or margins."
 metadata: {"nexscope":{"emoji":"💰","category":"amazon"}}
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: amazon-deal-finder
-description: "Amazon deal planning and promotional strategy optimization. Lightning Deals, Best Deals, Coupons, Prime Exclusive Discounts analysis and ROI calculation. Deal eligibility assessment, timing optimization, and promotional campaign planning. Use when the user asks about Amazon deals, Lightning Deals, promotional planning, deal strategy, or Amazon promotions."
+description: "Amazon deal planning and promotion ROI analysis: Lightning Deals, Coupons, Prime Exclusive Discounts. Use when asked about Amazon deals, promo planning, or deal strategy."
 metadata: {"nexscope":{"emoji":"⚡","category":"amazon"}}
 ---
 

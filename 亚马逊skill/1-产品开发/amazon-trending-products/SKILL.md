@@ -1,6 +1,6 @@
 ---
 name: amazon-trending-products
-description: "Trending products and rising categories discovery for Amazon sellers. Analyzes Best Seller Rank patterns, seasonal trends, new release momentum, and emerging niches. Identifies product opportunities before they peak. Use when the user asks about what's trending on Amazon, hot products, rising categories, seasonal opportunities, viral products, what to sell next, emerging niches, or early-mover opportunities. Also trigger for questions like 'what should I sell now?', 'what products are doing well?', 'find me trending niches', or 'what's hot on Amazon?'."
+description: "Discover trending Amazon products and rising categories via BSR, seasonality, and new releases. Use when asked what's trending, what to sell next, or to find emerging niches."
 metadata: {"nexscope":{"emoji":"📈","category":"amazon"}}
 ---
 

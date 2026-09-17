@@ -1,6 +1,6 @@
 ---
 name: amazon-repricing-strategy
-description: "Amazon repricing strategy and Buy Box optimization. Competitive pricing analysis, dynamic pricing rules, margin protection strategies, repricing tool selection, and automated pricing workflows. Use when the user asks about Amazon repricing, pricing strategy, Buy Box optimization, competitive pricing, or dynamic pricing."
+description: "Amazon repricing and Buy Box optimization: dynamic rules, margin protection, tool selection. Use when asked about repricing, Buy Box, or dynamic pricing rules."
 metadata: {"nexscope":{"emoji":"🏷️","category":"amazon"}}
 ---
 

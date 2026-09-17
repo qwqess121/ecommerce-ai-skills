@@ -14,9 +14,9 @@
 | Claude Code | 必须 | 桌面版或 CLI 版均可 |
 | FastMoss MCP | 强烈推荐 | 提供完整 TikTok 数据（达人、销量、趋势等）。未连接时部分工作流可降级为 Chrome MCP |
 | Chrome MCP | 可选（备选） | 直接从 TikTok Shop 页面抓取公开数据，FastMoss 不可用时的降级方案 |
-| Python 3.10+ | tk视频拆解需要 | 用于关键帧提取和评论抓取脚本 |
-| ffmpeg | tk视频拆解需要 | 视频帧提取依赖 |
-| yt-dlp | tk视频拆解需要 | TikTok 视频下载 |
+| Python 3.10+ | tk-video-breakdown需要 | 用于关键帧提取和评论抓取脚本 |
+| ffmpeg | tk-video-breakdown需要 | 视频帧提取依赖 |
+| yt-dlp | tk-video-breakdown需要 | TikTok 视频下载 |
 
 ### 安装 Skill
 
@@ -41,9 +41,9 @@
 
 | # | 工作流 | 目录 | 用途 | 输入 | 输出 |
 |---|--------|------|------|------|------|
-| 1 | TK Listing 诊断 | `tk诊断/` | 对单个产品做六维度全面体检 | 产品链接/ID/关键词 | HTML 诊断报告（Artifact） |
+| 1 | TK Listing 诊断 | `tiktok-listing-analysis/` | 对单个产品做六维度全面体检 | 产品链接/ID/关键词 | HTML 诊断报告（Artifact） |
 | 2 | TK 竞品分析 | `tk竞品分析/` | 7阶段深度竞品情报分析 | 产品链接/品类关键词 | HTML 竞品报告（Artifact） |
-| 3 | TK 视频拆解 | `tk视频拆解/` | 拆解爆款视频的脚本结构和病毒机制 | TikTok 视频链接 | HTML 拆解报告（Artifact） |
+| 3 | TK 视频拆解 | `tk-video-breakdown/` | 拆解爆款视频的脚本结构和病毒机制 | TikTok 视频链接 | HTML 拆解报告（Artifact） |
 
 ---
 
@@ -51,12 +51,12 @@
 
 ### 入口文件
 ```
-tk诊断/SKILL.md          ← Claude 读这个文件启动整个工作流
+tiktok-listing-analysis/SKILL.md          ← Claude 读这个文件启动整个工作流
 ```
 
 ### 触发方式
 ```
-请读取 tk诊断/SKILL.md，然后帮我诊断这个 TikTok Shop 产品：[粘贴产品链接]
+请读取 tiktok-listing-analysis/SKILL.md，然后帮我诊断这个 TikTok Shop 产品：[粘贴产品链接]
 ```
 
 ### 工作流程（6步）
@@ -80,7 +80,7 @@ Step 6  报告生成           → HTML Artifact 报告
 ### 包含的 Skill 文件
 | 文件 | 作用 |
 |------|------|
-| `SKILL.md` | 主调度（Claude 入口） |
+| `SKILLS.md` | 主索引（非 skill，仅供导航） |
 | `skills/01-数据采集.md` | FastMoss/Chrome 数据采集 |
 | `skills/02-类目基准.md` | 类目 TOP10 基准线 |
 | `skills/03-标题描述诊断.md` | 标题+描述质量评分 |
@@ -140,18 +140,18 @@ tk竞品分析/TK竞品分析工作流.md     ← Claude 读这个文件启动
 
 ### 入口文件
 ```
-tk视频拆解/v3-tk-workflow/SKILL.md     ← Claude 读这个文件启动
+tk-video-breakdown/v3-tk-workflow/SKILL.md     ← Claude 读这个文件启动
 ```
 
 ### 触发方式
 ```
-请读取 tk视频拆解/v3-tk-workflow/SKILL.md，然后帮我拆解这个 TikTok 视频：[粘贴视频链接]
+请读取 tk-video-breakdown/v3-tk-workflow/SKILL.md，然后帮我拆解这个 TikTok 视频：[粘贴视频链接]
 ```
 
 ### 首次使用需要安装
 第一次使用前，让 Claude 读取安装说明：
 ```
-请读取 tk视频拆解/README_CLAUDE.md，帮我安装视频拆解工具到当前项目
+请读取 tk-video-breakdown/README_CLAUDE.md，帮我安装视频拆解工具到当前项目
 ```
 
 安装会自动完成：复制文件到 `.claude/skills/`、检查 Python/ffmpeg/yt-dlp 依赖、安装 Playwright。
@@ -193,10 +193,10 @@ playwright install chromium
 ## 常见问题
 
 ### Q: FastMoss 余额不足怎么办？
-tk诊断 可以自动降级为 Chrome MCP 模式（数据有限但能完成诊断）。tk竞品分析 和 tk视频拆解 对 FastMoss 依赖较重，建议充值后使用。
+TK Listing 诊断 可以自动降级为 Chrome MCP 模式（数据有限但能完成诊断）。tk竞品分析 和 tk-video-breakdown 对 FastMoss 依赖较重，建议充值后使用。
 
 ### Q: 三个工作流可以对同一个产品一起跑吗？
-可以，建议顺序：先跑 tk诊断（了解产品本身）→ 再跑 tk竞品分析（了解竞争格局）→ 最后挑竞品爆款视频跑 tk视频拆解。
+可以，建议顺序：先跑 TK Listing 诊断（了解产品本身）→ 再跑 tk竞品分析（了解竞争格局）→ 最后挑竞品爆款视频跑 tk-video-breakdown。
 
 ### Q: 员工需要看什么来理解报告？
 每个工作流生成的 HTML 报告（Artifact）是自包含的，不需要额外知识就能看懂。分享 Artifact 链接即可。
@@ -219,7 +219,7 @@ Claude 生成报告后会给出一个 Artifact 链接（`https://claude.ai/code/
 
 ## Cookie 配置（评论爬虫可选）
 
-`listing和竞品分析/scripts/tiktok_cookies.json` **不包含在本仓库中**（含真实登录态 Cookie，已加入 `.gitignore`）。
+`tiktok-listing-analysis/scripts/tiktok_cookies.json` **不包含在本仓库中**（含真实登录态 Cookie，已加入 `.gitignore`）。
 
 评论爬虫默认走浏览器 UC 模式，无需 Cookie。只有在 UC 模式失败、需要回退到 HTTP 模式时才用到：
 
@@ -234,3 +234,46 @@ python tiktok_review_scraper.py <product_id> --mode http --cookies-file tiktok_c
 ```
 
 ⚠️ 切勿把自己的 `tiktok_cookies.json` 提交到任何公开仓库。
+
+---
+
+## Agent Skills 规范适配（2026-09 更新）
+
+本仓库已按 [Agent Skills 开放标准](https://agentskills.io/specification) 全量校验并修正，**68 个 SKILL.md 全部合规**，可直接用于 Claude Code、Claude 网页版及其他支持该标准的 Agent 产品。
+
+### 校验规则
+
+| 字段 | 约束 |
+|------|------|
+| `name` | 1–64 字符，仅小写字母/数字/连字符，不能以连字符开头结尾或连续，**必须与所在文件夹同名** |
+| `description` | 网页上传建议 ≤200 字符，须同时说明「做什么」和「何时使用」 |
+
+### 本次变更
+
+| 变更 | 说明 |
+|------|------|
+| 目录重命名 | `tk视频拆解/` → `tk-video-breakdown/`、`listing和竞品分析/` → `tiktok-listing-analysis/`（中文目录名不符合 name 规范，无法作为 skill 上传） |
+| 补全 frontmatter | 41 个 SKILL.md 补齐 `name` 或压缩 `description` 至 200 字符内 |
+| 修正 name 不匹配 | `sys-amazon-listing-optimization`、`sys-amazon-title-image-compliance`、`sys-amazon-ads-marketplace` |
+| 总索引降级 | 原根目录 `SKILL.md` → `SKILLS.md`（它是导航文档，不参与 skill 加载） |
+
+### 安装到 Claude Code
+
+把每个含 `SKILL.md` 的目录**扁平复制**到 `~/.claude/skills/<目录名>/`（个人级）或项目内 `.claude/skills/<目录名>/`。注意嵌套的分类目录（如 `亚马逊skill/1-产品开发/`）只是归类用，**不要连分类目录一起复制**——Claude Code 只扫描 `skills/` 的下一层。
+
+### 上传到 Claude 网页版
+
+1. 账号需开启 **Code execution and file creation**
+2. 进入 `Customize / Settings → Skills → "+" → Upload skill`
+3. **一个 skill 一个 ZIP**，ZIP 根目录必须是同名 skill 文件夹：
+
+```
+amazon-fba-calculator.zip
+└── amazon-fba-calculator/
+    ├── SKILL.md
+    └── scripts/
+```
+
+4. 数据源需在 `Settings → Connectors → "+" → Add custom connector` 单独添加（如 FastMoss 的远程 MCP 地址）
+
+**网页版限制**：无本地文件系统、无 ffmpeg/yt-dlp，因此 `tk-video-breakdown` 的视频画面采集步骤无法在网页版执行；`亚马逊skill` 这类方法论文档型 skill 不受影响。

@@ -1,6 +1,6 @@
 ---
 name: amazon-buy-box
-description: "Amazon Buy Box strategy and optimization framework. Eligibility factor analysis, competitive pricing strategies, FBA vs FBM impact assessment, seller performance optimization, and Buy Box winning tactics. Use when the user asks about Amazon Buy Box, winning Buy Box, Buy Box eligibility, or Buy Box optimization."
+description: "Amazon Buy Box strategy: eligibility factors, pricing, FBA vs FBM impact, winning tactics. Use when asked about Buy Box eligibility or optimization."
 metadata: {"nexscope":{"emoji":"📦","category":"amazon"}}
 ---
 

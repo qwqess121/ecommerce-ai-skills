@@ -1,6 +1,6 @@
 ---
 name: amazon-advertising-strategy
-description: "Comprehensive Amazon advertising strategy and campaign optimization. Sponsored Products, Sponsored Brands, Sponsored Display campaign management, budget allocation, ACoS optimization, and performance tracking. Use when the user asks about Amazon PPC, advertising strategy, campaign optimization, or Amazon ads management."
+description: "Amazon advertising strategy: Sponsored Products/Brands/Display, budget allocation, ACoS optimization. Use when asked about Amazon PPC, ad strategy, or campaign optimization."
 metadata: {"nexscope":{"emoji":"📢","category":"amazon"}}
 ---
 

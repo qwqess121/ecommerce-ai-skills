@@ -1,6 +1,6 @@
 ---
 name: amazon-negative-keywords
-description: "Amazon negative keyword management and optimization. Search term analysis, waste reduction, savings estimation, and automated negative keyword strategies. Use when the user asks about negative keywords, search term analysis, ad waste reduction, or PPC optimization."
+description: "Amazon negative keyword management: search term analysis, waste reduction, savings estimation. Use when asked about negative keywords or PPC waste."
 metadata: {"nexscope":{"emoji":"🚫","category":"amazon"}}
 ---
 

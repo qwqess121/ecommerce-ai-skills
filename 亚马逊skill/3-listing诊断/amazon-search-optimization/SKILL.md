@@ -1,6 +1,6 @@
 ---
 name: amazon-search-optimization
-description: "Amazon search ranking optimization and A9 algorithm mastery. Comprehensive SEO strategy, indexing optimization, keyword ranking improvement, and search visibility enhancement. Use when the user asks about Amazon SEO, A9 algorithm, search ranking, or product discoverability."
+description: "Amazon search ranking and A9 algorithm optimization: indexing, keyword ranking, visibility. Use when asked about Amazon SEO, A9, or search ranking."
 metadata: {"nexscope":{"emoji":"🔍","category":"amazon"}}
 ---
 
