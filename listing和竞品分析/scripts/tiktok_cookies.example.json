@@ -1,0 +1,12 @@
+[
+  {
+    "name": "msToken",
+    "value": "<从浏览器或抓包工具获取，不要提交真实值>",
+    "domain": ".tiktok.com",
+    "path": "/",
+    "expires": -1,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "no_restriction"
+  }
+]

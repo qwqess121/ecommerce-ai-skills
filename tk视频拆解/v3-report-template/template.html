@@ -1,0 +1,590 @@
+﻿
+<!-- V3 TK爆款拆解报告模板 — 只需注入 window.REPORT_DATA -->
+<!-- 生成方式: python inject_report.py data.json → report.html -->
+<title id="page-title">V3 爆款拆解报告</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#FAF6F4;--s:#fff;--s2:#F5EFED;--t:#2A1F1E;--t2:#5C4545;--t3:#6E5252;--ac:#C9867A;--al:#EAD8D4;--am:#D9998D;--ad:#A05E53;--gn:#3EA876;--gb:#EBF7F3;--ab:#FBF4E5;--am2:#C98A1A;--rb:#FCEAEA;--rd:#D94444;--br:#EDE3E0;--br2:#D8CCCB;--sh:0 1px 3px rgba(180,130,120,.10),0 4px 16px rgba(180,130,120,.07);--r:10px;--rs:6px}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#18110F;--s:#251918;--s2:#31211F;--t:#F3E8E5;--t2:#BEA49F;--t3:#9A7A77;--ac:#D9998D;--al:#3D2420;--am:#C9867A;--ad:#E8B0A8;--gn:#4EC18A;--gb:#0E2820;--ab:#281E0A;--am2:#E8A838;--rb:#280F0F;--rd:#E86060;--br:#3A2828;--br2:#4D3433;--sh:0 1px 3px rgba(0,0,0,.25),0 4px 16px rgba(0,0,0,.20)}}
+:root[data-theme=dark]{--bg:#18110F;--s:#251918;--s2:#31211F;--t:#F3E8E5;--t2:#BEA49F;--t3:#9A7A77;--ac:#D9998D;--al:#3D2420;--am:#C9867A;--ad:#E8B0A8;--gn:#4EC18A;--gb:#0E2820;--ab:#281E0A;--am2:#E8A838;--rb:#280F0F;--rd:#E86060;--br:#3A2828;--br2:#4D3433;--sh:0 1px 3px rgba(0,0,0,.25),0 4px 16px rgba(0,0,0,.20)}
+*,*::before,*::after{box-sizing:border-box}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--t);line-height:1.6;margin:0;font-size:15px}
+.page{max-width:960px;margin:0 auto;padding:24px 20px 80px}
+h1{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;margin:0;line-height:1.25;text-wrap:balance}
+h2{font-family:'Playfair Display',serif;font-size:19px;font-weight:600;margin:0 0 14px;color:var(--t)}
+h3{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);margin:0 0 8px}
+p{margin:0 0 10px}
+.sec{background:var(--s);border:1px solid var(--br);border-radius:var(--r);padding:20px;margin-bottom:14px;box-shadow:var(--sh)}
+.sh{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--br)}
+.badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--ac);color:#fff;font-size:11px;font-weight:700;flex-shrink:0}
+.badge.fin{background:var(--t)}
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--al) 0%,var(--s2) 50%,var(--al) 100%);border:1px solid var(--br);border-radius:14px;padding:24px;margin-bottom:18px;box-shadow:0 2px 8px rgba(180,130,120,.13)}
+.crow{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.cav{width:44px;height:44px;border-radius:50%;background:var(--ac);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ch{font-weight:600;font-size:15px;color:var(--t)}
+.cn{font-size:12px;color:var(--t2);margin-top:1px}
+.ml{font-size:12px;color:var(--t2);margin-bottom:12px;display:flex;gap:14px;flex-wrap:wrap}
+.ml span::before{content:'·';margin-right:5px;opacity:.5}
+.ml span:first-child::before{display:none}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:16px}
+.tag{font-size:11px;font-weight:500;color:var(--ad);background:var(--al);border-radius:20px;padding:2px 9px}
+.sg{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+@media(max-width:560px){.sg{grid-template-columns:repeat(3,1fr)}}
+.sc{background:var(--s);border-radius:var(--rs);padding:9px 10px;text-align:center;border:1px solid var(--br)}
+.sn{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:500;color:var(--t);display:block}
+.sn.hi{color:var(--ac)}
+.sl{font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;display:block;margin-top:1px}
+/* Tables */
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--t2);padding:7px 9px;border-bottom:1px solid var(--br2);background:var(--s2)}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--br);color:var(--t);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--s2)}
+.mono{font-family:'IBM Plex Mono',monospace}
+/* Pills */
+.pill{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:600;border-radius:20px;padding:2px 9px}
+.gp{background:var(--gb);color:var(--gn)}
+.ap{background:var(--ab);color:var(--am2)}
+.rp{background:var(--rb);color:var(--rd)}
+.mp{background:var(--al);color:var(--ad)}
+/* Score bars */
+.sb{display:flex;flex-direction:column;gap:7px}
+.sr{display:flex;align-items:center;gap:8px}
+.sl2{font-size:12px;color:var(--t);width:82px;flex-shrink:0}
+.st{flex:1;height:7px;background:var(--s2);border-radius:4px;overflow:hidden;border:1px solid var(--br)}
+.sf{height:100%;border-radius:4px}
+.sv{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--t);width:32px;text-align:right;flex-shrink:0}
+/* Comments */
+.cc{border:1px solid var(--br);border-radius:var(--rs);padding:10px 12px;margin-bottom:8px;background:var(--s2)}
+.cch{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.cu{font-weight:600;font-size:14px}
+.cm{font-size:12px;color:var(--t2)}
+.cl{margin-left:auto;font-size:12px;color:var(--t)}
+.ct{font-size:15px;line-height:1.6}
+.cr{margin-top:7px;padding:6px 10px;background:var(--al);border-left:2px solid var(--ac);border-radius:0 var(--rs) var(--rs) 0;font-size:12px;color:var(--t)}
+.crh{font-weight:600;color:var(--ad);margin-right:4px}
+/* Distribution bars */
+.db{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.dr{display:flex;align-items:center;gap:7px}
+.de{width:20px;text-align:center;font-size:13px;flex-shrink:0}
+.dl{font-size:12px;color:var(--t);width:68px;flex-shrink:0}
+.dt{flex:1;height:18px;background:var(--s2);border-radius:4px;overflow:hidden;border:1px solid var(--br)}
+.df{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:6px}
+.dc{font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.9);font-weight:500}
+.dp{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--t2);width:32px;text-align:right;flex-shrink:0}
+/* Role grid */
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+@media(max-width:560px){.rg{grid-template-columns:1fr}}
+.rc{border:1px solid var(--br);border-radius:var(--rs);padding:11px 13px;background:var(--s2)}
+.rn{font-size:13px;font-weight:600;margin-bottom:4px}
+.rd2{font-size:12px;color:var(--t);line-height:1.55}
+/* Framework */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+@media(max-width:560px){.fg{grid-template-columns:1fr}}
+.fc{border:1px solid var(--br);border-radius:var(--rs);padding:11px 13px;background:var(--s2)}
+.fn{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ac);margin-bottom:2px}
+.ft{font-size:13px;font-weight:600;margin-bottom:4px}
+.fs{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--t2);line-height:1.7}
+.fw{font-size:11px;color:var(--t);margin-top:5px}
+/* Opt list */
+.ol{display:flex;flex-direction:column;gap:7px}
+.oi{display:flex;align-items:flex-start;gap:9px;padding:9px 13px;border-radius:var(--rs);border-left:3px solid transparent}
+.oi.rd{background:var(--rb);border-color:var(--rd)}
+.oi.am{background:var(--ab);border-color:var(--am2)}
+.oi.gn{background:var(--gb);border-color:var(--gn)}
+.od{font-size:15px;margin-top:0;flex-shrink:0}
+.ot{font-size:13px;line-height:1.6;color:var(--t)}
+.ot strong{display:block;font-weight:600;margin-bottom:1px}
+/* Reuse grid */
+.rug{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--br);border-radius:var(--rs);overflow:hidden}
+.ruh{padding:9px 13px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.ruh.can{background:var(--gb);color:var(--gn);border-right:1px solid var(--br)}
+.ruh.cant{background:var(--rb);color:var(--rd)}
+.rui{padding:11px 13px;display:flex;flex-direction:column;gap:6px}
+.ruc:first-child .rui{border-right:1px solid var(--br)}
+.rit{font-size:12px;color:var(--t);display:flex;align-items:flex-start;gap:5px;line-height:1.4}
+/* Verdict */
+.vb{display:flex;align-items:center;gap:12px;background:var(--gb);border:1px solid var(--gn);border-radius:var(--rs);padding:12px 16px;margin-bottom:14px}
+.vw{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;color:var(--gn)}
+.vr{font-size:13px;color:var(--t)}
+/* Segment */
+.si{display:flex;align-items:flex-start;gap:9px;padding:8px 11px;border-radius:var(--rs);border:1px solid var(--br);background:var(--s2);margin-bottom:5px}
+.sil{font-weight:600;font-size:13px;width:64px;flex-shrink:0;margin-top:1px}
+.sit{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--t2);width:36px;flex-shrink:0;margin-top:2px}
+.sic{font-size:13px;color:var(--t);flex:1;line-height:1.5}
+.sis{margin-left:auto;font-size:14px}
+/* Rules */
+.rls{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+@media(max-width:480px){.rls{grid-template-columns:1fr}}
+.rl{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:var(--rs);border:1px solid var(--br);font-size:13px;color:var(--t)}
+.rl.pg{background:var(--gb);border-color:var(--gn)}
+.rl.fl{background:var(--rb);border-color:var(--rd)}
+.pass{color:var(--gn);font-weight:600}
+.fail{color:var(--rd);font-weight:600}
+.warn{color:var(--am2);font-weight:600}
+/* 2col */
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:580px){.tc{grid-template-columns:1fr}}
+/* Signal cards */
+.sigrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+@media(max-width:580px){.sigrid{grid-template-columns:repeat(2,1fr)}}
+.sigc{background:var(--s2);border:1px solid var(--br);border-radius:var(--rs);padding:11px;text-align:center}
+.sign{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--ac);display:block}
+.sigl{font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;display:block;margin-top:1px}
+/* Frame timeline */
+.ftl{overflow-x:auto;padding-bottom:3px}
+.frow{display:flex;gap:8px;min-width:max-content}
+.fi{width:110px;flex-shrink:0;border:1px solid var(--br);border-radius:var(--rs);overflow:hidden;background:var(--s2)}
+.fts{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;background:var(--ac);color:#fff;padding:2px 6px;display:block}
+.fd{font-size:12px;color:var(--t);padding:5px 7px;line-height:1.4}
+/* Conclusion */
+.conc{background:linear-gradient(135deg,var(--al) 0%,var(--s2) 100%);border:1px solid var(--br);border-radius:var(--r);padding:22px 26px}
+.conc p{font-size:14px;line-height:1.8;color:var(--t);margin-bottom:12px}
+.conc p:last-child{margin-bottom:0}
+/* Lift */
+.ls{color:var(--rd);font-weight:700}
+.lm{color:var(--am2);font-weight:600}
+.ln{color:var(--t2)}
+/* AI */
+.aic{display:flex;gap:8px;flex-wrap:wrap}
+.aii{display:flex;align-items:center;gap:5px;background:var(--gb);border:1px solid var(--gn);border-radius:20px;padding:3px 11px;font-size:11px;color:var(--gn);font-weight:500}
+.div{height:1px;background:var(--br);margin:15px 0}
+.fc .div{height:auto!important;background:transparent!important;margin:4px 0!important}.wm{text-align:center;margin-top:36px;font-size:10px;color:var(--t3);letter-spacing:.04em}
+/* composite frame image */
+.fimg{width:100%;border-radius:var(--rs);border:1px solid var(--br);margin-bottom:14px;overflow:hidden}
+.fimg img{width:100%;display:block}
+/* FastMoss panel */
+.fm-panel{background:var(--s);border:1px solid var(--br);border-radius:var(--r);padding:20px;margin-bottom:14px;box-shadow:var(--sh)}
+.fm-grid{display:grid;gap:8px;margin-bottom:14px}
+.fm-grid.cols4{grid-template-columns:repeat(4,1fr)}
+.fm-grid.cols3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:640px){.fm-grid.cols4,.fm-grid.cols3{grid-template-columns:repeat(2,1fr)}}
+.fm-card{background:var(--s2);border:1px solid var(--br);border-radius:var(--rs);padding:10px 12px;text-align:center}
+.fm-val{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;display:block;color:var(--t)}
+.fm-val.hi{color:var(--ac)}
+.fm-val.gn{color:var(--gn)}
+.fm-val.rd{color:var(--rd)}
+.fm-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-top:2px}
+.fm-sub{font-size:10px;color:var(--t2);display:block;margin-top:2px}
+.vid-link{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:var(--ac);text-decoration:none;border:1px solid var(--ac);border-radius:20px;padding:3px 11px;margin-top:10px}
+.vid-link:hover{background:var(--al)}
+.sg8{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+@media(max-width:640px){.sg8{grid-template-columns:repeat(3,1fr)}}
+</style>
+
+<div class="page" id="app">
+  <!-- 数据注入后由JS渲染 -->
+  <div id="loading" style="text-align:center;padding:60px 20px;color:var(--t3);">
+    正在加载报告数据…
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  REPORT_DATA 由 inject_report.py 注入
+//  格式见下方 DATA SCHEMA 注释
+// ══════════════════════════════════════════════
+// DATA SCHEMA:
+// {
+//   meta: { creator, handle, platform, title, date, duration_s, music, url },
+//   tags: string[],
+//   stats: { views, likes, comments, shares, saves },
+//   step1: { tldr, frames:[{ts,desc}], key3:[{name,ts,value,stars}],
+//             visual_audio:[{dim,content,intent}], scores:{hook,product,cta,retain,selling} },
+//   step2: { hook_type, hook_conf, formula, q4:[{q,pass,reason}],
+//             lift:[{metric,actual,avg,mult,level}], save_share_ratio, mode, mode_reason },
+//   step3: { segments:[{name,ts,status,content}], virus:{hook,save,share,watch,comment},
+//             rules:[{text,pass}], fixes:[{priority,title,detail}] },
+//   step4: { rates:[{label,val,vs,dir}], mode_title, mode_detail },
+//   step5: { n_scraped,n_total,intent_pct,reply_rate,lang_count,
+//             dist:[{emoji,label,count,pct,color}],
+//             tiers:[{tier,count,sample}], langs:[{lang,pct,note}],
+//             top3:[{user,uid,date,likes,text,creator_reply}],
+//             reply_diag:[{dim,content}],
+//             signals:[{type,content}],
+//             matrix:[{claim,verdict,evidence}] },
+//   step6: { verdict,verdict_reason,lifecycle:[{layer,stage,note}],
+//             roles:[{icon,name,diag}],
+//             ai:[{label,ok}],
+//             opts:[{priority,title,detail}],
+//             frameworks:[{num,name,hook,segs,strongest}],
+//             reuse:{can:string[], cannot:string[]} },
+//   conclusion: { why, how }
+// }
+
+// ── Helpers ────────────────────────────────────
+const h = (tag, attrs, ...children) => {
+  const el = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(([k,v]) => {
+    if (k === 'className') el.className = v;
+    else if (k === 'innerHTML') el.innerHTML = v;
+    else el.setAttribute(k, v);
+  });
+  children.flat().forEach(c => {
+    if (c == null) return;
+    el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+  });
+  return el;
+};
+const div  = (cls, ...c) => h('div', {className:cls}, ...c);
+const span = (cls, t)    => h('span', {className:cls}, t);
+const p    = (cls, t)    => h('p', {className:cls}, t);
+const raw  = (cls, html) => h('div', {className:cls, innerHTML:html});
+
+const fmtNum = n => {
+  if (n >= 10000000) return (n/10000000).toFixed(1) + '亿';
+  if (n >= 10000)    return (n/10000).toFixed(1) + '万';
+  return String(n);
+};
+const passIcon = ok => ok === 'pass' ? '✅' : ok === 'warn' ? '⚠️' : '❌';
+const pillClass = lvl => ({'超爆':'rp','强劲':'ap','正常':'mp','high':'rp','strong':'ap','normal':'mp'}[lvl]||'mp');
+
+// ── Render functions ───────────────────────────
+function renderHero(D) {
+  const m = D.meta, s = D.stats;
+  return div('hero',
+    div('crow',
+      div('cav', m.emoji || '🎵'),
+      div('',
+        div('ch', m.handle),
+        div('cn', m.creator + ' · ' + m.platform)
+      ),
+      raw('', `<span class="pill mp" style="margin-left:auto">V3 爆款拆解</span>`)
+    ),
+    h('h1', {}, m.title),
+    div('ml',
+      h('span',{}, m.duration_s + '秒'),
+      h('span',{}, m.date + ' 上传'),
+      h('span',{}, '♫ ' + m.music),
+      h('span',{}, m.market || '英语受众')
+    ),
+    div('tags', ...(D.tags||[]).map(t => span('tag', t))),
+    div('sg8',
+      statCard(s.views != null ? fmtNum(s.views) : '—', '播放', true),
+      statCard(fmtNum(s.likes), '点赞', false),
+      statCard(fmtNum(s.comments), '评论', false),
+      statCard(fmtNum(s.shares), '分享', false),
+      statCard(fmtNum(s.saves), '收藏 ★', true),
+    ),
+    m.url ? h('a', {className:'vid-link', href:m.url, target:'_blank', rel:'noopener'}, '🔗 查看原视频') : null
+  );
+}
+function statCard(num, lbl, hi) {
+  return div('sc', h('span',{className:'sn'+(hi?' hi':'')},num), span('sl',lbl));
+}
+
+function renderFastmossPanel(D) {
+  const fd = D.fastmoss_data;
+  if (!fd) return null;
+  const sec = div('fm-panel');
+  sec.append(div('sh', div('badge','0'), h('h2',{style:'margin:0'},'FastMoss 全量商业数据'), raw('','<span class="pill gp" style="margin-left:auto">FastMoss实测</span>')));
+
+  // Row 1: Video commercial
+  const vc = fd.video_commercial || {};
+  sec.append(h('h3',{},'视频带货数据'));
+  const g1 = div('fm-grid cols4');
+  const fmtGmv = v => v >= 1000 ? '$' + (v/1000).toFixed(1) + 'K' : '$' + Math.round(v);
+  const adBadge = vc.is_ad ? raw('','<span class="fm-val rd">⚠️投流</span>') : raw('','<span class="fm-val gn">✓自然</span>');
+  g1.append(
+    div('fm-card', h('span',{className:'fm-val hi'}, vc.gmv != null ? fmtGmv(vc.gmv) : '—'), h('span',{className:'fm-lbl'},'视频GMV')),
+    div('fm-card', h('span',{className:'fm-val'}, vc.units_sold != null ? fmtNum(vc.units_sold) : '—'), h('span',{className:'fm-lbl'},'带货件数')),
+    div('fm-card', h('span',{className:'fm-val'}, vc.ipm != null ? String(vc.ipm) : '—'), h('span',{className:'fm-lbl'},'IPM')),
+    div('fm-card', h('span',{className:'fm-val'}, vc.interaction_rate_pct != null ? vc.interaction_rate_pct + '%' : '—'), h('span',{className:'fm-lbl'},'互动率'), h('span',{className:'fm-sub'}, vc.is_ad != null ? (vc.is_ad ? '⚠️投流' : '✓自然') : '')),
+  );
+  sec.append(g1);
+
+  // Row 2: Creator benchmark + Lift
+  const cp = fd.creator_profile || {};
+  const lift = fd.lift || {};
+  sec.append(h('h3',{style:'margin-top:12px'},'达人基准 & 真实Lift'));
+  const g2 = div('fm-grid cols4');
+  g2.append(
+    div('fm-card', h('span',{className:'fm-val'}, cp.followers != null ? fmtNum(cp.followers) : '—'), h('span',{className:'fm-lbl'},'粉丝数')),
+    div('fm-card', h('span',{className:'fm-val'}, cp.avg_plays != null ? fmtNum(cp.avg_plays) : '—'), h('span',{className:'fm-lbl'},'均播（基准）')),
+    div('fm-card', h('span',{className:'fm-val hi'}, lift.plays_mult != null ? lift.plays_mult + 'x' : '—'), h('span',{className:'fm-lbl'},'播放Lift'), h('span',{className:'fm-sub'},'FastMoss实测')),
+    div('fm-card', h('span',{className:'fm-val'}, lift.likes_mult != null ? lift.likes_mult + 'x' : '—'), h('span',{className:'fm-lbl'},'点赞Lift')),
+  );
+  sec.append(g2);
+
+  // Row 3: Product data
+  const pd = fd.product || {};
+  sec.append(h('h3',{style:'margin-top:12px'},'商品竞争数据'));
+  const g3 = div('fm-grid cols4');
+  const viralColor = pd.viral_index >= 90 ? 'hi' : pd.viral_index >= 60 ? '' : '';
+  g3.append(
+    div('fm-card', h('span',{className:'fm-val ' + viralColor}, pd.viral_index != null ? pd.viral_index + '/100' : '—'), h('span',{className:'fm-lbl'},'viral_index')),
+    div('fm-card', h('span',{className:'fm-val'}, pd.linked_creator_count != null ? fmtNum(pd.linked_creator_count) : '—'), h('span',{className:'fm-lbl'},'竞争达人数')),
+    div('fm-card', h('span',{className:'fm-val'}, pd.total_gmv != null ? fmtGmv(pd.total_gmv) : '—'), h('span',{className:'fm-lbl'},'商品总GMV'), h('span',{className:'fm-sub'},pd.total_units ? fmtNum(pd.total_units)+'件' : '')),
+    div('fm-card', h('span',{className:'fm-val'}, pd.rating != null ? '⭐'+pd.rating : '—'), h('span',{className:'fm-lbl'},'评分'), h('span',{className:'fm-sub'}, pd.review_count ? fmtNum(pd.review_count)+'条评' : '')),
+  );
+  sec.append(g3);
+
+  // Row 4: Trend
+  const tr = fd.trend || {};
+  if (tr.current_status || tr.viral_day || tr.window_status) {
+    sec.append(raw('','<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding:10px 14px;background:var(--s2);border-radius:var(--rs);font-size:12px;color:var(--t)"><span style="font-weight:600;color:var(--t2)">趋势：</span>'+(tr.viral_day?'🚀 发布后第<strong>'+tr.viral_day+'</strong>天起爆  ·  ':'')+'当前状态：<strong>'+tr.current_status+'</strong>  ·  窗口：<span style="color:var(--gn)">'+tr.window_status+'</span></div>'));
+  }
+  return sec;
+}
+
+function renderStep1(d) {
+  const sec = div('sec');
+  sec.append(
+    div('sh',
+      div('badge','1'),
+      h('h2',{style:'margin:0'},'视频深度扫描'),
+      raw('','<span class="pill mp" style="margin-left:auto">v3-video-scanner</span>')
+    ),
+    raw('','<div style="padding:10px 14px;background:var(--s2);border-radius:var(--rs);margin-bottom:16px;border-left:3px solid var(--ac)"><h3 style="color:var(--t3)">TL;DR</h3><p style="margin:3px 0 0;font-size:13px">'+d.tldr+'</p></div>'),
+    h('h3',{},'逐帧时间线')
+  );
+  // Frame timeline
+  const frow = div('frow');
+  (d.frames||[]).forEach(f => {
+    frow.append(div('fi',
+      h('span',{className:'fts'}, f.ts),
+      div('fd', f.desc)
+    ));
+  });
+  sec.append(div('ftl', frow));
+  // 5D scores
+  sec.append(h('h3',{},'电商5维评分'));
+  const colorMap = v => v>=8?'var(--gn)':v>=6?'var(--am2)':'var(--rd)';
+  const sb = div('sb');
+  const sc5 = [['钩子时效',d.scores.hook],['产品出镜',d.scores.product],['CTA设计',d.scores.cta],['留存机制',d.scores.retain],['卖点传递',d.scores.selling]];
+  sc5.forEach(([lbl,v]) => {
+    sb.append(div('sr',
+      h('span',{className:'sl2'},lbl),
+      div('st', h('div',{className:'sf',style:`width:${v*10}%;background:${colorMap(v)}`})),
+      h('span',{className:'sv'}, v+'/10')
+    ));
+  });
+  sec.append(sb);
+  return sec;
+}
+
+function renderStep2(d) {
+  const sec = div('sec');
+  sec.append(div('sh', div('badge','2'), h('h2',{style:'margin:0'},'爆款诊断 · 钩子公式'), raw('','<span class="pill mp" style="margin-left:auto">v2-hook-lift</span>')));
+  // Hook box
+  sec.append(raw('','<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px"><div style="padding:12px 14px;background:var(--al);border:1px solid var(--ac);border-radius:var(--rs)"><h3 style="color:var(--ad)">主钩子类型</h3><div style="font-size:15px;font-weight:700;color:var(--ad);margin-bottom:3px">'+d.hook_type+'</div><div style="font-size:11px;color:var(--t2)">'+d.hook_desc+'</div><div style="margin-top:7px"><span class="pill gp">置信度：'+d.hook_conf+'</span></div></div><div style="padding:12px 14px;background:var(--s2);border:1px solid var(--br);border-radius:var(--rs)"><h3>可复制公式</h3><div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--t);background:var(--s);padding:9px;border-radius:4px;border:1px solid var(--br);line-height:1.7">'+d.formula.replace(/\n/g,'<br>')+'</div></div></div>'));
+  // Lift table
+  sec.append(h('h3',{},'爆款Lift倍数（vs. 行业均值）'));
+  const tbl = h('table',{className:'tbl'},
+    h('thead',{},h('tr',{},
+      h('th',{},'指标'),h('th',{},'实际数据'),h('th',{},'行业均值'),h('th',{},'Lift倍数'),h('th',{},'级别')
+    )),
+    h('tbody',{}, ...(d.lift||[]).map(r =>
+      h('tr',{},
+        h('td',{},r.metric),
+        h('td',{className:'mono'},r.actual),
+        h('td',{className:'mono'},r.avg),
+        h('td',{className:'mono '+(r.mult>=10?'ls':r.mult>=5?'lm':'ln')}, r.mult+'x'),
+        h('td',{}, raw('','<span class="pill '+pillClass(r.level)+'">'+r.level+'</span>'))
+      )
+    ))
+  );
+  sec.append(div('',tbl));
+  if (d.save_share_note) sec.append(raw('','<div style="background:var(--ab);border:1px solid var(--am2);border-radius:var(--rs);padding:9px 13px;margin-top:10px;font-size:11px;color:var(--t)">⚠️ '+d.save_share_note+'</div>'));
+  return sec;
+}
+
+function renderStep3(d) {
+  const sec = div('sec');
+  sec.append(div('sh', div('badge','3'), h('h2',{style:'margin:0'},'脚本结构拆解'), raw('','<span class="pill mp" style="margin-left:auto">v2-script-mapper</span>')));
+  const colorSeg = s => s==='pass'?'border-color:var(--gn);background:var(--gb)':s==='warn'?'border-color:var(--am2);background:var(--ab)':'border-color:var(--rd);background:var(--rb)';
+  const colorName = s => s==='pass'?'color:var(--gn)':s==='warn'?'color:var(--am2)':'color:var(--rd)';
+  sec.append(div('',
+    h('h3',{},'5段脚本映射'),
+    ...(d.segments||[]).map(s => h('div', {className:'si', style:colorSeg(s.status)},
+      h('span',{className:'sil',style:colorName(s.status)},s.name),
+      h('span',{className:'sit'},s.ts),
+      h('span',{className:'sic'},s.content),
+      h('span',{className:'sis'},passIcon(s.status))
+    ))
+  ));
+  const v = d.virus;
+  const tot = (v.hook||0)+(v.save||0)+(v.share||0)+(v.watch||0)+(v.comment||0);
+  sec.append(raw('','<h3 style="margin-top:14px">病毒评分 <span style="font-family:\'IBM Plex Mono\',monospace;font-size:19px;color:var(--ac);font-weight:700;margin-left:6px">'+tot+'</span><span style="font-size:12px;color:var(--t3)">/100</span></h3>'));
+  const sb2 = div('sb');
+  [['Hook力',v.hook,20],['收藏力',v.save,20],['分享力',v.share,20],['完播力',v.watch,20],['评论力',v.comment,20]].forEach(([l,val,mx])=>{
+    const pct = (val/mx*100).toFixed(0);
+    const col = val>=16?'var(--gn)':val>=10?'var(--am2)':'var(--rd)';
+    sb2.append(div('sr', h('span',{className:'sl2'},l), div('st',h('div',{className:'sf',style:`width:${pct}%;background:${col}`})), h('span',{className:'sv'},val+'/'+mx)));
+  });
+  sec.append(sb2);
+  const passCount = (d.rules||[]).filter(r=>r.pass).length;
+  sec.append(raw('','<h3 style="margin-top:14px">硬规则检查 <span style="font-weight:700;color:var(--am2)">'+passCount+'/'+d.rules.length+' 通过</span></h3>'));
+  const rls = div('rls');
+  (d.rules||[]).forEach(r => {
+    rls.append(div('rl '+(r.pass?'pg':'fl'),
+      h('span',{className:r.pass?'pass':'fail'},r.pass?'✓':'✗'), r.text
+    ));
+  });
+  sec.append(rls);
+  sec.append(h('h3',{style:'margin-top:14px'},'修复建议'));
+  const ol = div('ol');
+  (d.fixes||[]).forEach(f => {
+    const cls = {R:'rd',A:'am',G:'gn'}[f.priority]||'am';
+    const dot = {R:'🔴',A:'🟡',G:'🟢'}[f.priority]||'🟡';
+    ol.append(div('oi '+cls, h('span',{className:'od'},dot), div('ot', raw('strong',f.title), f.detail)));
+  });
+  sec.append(ol);
+  return sec;
+}
+
+function renderStep4(d) {
+  const sec = div('sec');
+  sec.append(div('sh', div('badge','4'), h('h2',{style:'margin:0'},'互动数据分析')));
+  sec.append(raw('','<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px">'+
+    (d.rates||[]).map(r=>`<div style="background:var(--s2);border:1px solid var(--br);border-radius:var(--rs);padding:9px;text-align:center"><span style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500;color:var(--t);display:block">${r.val}</span><span style="font-size:9px;color:var(--t3);text-transform:uppercase;display:block;margin-top:1px">${r.label}</span><span style="font-size:9px;color:${r.dir==='up'?'var(--gn)':'var(--rd)'};display:block;margin-top:1px">${r.vs}</span></div>`).join('')+'</div>'));
+  sec.append(raw('','<div style="padding:12px 16px;background:var(--al);border:1px solid var(--ac);border-radius:var(--rs)"><div style="font-size:12px;font-weight:700;color:var(--ad);margin-bottom:5px">互动模式判定：<span style="font-family:\'IBM Plex Mono\',monospace">'+d.mode_title+'</span></div><div style="font-size:11px;color:var(--t2);line-height:1.6">'+d.mode_detail+'</div></div>'));
+  return sec;
+}
+
+function renderStep5(d) {
+  const sec = div('sec');
+  sec.append(div('sh', div('badge','5'), h('h2',{style:'margin:0'},'评论洞察'), raw('','<span class="pill mp" style="margin-left:auto">v3-comment-insight</span>')));
+  sec.append(div('sigrid',
+    div('sigc', h('span',{className:'sign'},String(d.n_scraped)), span('sigl','已抓取/'+d.n_total+'总计')),
+    div('sigc', h('span',{className:'sign',style:'color:var(--gn)'},d.intent_pct+'%'), span('sigl','购买意向率')),
+    div('sigc', h('span',{className:'sign',style:'color:var(--ac)'},d.reply_rate+'%'), span('sigl','创作者回复率')),
+    div('sigc', h('span',{className:'sign'},String(d.lang_count)), span('sigl','语言种类'))
+  ));
+  // Distribution
+  const db = div('db');
+  (d.dist||[]).forEach(r=>{
+    db.append(div('dr',
+      h('span',{className:'de'},r.emoji),
+      h('span',{className:'dl'},r.label),
+      div('dt', h('div',{className:'df',style:'width:'+r.pct+'%;background:'+r.color}, h('span',{className:'dc'},String(r.count)))),
+      h('span',{className:'dp'},r.pct+'%')
+    ));
+  });
+  sec.append(div('',h('h3',{},'6类评论分布'),db));
+  // Top 3
+  sec.append(h('h3',{style:'margin-top:16px'},'高赞评论 Top 3'));
+  (d.top3||[]).forEach(c=>{
+    const card = div('cc',
+      div('cch',
+        h('span',{className:'cu'},c.user),
+        h('span',{className:'cm'},'@'+c.uid+' · '+c.date),
+        h('span',{className:'cl'},'❤️ '+c.likes)
+      ),
+      h('div',{className:'ct'},'"'+c.text+'"')
+    );
+    if (c.creator_reply) {
+      card.append(div('cr', h('span',{className:'crh'},'@'+c.reply_uid+':'), ' "'+c.creator_reply+'"'));
+    } else if (c.no_reply_warn) {
+      card.append(raw('','<div style="margin-top:7px;padding:5px 10px;background:var(--rb);border:1px dashed var(--rd);border-radius:4px;font-size:10px;color:var(--rd)">⚠️ 创作者未回复此高赞评论</div>'));
+    }
+    sec.append(card);
+  });
+  // Key signals
+  sec.append(h('h3',{style:'margin-top:14px'},'关键信号'));
+  const tbl2 = h('table',{className:'tbl'},
+    h('thead',{},h('tr',{},h('th',{},'信号类型'),h('th',{},'内容'))),
+    h('tbody',{},...(d.signals||[]).map(s=>h('tr',{},h('td',{},s.type),h('td',{},s.content))))
+  );
+  sec.append(tbl2);
+  return sec;
+}
+
+function renderComprehensive(d) {
+  const sec = div('sec');
+  sec.append(div('sh', div('badge fin','综'), h('h2',{style:'margin:0'},'综合诊断 & 复制处方')));
+  // Verdict
+  sec.append(div('vb', h('div',{className:'vw'},d.verdict), h('div',{className:'vr'},d.verdict_reason)));
+  // Lifecycle
+  sec.append(h('h3',{},'生命周期分层'));
+  sec.append(h('table',{className:'tbl'},
+    h('thead',{},h('tr',{},h('th',{},'层面'),h('th',{},'阶段'),h('th',{},'说明'))),
+    h('tbody',{},...(d.lifecycle||[]).map(r=>h('tr',{},h('td',{},r.layer),h('td',{},raw('','<span class="pill '+(r.stage.includes('上升')||r.stage.includes('常青')?'gp':r.stage.includes('峰值')?'ap':'rp')+'">'+r.stage+'</span>')),h('td',{},r.note))))
+  ));
+  // 6-role
+  sec.append(h('h3',{style:'margin-top:16px'},'6角色对抗诊断'));
+  const rg = div('rg');
+  (d.roles||[]).forEach(r=>{ rg.append(div('rc', div('rn',r.icon+' '+r.name), div('rd2',r.diag))); });
+  sec.append(rg);
+  // AI
+  sec.append(h('h3',{style:'margin-top:16px'},'AI痕迹检测'));
+  const aic = div('aic');
+  (d.ai||[]).forEach(a=>{ aic.append(div('aii','✓ '+a.label)); });
+  sec.append(aic);
+  // Opts
+  sec.append(h('h3',{style:'margin-top:16px'},'优化建议（按优先级）'));
+  const ol = div('ol');
+  (d.opts||[]).forEach(f=>{
+    const cls={R:'rd',A:'am',G:'gn'}[f.priority]||'am';
+    const dot={R:'🔴',A:'🟡',G:'🟢'}[f.priority]||'🟡';
+    ol.append(div('oi '+cls, h('span',{className:'od'},dot), div('ot',raw('strong',f.title),f.detail)));
+  });
+  sec.append(ol);
+  // Frameworks
+  sec.append(h('h3',{style:'margin-top:16px'},'6框架复制处方'));
+  const fg = div('fg');
+  (d.frameworks||[]).forEach(f=>{
+    fg.append(div('fc',
+      div('fn',f.num),
+      div('ft',f.name),
+      raw('div','<div class="fs">'+f.segs.replace(/\n/g,'<br>')+'</div>'),
+      div('fw','最强维度：'+f.strongest)
+    ));
+  });
+  sec.append(fg);
+  // Reuse
+  sec.append(h('h3',{style:'margin-top:16px'},'可复用 vs 不可复用'));
+  const rug = div('rug');
+  const ruc1 = div('ruc'); ruc1.append(div('ruh can','✓ 可复用'));
+  const rui1 = div('rui');
+  (d.reuse.can||[]).forEach(t=>{ rui1.append(div('rit', h('span',{style:'color:var(--gn)'},'●'), t)); });
+  ruc1.append(rui1);
+  const ruc2 = div('ruc'); ruc2.append(div('ruh cant','✗ 不可复用'));
+  const rui2 = div('rui');
+  (d.reuse.cannot||[]).forEach(t=>{ rui2.append(div('rit', h('span',{style:'color:var(--rd)'},'●'), t)); });
+  ruc2.append(rui2);
+  rug.append(ruc1, ruc2);
+  sec.append(rug);
+  return sec;
+}
+
+function renderConclusion(c) {
+  return div('conc',
+    h('h2',{style:'font-family:"Playfair Display",serif;margin-bottom:12px'},'为什么会爆，怎么复制'),
+    raw('p','<strong>为什么会爆：</strong>'+c.why),
+    raw('p','<strong>怎么复制：</strong>'+c.how),
+  );
+}
+
+// ── Main render ────────────────────────────────
+function render(D) {
+  if (!D) return;
+  document.title = D.meta.title + ' · V3爆款拆解';
+  const app = document.getElementById('app');
+  const ld = document.getElementById('loading');
+  if (ld) ld.remove();
+
+  const fmPanel = renderFastmossPanel(D);
+  app.append(
+    renderHero(D),
+    ...(fmPanel ? [fmPanel] : []),
+    renderStep1(D.step1),
+    renderStep2(D.step2),
+    renderStep3(D.step3),
+    renderStep4(D.step4),
+    renderStep5(D.step5),
+    renderComprehensive(D.step6),
+    renderConclusion(D.conclusion),
+    div('wm', 'V3 TK 爆款拆解 · '+D.meta.handle+' · 分析日期 '+new Date().toISOString().slice(0,10))
+  );
+}
+
+// 等待数据注入
+(function wait(i){
+  if (typeof window.REPORT_DATA !== 'undefined') { render(window.REPORT_DATA); return; }
+  if (i < 50) setTimeout(()=>wait(i+1), 100);
+  else { document.getElementById('loading').textContent = '数据加载失败，请检查注入脚本'; }
+})(0);
+</script>
+

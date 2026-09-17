@@ -1,0 +1,366 @@
+"""
+TikTok Shop 评论获取工具 v5 (Production)
+策略: SeleniumBase UC模式 → SSR数据提取(评论+评分分布)
+适用: FastMoss product_review_list 返回0的小评论量商品(<500评论)
+
+输出: scripts/reviews/reviews_{product_id}.json
+数据: 3条SSR评论(含原文/评分/日期/图片) + 全量评分分布(所有评论的1-5星计数) + 平均评分
+
+用法:
+  python tiktok_review_scraper.py <product_id> [--output reviews.json]
+  python tiktok_review_scraper.py <product_id> --method http
+"""
+
+import json
+import re
+import time
+import argparse
+from pathlib import Path
+from datetime import datetime
+
+SCRIPT_DIR = Path(__file__).parent
+REVIEWS_DIR = SCRIPT_DIR / "reviews"
+
+
+def parse_ssr_data(html_or_json_str):
+    """Parse __MODERN_ROUTER_DATA__ — extracts reviews + full rating distribution."""
+    if isinstance(html_or_json_str, str) and html_or_json_str.startswith('{'):
+        data = json.loads(html_or_json_str)
+    else:
+        m = re.search(
+            r'<script\s+id="__MODERN_ROUTER_DATA__"[^>]*>(.*?)</script>',
+            html_or_json_str, re.DOTALL,
+        )
+        if not m:
+            return 0, [], {}
+        data = json.loads(m.group(1))
+
+    def find_reviews(obj, depth=0):
+        if depth > 10 or not isinstance(obj, dict):
+            return None
+        if "review_info" in obj:
+            ri = obj["review_info"]
+            if isinstance(ri, dict) and ("reviews" in ri or "product_reviews" in ri):
+                return ri
+        for v in obj.values():
+            if isinstance(v, dict):
+                r = find_reviews(v, depth + 1)
+                if r:
+                    return r
+            elif isinstance(v, list):
+                for item in v:
+                    if isinstance(item, dict):
+                        r = find_reviews(item, depth + 1)
+                        if r:
+                            return r
+        return None
+
+    ri = find_reviews(data)
+    if not ri:
+        return 0, [], {}
+
+    total = ri.get("total") or ri.get("total_reviews") or 0
+    if isinstance(total, str) and total.isdigit():
+        total = int(total)
+    raw = ri.get("reviews") or ri.get("product_reviews") or []
+
+    # Extract rating distribution from review_ratings (SSR has full data)
+    rating_meta = {}
+    rr = ri.get("review_ratings") or {}
+    if rr:
+        rc = rr.get("review_count")
+        if rc and str(rc).isdigit():
+            total = max(int(total) if isinstance(total, (int, float)) else 0, int(rc))
+        if rr.get("overall_score"):
+            rating_meta["avg_rating"] = float(rr["overall_score"])
+        rd = rr.get("rating_result") or {}
+        if rd:
+            rating_meta["rating_distribution"] = {
+                str(k): int(v) if str(v).isdigit() else 0
+                for k, v in rd.items()
+            }
+
+    reviews = []
+    for r in raw:
+        ts = r.get("review_time", "")
+        if ts and str(ts).isdigit():
+            ts_val = int(ts)
+            if ts_val > 1e12:
+                ts_val = ts_val / 1000
+            date_str = time.strftime("%Y-%m-%d", time.localtime(ts_val))
+        else:
+            date_str = str(ts) if ts else ""
+
+        images = []
+        for img in (r.get("review_images") or []):
+            if isinstance(img, str):
+                images.append(img)
+            elif isinstance(img, dict):
+                u = img.get("url") or img.get("uri") or img.get("thumb_url") or ""
+                if u:
+                    images.append(u)
+
+        reviews.append({
+            "review_id": r.get("review_id", ""),
+            "rating": r.get("review_rating"),
+            "text": r.get("review_text", ""),
+            "reviewer_name": r.get("reviewer_name", ""),
+            "review_time": date_str,
+            "is_verified_purchase": bool(r.get("is_verified_purchase")),
+            "is_incentivized": bool(r.get("is_incentivized_review")),
+            "country": r.get("review_country", ""),
+            "sku_spec": r.get("sku_specification", ""),
+            "images": images or None,
+            "source": "ssr",
+        })
+
+    return int(total) if isinstance(total, (int, float)) else 0, reviews, rating_meta
+
+
+def scrape_browser(product_id):
+    """Primary: SeleniumBase UC mode — bypasses anti-bot, extracts SSR data."""
+    try:
+        from seleniumbase import SB
+    except ImportError:
+        print("[SKIP] seleniumbase not installed")
+        return None
+
+    url = f"https://shop.tiktok.com/us/pdp/-/{product_id}"
+    all_reviews = []
+    seen = set()
+    total_reported = 0
+    rating_meta = {}
+
+    def add(reviews):
+        nonlocal all_reviews, seen
+        for r in reviews:
+            key = r.get("review_id") or (
+                r.get("review_time", "") + "|" + r.get("reviewer_name", "") + "|" + (r.get("text") or "")[:40]
+            )
+            if key and key not in seen:
+                seen.add(key)
+                all_reviews.append(r)
+
+    print(f"[Browser] Opening {url}")
+    try:
+        with SB(uc=True, headed=True, chromium_arg="--lang=en-US", disable_features="OptimizationGuideModelDownloading") as sb:
+            sb.uc_open_with_reconnect(url, reconnect_time=6)
+            sb.sleep(4)
+
+            title = sb.get_title().lower()
+            if any(w in title for w in ("security", "verify", "captcha", "check")):
+                print("[Browser] CAPTCHA detected, attempting UC click...")
+                try:
+                    sb.uc_gui_click_captcha()
+                except Exception:
+                    pass
+                sb.sleep(8)
+                title = sb.get_title().lower()
+                if any(w in title for w in ("security", "verify", "captcha")):
+                    print("[Browser] CAPTCHA not resolved, aborting browser method")
+                    return None
+
+            print(f"[Browser] Page loaded: {sb.get_title()[:60]}")
+
+            # Extract SSR data (reviews + rating distribution)
+            try:
+                ssr_text = sb.execute_script(
+                    "var el = document.getElementById('__MODERN_ROUTER_DATA__');"
+                    "return el ? el.textContent : null;"
+                )
+                if ssr_text:
+                    total_reported, ssr_reviews, rating_meta = parse_ssr_data(ssr_text)
+                    add(ssr_reviews)
+                    print(f"[SSR] {len(ssr_reviews)} reviews extracted, total reported: {total_reported}")
+                    if rating_meta.get("rating_distribution"):
+                        print(f"[SSR] Rating distribution: {rating_meta['rating_distribution']}")
+                    if rating_meta.get("avg_rating"):
+                        print(f"[SSR] Average rating: {rating_meta['avg_rating']}")
+            except Exception as e:
+                print(f"[SSR] Extraction error: {e}")
+
+    except Exception as e:
+        print(f"[Browser] Fatal error: {e}")
+        if all_reviews:
+            return build_result(product_id, all_reviews, total_reported, rating_meta)
+        return None
+
+    return build_result(product_id, all_reviews, total_reported, rating_meta)
+
+
+def scrape_http(product_id, cookies=None):
+    """Fallback: HTTP with cookies — requires Chrome closed for cookie extraction."""
+    from urllib.request import Request, urlopen
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "identity",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Upgrade-Insecure-Requests": "1",
+    }
+
+    if not cookies:
+        try:
+            import browser_cookie3
+            cj = browser_cookie3.chrome(domain_name=".tiktok.com")
+            cookies = {c.name: c.value for c in cj}
+            cj2 = browser_cookie3.chrome(domain_name="shop.tiktok.com")
+            cookies.update({c.name: c.value for c in cj2})
+            print(f"[HTTP] Extracted {len(cookies)} cookies from Chrome")
+        except Exception as e:
+            print(f"[HTTP] Cookie extraction failed: {e}")
+            print("[HINT] Close Chrome first, or use --cookies-file")
+            return None
+
+    if not cookies:
+        return None
+
+    cookie_str = "; ".join(f"{k}={v}" for k, v in cookies.items())
+    url = f"https://shop.tiktok.com/us/pdp/-/{product_id}"
+    print(f"[HTTP] Fetching {url}")
+
+    try:
+        req = Request(url, headers={**headers, "Cookie": cookie_str})
+        with urlopen(req, timeout=20) as resp:
+            charset = resp.headers.get_content_charset() or "utf-8"
+            html = resp.read().decode(charset, errors="replace")
+    except Exception as e:
+        print(f"[HTTP] Request failed: {e}")
+        return None
+
+    if "Security Check" in html or "__MODERN_ROUTER_DATA__" not in html:
+        print("[HTTP] Blocked or no SSR data")
+        return None
+
+    total, reviews, rating_meta = parse_ssr_data(html)
+    print(f"[HTTP] Extracted {len(reviews)} reviews, total: {total}")
+    return build_result(product_id, reviews, total, rating_meta)
+
+
+def build_result(product_id, reviews, total_reported, rating_meta=None):
+    """Build standardized output."""
+    unique = []
+    seen = set()
+    for r in reviews:
+        key = r.get("review_id") or (r.get("review_time", "") + r.get("reviewer_name", "") + (r.get("text") or "")[:40])
+        if key not in seen:
+            seen.add(key)
+            unique.append(r)
+
+    result = {
+        "product_id": product_id,
+        "scrape_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "total_reviews": len(unique),
+        "total_reviews_reported": total_reported,
+        "reviews": unique,
+    }
+
+    # Rating stats from scraped reviews (sample)
+    ratings = [r["rating"] for r in unique if r.get("rating") and isinstance(r["rating"], (int, float))]
+    if ratings:
+        result["avg_rating"] = round(sum(ratings) / len(ratings), 2)
+        result["rating_distribution"] = {str(s): ratings.count(s) for s in range(5, 0, -1)}
+
+    # Full rating distribution from SSR (complete data for all reviews)
+    if rating_meta:
+        if rating_meta.get("avg_rating"):
+            result["avg_rating_page"] = rating_meta["avg_rating"]
+        if rating_meta.get("rating_distribution"):
+            result["rating_distribution_page"] = rating_meta["rating_distribution"]
+
+    result["reviews_with_text"] = sum(1 for r in unique if r.get("text") and len(r["text"]) > 5)
+    result["reviews_with_images"] = sum(1 for r in unique if r.get("images"))
+    result["verified_purchases"] = sum(1 for r in unique if r.get("is_verified_purchase"))
+
+    return result
+
+
+def print_summary(result):
+    """Print human-readable summary."""
+    print(f"\n{'='*50}")
+    print(f"评论获取结果")
+    print(f"{'='*50}")
+    print(f"产品 ID: {result['product_id']}")
+    print(f"获取时间: {result['scrape_time']}")
+    print(f"获取评论: {result['total_reviews']}")
+    if result.get("total_reviews_reported"):
+        print(f"商品总评论: {result['total_reviews_reported']}")
+    if result.get("avg_rating_page"):
+        print(f"平均评分: {result['avg_rating_page']}")
+    elif result.get("avg_rating"):
+        print(f"平均评分 (样本): {result['avg_rating']}")
+    if result.get("rating_distribution_page"):
+        print("评分分布:")
+        dist = result["rating_distribution_page"]
+        total = sum(dist.values()) or 1
+        for star in ["5", "4", "3", "2", "1"]:
+            count = dist.get(star, 0)
+            pct = count / total * 100
+            bar = "#" * int(pct / 2)
+            print(f"  {star}★: {count:3d} ({pct:5.1f}%) {bar}")
+    elif result.get("rating_distribution"):
+        print("评分分布 (样本):")
+        for star in ["5", "4", "3", "2", "1"]:
+            count = result["rating_distribution"].get(star, 0)
+            total = max(result["total_reviews"], 1)
+            pct = count / total * 100
+            bar = "#" * int(pct / 2)
+            print(f"  {star}★: {count:3d} ({pct:5.1f}%) {bar}")
+    print(f"有文本: {result.get('reviews_with_text', 0)}")
+    print(f"有图片: {result.get('reviews_with_images', 0)}")
+    print(f"已验证: {result.get('verified_purchases', 0)}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="TikTok Shop 评论获取工具 v5")
+    parser.add_argument("product_id", help="TikTok Shop 产品 ID")
+    parser.add_argument("--output", "-o", type=str, default=None)
+    parser.add_argument("--method", choices=["auto", "browser", "http"], default="auto",
+                        help="auto=browser优先, browser=仅UC模式, http=仅HTTP+cookies")
+    parser.add_argument("--cookies-file", type=str, default=None)
+    args = parser.parse_args()
+
+    REVIEWS_DIR.mkdir(exist_ok=True)
+    output_path = args.output or str(REVIEWS_DIR / f"reviews_{args.product_id}.json")
+    result = None
+
+    cookies = None
+    if args.cookies_file:
+        with open(args.cookies_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        cookies = {c.get("name", c.get("key", "")): c.get("value", "") for c in data} if isinstance(data, list) else data
+        print(f"[INFO] Loaded {len(cookies)} cookies from file")
+
+    if args.method in ("auto", "browser"):
+        print("[INFO] Trying SeleniumBase UC mode...")
+        result = scrape_browser(args.product_id)
+
+    if not result and args.method in ("auto", "http"):
+        print("[INFO] Trying HTTP + cookies...")
+        result = scrape_http(args.product_id, cookies)
+
+    if not result:
+        result = {
+            "product_id": args.product_id,
+            "scrape_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "error": "all_methods_failed",
+            "total_reviews": 0,
+            "total_reviews_reported": 0,
+            "reviews": [],
+        }
+        print("[ERROR] All extraction methods failed")
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(result, f, ensure_ascii=False, indent=2)
+    print(f"\n[SAVED] {output_path}")
+
+    print_summary(result)
+    return result
+
+
+if __name__ == "__main__":
+    main()

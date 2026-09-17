@@ -1,0 +1,6 @@
+interface:
+  display_name: "lyt-detail-page"
+  short_description: "根据产品图片与已确认资料，生成完整电商商品详情页。"
+  default_prompt: "使用 $lyt-detail-page 生成商品详情页。先用带真实示例的简短模板收集资料；所有待确认信息统一放在文末「下一步」；成品版先生成并展示全部独立分屏，全部确认后再拼接详情页。"
+policy:
+  allow_implicit_invocation: false

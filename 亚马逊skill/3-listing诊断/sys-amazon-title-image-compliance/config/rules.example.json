@@ -1,0 +1,17 @@
+{
+  "title": {
+    "max_length": 200,
+    "forbidden_symbols": ["!", "$", "?", "_", "{", "}", "^", "\u00ac", "\u00a6", "~", "#", "<", ">", "*"],
+    "exempt_small_words": ["in", "on", "over", "with", "and", "or", "for", "the", "a", "an", "of", "to", "by", "from"],
+    "promo_phrases": ["free shipping", "100% quality", "best seller", "top rated", "hot item", "high quality", "free shipping worldwide", "100% quality guaranteed"],
+    "single_word_promo": ["super", "premium", "new", "best", "top", "hot", "great", "amazing", "perfect", "genuine"],
+    "preserve_case_words": ["USB", "LED", "DIY", "IPX", "TWS", "PC", "TSA", "HD", "SD", "TV", "AI", "VR", "AR", "3D", "WiFi", "iPhone", "iPad", "MacBook", "AirPods"],
+    "max_word_repeat": 2,
+    "singular_plural_as_duplicate": true
+  },
+  "image": {
+    "key_field": "sku",
+    "format": "jpg",
+    "padding": 2
+  }
+}
