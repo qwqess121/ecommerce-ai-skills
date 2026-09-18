@@ -42,7 +42,7 @@
 | # | 工作流 | 目录 | 用途 | 输入 | 输出 |
 |---|--------|------|------|------|------|
 | 1 | TK Listing 诊断 | `listing和竞品分析/` | 对单个产品做六维度全面体检 | 产品链接/ID/关键词 | HTML 诊断报告（Artifact） |
-| 2 | TK 竞品分析 | `tk竞品分析/` | 7阶段深度竞品情报分析 | 产品链接/品类关键词 | HTML 竞品报告（Artifact） |
+| 2 | TK 竞品分析 | `listing和竞品分析/` | Listing 诊断 + 竞品分析整合工作流 v6.3 | 产品链接/店铺名/关键词 | Markdown 报告（Artifact） |
 | 3 | TK 视频拆解 | `tk视频拆解/` | 拆解爆款视频的脚本结构和病毒机制 | TikTok 视频链接 | HTML 拆解报告（Artifact） |
 
 ---
@@ -99,40 +99,32 @@ Step 6  报告生成           → HTML Artifact 报告
 
 ### 入口文件
 ```
-tk竞品分析/TK竞品分析工作流.md     ← Claude 读这个文件启动
+listing和竞品分析/SKILL.md     ← Claude 读这个文件启动（本仓库竞品分析整合工作流 v6.3）
 ```
 
 ### 触发方式
 ```
-请读取 tk竞品分析/TK竞品分析工作流.md，然后帮我分析这个品类的竞品：[粘贴产品链接或品类关键词]
+请读取 listing和竞品分析/SKILL.md，然后帮我分析这个品类的竞品：[粘贴产品链接或品类关键词]
 ```
 
-### 工作流程（7阶段）
-```
-阶段1  竞品发现与地图          skill: tiktok-shop-analytics
-阶段2  产品与店铺深挖          skill: product-differentiation-tiktok
-阶段3  达人与内容策略分析      skill: tiktok-shop-analytics
-阶段4  市场定位与差异化        skill: tiktok-shop-branding
-阶段5  直播与广告渗透分析      skill: tiktok-shop-conversion
-阶段6  Listing SEO与行动计划   skill: tiktok-shop-seo
-阶段7  竞品分析报告输出        Claude Artifact（HTML仪表盘）
-```
+> 说明：原独立的 `tk竞品分析/`（TK 竞品视频对比拆解）工作流已整合进 `listing和竞品分析/`（TikTok Shop Listing 诊断 + 竞品分析，v6.3）。本仓库不再单独提供视频级对比拆解，竞品分析统一走此工作流。
 
-### 包含的 Skill 文件
-| 目录 | 作用 | 需要安装？ |
-|------|------|-----------|
-| `TK竞品分析工作流.md` | 主调度（Claude 入口） | 已包含 |
-| `tiktok-shop-analytics/` | 品类数据+达人内容分析 | 已包含 |
-| `product-differentiation-tiktok/` | 产品差异化深挖 | 已包含 |
-| `tiktok-shop-branding/` | 品牌定位与差异化 | 已包含 |
-| `tiktok-shop-conversion/` | 直播+广告渗透分析 | 已包含 |
-| `tiktok-shop-seo/` | Listing SEO 优化 | 已包含 |
-| `workbuddy-competitor-report/` | HTML 报告样式规范 | 已包含 |
+### 包含的 Skill 文件（listing和竞品分析/）
+| 文件 | 作用 |
+|------|------|
+| `SKILL.md` | 主调度（Claude 入口，唯一权威） |
+| `skills/01-数据采集.md` | FastMoss/Chrome 数据采集 |
+| `skills/02-增强竞品矩阵.md` | 竞品矩阵增强 |
+| `skills/09-竞品深度分析.md` | 竞品深度分析 |
+| `skills/10-市场定位与差异化.md` | 市场定位与差异化 |
+| `skills/11-综合评分.md` | 综合评分 |
+| `skills/12-统一报告格式.md` | HTML 报告样式规范 |
+| `skills/13-评论爬虫.md` | 评论爬虫 |
+| `skills/` 其余维度 | 标题/图片/SEO/定价/达人/合规等诊断 |
 
 ### 注意事项
-- 本工作流对 FastMoss MCP 依赖度最高（约30+次 API 调用）
-- 每个阶段的具体 FastMoss 工具调用顺序在主工作流文件中有详细说明
-- 各子 skill 可独立加载执行单个阶段
+- 本工作流对 FastMoss MCP 依赖较高（约 25-35 次 API 调用）
+- 各子 skill 可独立加载执行单个维度
 
 ---
 

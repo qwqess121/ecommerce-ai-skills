@@ -208,7 +208,7 @@ skill/
 ├── SKILLS.md                   ← 本文件（主索引，非 skill）
 ├── README.md                   ← 技术使用说明
 │
-├── tk视频拆解/                  ← 工作流1 & 2
+├── tk视频拆解/                  ← 工作流3（TK 视频拆解）
 │   ├── v3-tk-workflow/
 │   │   └── SKILL.md            ← 主入口（单视频 + 对比两种模式）
 │   ├── v3-video-scanner/       ← Step 1 视频扫描
@@ -220,7 +220,7 @@ skill/
 │   ├── extract_frames.py       ← 帧提取脚本
 │   └── inject_report.py        ← 报告数据注入脚本
 │
-├── listing和竞品分析/                      ← 工作流3
+├── listing和竞品分析/                      ← 工作流1（TK Listing 诊断）
 │   ├── SKILL.md                ← 主入口
 │   └── skills/                 ← 六维度子skill
 │
@@ -228,5 +228,5 @@ skill/
 │   ├── SKILL.md                ← 主入口
 │   └── skills/                 ← 11维度子skill
 │
-└── tk竞品分析/                  ← 旧版竞品分析（保留备用）
+└── （TK 竞品视频对比拆解已整合进 listing和竞品分析/，本仓库不单独提供）
 ```
