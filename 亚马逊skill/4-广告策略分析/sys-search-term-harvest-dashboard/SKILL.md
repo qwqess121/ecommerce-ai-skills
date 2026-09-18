@@ -1,4 +1,5 @@
 ---
+name: sys-search-term-harvest-dashboard
 description: Run a live search-term harvest analysis for an Amazon Ads account and render the results as an interactive dashboard artifact. Trigger whenever the user asks what search terms to target more specifically, wants harvesting candidates from broad or phrase keywords, asks "what should I add as new keywords", wants to find new exact-match keywords from existing performance, promote search terms to exact, expand keyword coverage, or asks "what's working in my ads that I'm not already targeting" — even without saying "dashboard". Also trigger when refreshing a previously-built harvest view or running the inverse of a wasted-ad-spend analysis (winners not losers). Uses Marketplace Ad Pros MCP tools (Amazon Ads + ask_report_analyst on sponsored_products_search_terms) to produce a sortable, filterable React artifact matching the FBA inventory and wasted-ad-spend dashboard styling.
 ---
 

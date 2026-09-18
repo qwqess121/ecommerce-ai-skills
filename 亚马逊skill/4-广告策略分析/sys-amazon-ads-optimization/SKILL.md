@@ -1,4 +1,5 @@
 ---
+name: sys-amazon-ads-optimization
 description: Amazon Advertising campaign optimization playbook and strategy guide. Use when optimizing campaigns, planning bid/budget strategy, preparing for seasonal events (Prime Day, Black Friday), managing negative keywords, or diagnosing performance problems.
 ---
 

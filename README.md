@@ -14,9 +14,9 @@
 | Claude Code | 必须 | 桌面版或 CLI 版均可 |
 | FastMoss MCP | 强烈推荐 | 提供完整 TikTok 数据（达人、销量、趋势等）。未连接时部分工作流可降级为 Chrome MCP |
 | Chrome MCP | 可选（备选） | 直接从 TikTok Shop 页面抓取公开数据，FastMoss 不可用时的降级方案 |
-| Python 3.10+ | tk-video-breakdown需要 | 用于关键帧提取和评论抓取脚本 |
-| ffmpeg | tk-video-breakdown需要 | 视频帧提取依赖 |
-| yt-dlp | tk-video-breakdown需要 | TikTok 视频下载 |
+| Python 3.10+ | tk视频拆解需要 | 用于关键帧提取和评论抓取脚本 |
+| ffmpeg | tk视频拆解需要 | 视频帧提取依赖 |
+| yt-dlp | tk视频拆解需要 | TikTok 视频下载 |
 
 ### 安装 Skill
 
@@ -41,9 +41,9 @@
 
 | # | 工作流 | 目录 | 用途 | 输入 | 输出 |
 |---|--------|------|------|------|------|
-| 1 | TK Listing 诊断 | `tiktok-listing-analysis/` | 对单个产品做六维度全面体检 | 产品链接/ID/关键词 | HTML 诊断报告（Artifact） |
+| 1 | TK Listing 诊断 | `listing和竞品分析/` | 对单个产品做六维度全面体检 | 产品链接/ID/关键词 | HTML 诊断报告（Artifact） |
 | 2 | TK 竞品分析 | `tk竞品分析/` | 7阶段深度竞品情报分析 | 产品链接/品类关键词 | HTML 竞品报告（Artifact） |
-| 3 | TK 视频拆解 | `tk-video-breakdown/` | 拆解爆款视频的脚本结构和病毒机制 | TikTok 视频链接 | HTML 拆解报告（Artifact） |
+| 3 | TK 视频拆解 | `tk视频拆解/` | 拆解爆款视频的脚本结构和病毒机制 | TikTok 视频链接 | HTML 拆解报告（Artifact） |
 
 ---
 
@@ -51,12 +51,12 @@
 
 ### 入口文件
 ```
-tiktok-listing-analysis/SKILL.md          ← Claude 读这个文件启动整个工作流
+listing和竞品分析/SKILL.md          ← Claude 读这个文件启动整个工作流
 ```
 
 ### 触发方式
 ```
-请读取 tiktok-listing-analysis/SKILL.md，然后帮我诊断这个 TikTok Shop 产品：[粘贴产品链接]
+请读取 listing和竞品分析/SKILL.md，然后帮我诊断这个 TikTok Shop 产品：[粘贴产品链接]
 ```
 
 ### 工作流程（6步）
@@ -140,18 +140,18 @@ tk竞品分析/TK竞品分析工作流.md     ← Claude 读这个文件启动
 
 ### 入口文件
 ```
-tk-video-breakdown/v3-tk-workflow/SKILL.md     ← Claude 读这个文件启动
+tk视频拆解/v3-tk-workflow/SKILL.md     ← Claude 读这个文件启动
 ```
 
 ### 触发方式
 ```
-请读取 tk-video-breakdown/v3-tk-workflow/SKILL.md，然后帮我拆解这个 TikTok 视频：[粘贴视频链接]
+请读取 tk视频拆解/v3-tk-workflow/SKILL.md，然后帮我拆解这个 TikTok 视频：[粘贴视频链接]
 ```
 
 ### 首次使用需要安装
 第一次使用前，让 Claude 读取安装说明：
 ```
-请读取 tk-video-breakdown/README_CLAUDE.md，帮我安装视频拆解工具到当前项目
+请读取 tk视频拆解/README_CLAUDE.md，帮我安装视频拆解工具到当前项目
 ```
 
 安装会自动完成：复制文件到 `.claude/skills/`、检查 Python/ffmpeg/yt-dlp 依赖、安装 Playwright。
@@ -193,10 +193,10 @@ playwright install chromium
 ## 常见问题
 
 ### Q: FastMoss 余额不足怎么办？
-TK Listing 诊断 可以自动降级为 Chrome MCP 模式（数据有限但能完成诊断）。tk竞品分析 和 tk-video-breakdown 对 FastMoss 依赖较重，建议充值后使用。
+TK Listing 诊断 可以自动降级为 Chrome MCP 模式（数据有限但能完成诊断）。tk竞品分析 和 tk视频拆解 对 FastMoss 依赖较重，建议充值后使用。
 
 ### Q: 三个工作流可以对同一个产品一起跑吗？
-可以，建议顺序：先跑 TK Listing 诊断（了解产品本身）→ 再跑 tk竞品分析（了解竞争格局）→ 最后挑竞品爆款视频跑 tk-video-breakdown。
+可以，建议顺序：先跑 TK Listing 诊断（了解产品本身）→ 再跑 tk竞品分析（了解竞争格局）→ 最后挑竞品爆款视频跑 tk视频拆解。
 
 ### Q: 员工需要看什么来理解报告？
 每个工作流生成的 HTML 报告（Artifact）是自包含的，不需要额外知识就能看懂。分享 Artifact 链接即可。
@@ -219,7 +219,7 @@ Claude 生成报告后会给出一个 Artifact 链接（`https://claude.ai/code/
 
 ## Cookie 配置（评论爬虫可选）
 
-`tiktok-listing-analysis/scripts/tiktok_cookies.json` **不包含在本仓库中**（含真实登录态 Cookie，已加入 `.gitignore`）。
+`listing和竞品分析/scripts/tiktok_cookies.json` **不包含在本仓库中**（含真实登录态 Cookie，已加入 `.gitignore`）。
 
 评论爬虫默认走浏览器 UC 模式，无需 Cookie。只有在 UC 模式失败、需要回退到 HTTP 模式时才用到：
 
@@ -239,7 +239,9 @@ python tiktok_review_scraper.py <product_id> --mode http --cookies-file tiktok_c
 
 ## Agent Skills 规范适配（2026-09 更新）
 
-本仓库已按 [Agent Skills 开放标准](https://agentskills.io/specification) 全量校验并修正，**68 个 SKILL.md 全部合规**，可直接用于 Claude Code、Claude 网页版及其他支持该标准的 Agent 产品。
+本仓库的 **叶子 skill 目录（含 `SKILL.md` 的目录）均为英文且 `name` 与目录同名**，符合 [Agent Skills 开放标准](https://agentskills.io/specification)，可直接用于 Claude Code 及其他支持该标准的 Agent 产品。
+
+> 说明：外层**分类目录使用中文**（`亚马逊skill/`、`tk视频拆解/`、`listing和竞品分析/`）。本仓库目标运行环境是 **Claude Code（读取本地文件）**，中文目录名可正常加载；Claude 网页版才强制要求纯英文目录名，本仓库不依赖网页版上传。
 
 ### 校验规则
 
@@ -252,7 +254,7 @@ python tiktok_review_scraper.py <product_id> --mode http --cookies-file tiktok_c
 
 | 变更 | 说明 |
 |------|------|
-| 目录重命名 | `tk视频拆解/` → `tk-video-breakdown/`、`listing和竞品分析/` → `tiktok-listing-analysis/`（中文目录名不符合 name 规范，无法作为 skill 上传） |
+| 目录命名 | 保留中文外层分类目录（`亚马逊skill/`、`tk视频拆解/`、`listing和竞品分析/`）；仅叶子 skill 目录为英文且 `name` 与目录同名，符合规范。原因：目标运行环境为 Claude Code（读取本地文件），中文目录名可正常加载；网页版上传才强制纯英文目录名 |
 | 补全 frontmatter | 41 个 SKILL.md 补齐 `name` 或压缩 `description` 至 200 字符内 |
 | 修正 name 不匹配 | `sys-amazon-listing-optimization`、`sys-amazon-title-image-compliance`、`sys-amazon-ads-marketplace` |
 | 总索引降级 | 原根目录 `SKILL.md` → `SKILLS.md`（它是导航文档，不参与 skill 加载） |
@@ -276,4 +278,4 @@ amazon-fba-calculator.zip
 
 4. 数据源需在 `Settings → Connectors → "+" → Add custom connector` 单独添加（如 FastMoss 的远程 MCP 地址）
 
-**网页版限制**：无本地文件系统、无 ffmpeg/yt-dlp，因此 `tk-video-breakdown` 的视频画面采集步骤无法在网页版执行；`亚马逊skill` 这类方法论文档型 skill 不受影响。
+**网页版限制**：无本地文件系统、无 ffmpeg/yt-dlp，因此 `tk视频拆解` 的视频画面采集步骤无法在网页版执行；`亚马逊skill` 这类方法论文档型 skill 不受影响。

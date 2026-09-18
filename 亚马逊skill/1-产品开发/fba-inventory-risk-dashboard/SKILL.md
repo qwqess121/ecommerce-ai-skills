@@ -1,4 +1,5 @@
 ---
+name: fba-inventory-risk-dashboard
 description: Run a live FBA inventory health check that surfaces at-risk SKUs alongside product names, inbound replenishment, reserved stock, and effective days of supply (post-inbound) — rendered as an interactive dashboard artifact. Trigger this whenever the user asks about FBA inventory, stockout risk, days of supply, replenishment, inbound shipments, "what's running low", "what should I reorder", or wants any kind of inventory health view — even if they don't explicitly say "dashboard". Prefer this skill over a basic at-risk view whenever inbound context, product identification, or replenishment timing might matter — which is almost always for an active seller. Also trigger when the user wants to refresh a previously-built inventory pipeline view, or asks to "run the inventory check again". Uses the Marketplace Ad Pros MCP tools (Selling Partner integrations + ask_selling_partner_report_analyst) to query live data.
 ---
 
