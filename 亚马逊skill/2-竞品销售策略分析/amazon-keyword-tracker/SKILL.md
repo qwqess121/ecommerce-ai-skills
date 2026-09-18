@@ -1,6 +1,6 @@
 ---
 name: amazon-keyword-tracker
-description: "Amazon keyword position and SERP tracking with competitor movement alerts. Use when asked about keyword monitoring, rank tracking, or search performance."
+description: "Amazon keyword position monitoring and SERP analysis. Real-time position tracking, competitor movement alerts, search result changes, and keyword performance optimization. Use when the user asks about keyword monitoring, SERP tracking, position alerts, or search performance analysis."
 metadata: {"nexscope":{"emoji":"🎯","category":"amazon"}}
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: amazon-price-tracker
-description: "Amazon price monitoring and pricing intelligence: price tracking, Buy Box analysis, promo detection. Use when asked about price monitoring or competitor pricing."
+description: "Amazon price monitoring and competitive pricing intelligence. Real-time price tracking, Buy Box analysis, promotion detection, and dynamic pricing strategy optimization. Use when the user asks about price monitoring, competitor pricing, Buy Box tracking, or pricing strategy."
 metadata: {"nexscope":{"emoji":"💰","category":"amazon"}}
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: amazon-competitor-monitoring
-description: "Monitor Amazon competitor pricing, inventory, launches, review velocity, and ad patterns. Use when tracking competitors or setting up competitive benchmarks."
+description: "Amazon competitor monitoring and competitive intelligence for sellers. Track pricing changes, inventory levels, new product launches, review velocity, and advertising patterns for competitor ASINs. Set up monitoring alerts for price drops, stock-outs, and market changes. Works on 12 Amazon marketplaces. No API key required. Use when: (1) monitoring competitor pricing strategies, (2) tracking competitor inventory and stock patterns, (3) detecting new product launches in your category, (4) analyzing competitor review velocity and ratings, (5) identifying market opportunities from competitor gaps, (6) setting up competitive alerts and benchmarks."
 metadata: {"nexscope":{"emoji":"🔍","category":"amazon"}}
 ---
 

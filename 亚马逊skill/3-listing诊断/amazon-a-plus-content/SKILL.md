@@ -1,6 +1,6 @@
 ---
 name: amazon-a-plus-content
-description: "Amazon A+ Content strategy and creation: module layouts, comparison charts, copy, image briefs. Use when asked about A+ Content, EBC, or listing enhancement."
+description: "Amazon A+ Content strategy and creation. Module layouts, persuasive copy, comparison charts, image briefs, and conversion optimization. Use when the user asks about A+ Content, Enhanced Brand Content, product storytelling, or Amazon listing enhancement."
 metadata: {"nexscope":{"emoji":"🎨","category":"amazon"}}
 ---
 

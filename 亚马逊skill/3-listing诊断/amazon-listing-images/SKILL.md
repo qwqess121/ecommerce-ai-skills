@@ -1,6 +1,6 @@
 ---
 name: amazon-listing-images
-description: "Amazon listing image strategy: shot planning, infographic design, lifestyle photos, mobile optimization. Use when asked about listing images or visual conversion."
+description: "Amazon product listing image strategy and optimization. Comprehensive shot planning, infographic design, lifestyle photography, mobile optimization, and conversion-focused visual content. Use when the user asks about Amazon images, product photography, visual optimization, or listing conversion."
 metadata: {"nexscope":{"emoji":"📸","category":"amazon"}}
 ---
 

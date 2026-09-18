@@ -1,6 +1,5 @@
 ---
-name: sys-wasted-ad-spend-dashboard
-description: "Live wasted-ad-spend analysis as an interactive dashboard: high-cost zero-conversion search terms and negative keyword candidates. Use when auditing ad budget waste."
+description: Run a live wasted-ad-spend analysis for an Amazon Ads account and render the results as an interactive dashboard artifact. Trigger this skill whenever the user asks about wasted ad spend, search term inefficiency, "where am I bleeding money", "what's costing me clicks without sales", money leaks in sponsored ads, high-cost search terms with no conversions, or anything related to ad budget waste — even if they don't explicitly say "dashboard". Also trigger when the user wants candidates for negative keywords based on poor search-term performance, wants to refresh a previously-built waste view, or asks Claude to "run the waste check again". Uses the Marketplace Ad Pros MCP tools (Amazon Ads brands/profiles + ask_report_analyst on sponsored_products_search_terms) to query live data and produces a sortable, filterable React artifact in the same editorial-financial design language as the FBA inventory risk dashboard.
 ---
 
 # Wasted Ad Spend Dashboard

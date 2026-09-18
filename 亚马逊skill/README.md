@@ -1,7 +1,8 @@
 # Amazon Skill 工具库
 
 > AB America Corp / HOOGALIFE — Amazon US 运营工具包
-> 60个 Skill，按6大模块分类，供 Claude Code 自动执行
+> 46个 Skill，按6大模块分类，供 Claude Code 自动执行
+> 2026-09-16 重构：原60个skill精简为46个，删除2个重复/被覆盖的skill，把14个同构的框架型skill合并成3个带模式切换的skill（详见各模块SKILL.md的重构说明）
 
 ---
 
@@ -11,36 +12,31 @@
 |---------|---------|---------|
 | SIF (sif-mcp) | 流量分析 + 广告分析 + 市场分析 | `ops_get_listing_*`, `ads_get_asin_*`, `market_*` |
 | 卖家精灵 (237a35ba) | 产品/市场/关键词/竞品研究 | `asin_detail`, `keyword_research`, `market_research` |
-| LingXing 领星 | ERP 数据（成本/利润/库存） | `action`, `search` |
+| LingXing 领星 | ERP 真实数据（成本/利润/库存/广告花费），276个业务工具，help→search→action调用 | `query_order_profit_list_gross_profit`（真实毛利）等 |
 | Brightdata | 网页抓取/竞品 Listing 全文 | `competitive-intel`, `scrape` |
 | Canva (2dc429e6) | 设计素材生成 | `generate-design`, `edit-design` |
+
+**⚠️ 关键教训（2026-09-16实测）**：卖家精灵`market_research`给出的类目平均利润估算（52%）跟领星ERP真实数据（11%，其中一款低至3.48%）能差5倍以上。任何利润/毛利率结论，优先用领星真实数据，类目估算值只能标注为参考，不能作为Go/No-Go判断依据。
 
 ---
 
 ## 模块总览
 
-### 1-产品开发（16个 skill）
+### 1-产品开发（9个 skill）
 
-选品→验证→成本测算→合规检查 全链路
+新品决策链（niche-finder→product-research→trending-products→lyt-product-selection→lyt-product-validation）+ 存量产品运营工具（financials/strategy-advisor/deal-finder/inventory-dashboard），详见模块内SKILL.md的"线A/线B"说明。
 
 | Skill | 用途 | 搭配 MCP |
 |-------|------|---------|
 | amazon-niche-finder | 细分市场发现 | 卖家精灵 `market_research` |
 | amazon-product-research | 产品深度调研 | 卖家精灵 `asin_detail` + `product_research` |
 | amazon-trending-products | 趋势品发现 | 卖家精灵 `market_product_demand_trend` |
-| amazon-sales-estimator | 销量预估 | 卖家精灵 `asin_sales_trend` |
-| amazon-fba-calculator | FBA 费用计算 | 领星 ERP 成本数据 |
-| amazon-profit-analyzer | 利润分析 | 领星 ERP + 卖家精灵 |
-| amazon-private-label | 自有品牌选品 | 卖家精灵 `market_brand_concentration` |
-| amazon-product-bundling | 捆绑策略 | 卖家精灵 `asin_competitor` |
-| amazon-variation-strategy | 变体策略 | 卖家精灵 `asin_detail` |
-| amazon-deal-finder | 促销机会发现 | Brightdata 价格监控 |
-| amazon-category-ungating | 类目解锁指南 | — |
-| amazon-product-compliance | 合规检查 | — |
-| amazon-wholesale-sourcing | 批发选品 | — |
-| fba-inventory-risk-dashboard | 库存风险看板 | 领星 ERP |
-| lyt-product-selection | AI 选品框架 | 卖家精灵全套 |
-| lyt-product-validation | 产品验证 | SIF `market_evaluate_niche` |
+| lyt-product-selection | 从0选品/自有资产核查 | 卖家精灵全套 |
+| lyt-product-validation | 产品7维验证 | SIF `market_evaluate_niche` |
+| amazon-product-financials | 销量估算+FBA成本+真实利润（合并自3个skill） | 领星ERP真实毛利 + 卖家精灵 |
+| amazon-product-strategy-advisor | 品牌/捆绑/变体/解锁/合规/采购6模式（合并自6个skill） | 卖家精灵 + Brightdata + 领星 |
+| amazon-deal-finder | 促销机会发现 | 领星ERP + 卖家精灵 |
+| fba-inventory-risk-dashboard | 库存风险看板（全自动） | SP-API |
 
 ### 2-竞品销售策略分析（10个 skill）
 
@@ -59,7 +55,7 @@
 | amazon-price-tracker | 价格追踪 | Brightdata 抓取 |
 | amazon-repricing-strategy | 定价策略 | 领星 ERP + 卖家精灵 |
 
-### 3-Listing诊断（9个 skill）
+### 3-Listing诊断（7个 skill）
 
 审计→优化→关键词→图片→A+ 全流程
 
@@ -67,12 +63,10 @@
 |-------|------|---------|
 | amazon-listing-optimization | Listing 审计+改写双模式 | SIF `ops_get_listing_*` |
 | sys-amazon-listing-audit | [已安装] Listing 质量审计 | SIF 流量数据 |
-| sys-amazon-listing-optimization | [已安装] Listing 优化 | SIF 关键词分布 |
 | amazon-backend-keywords | 后台搜索词优化 | 卖家精灵 `keyword_research` |
 | amazon-search-optimization | 搜索排名优化 | SIF `market_get_keyword_demand` |
 | amazon-listing-images | 主图优化指南 | Canva 设计生成 |
 | amazon-a-plus-content | A+页面制作 | Canva + Brightdata 抓竞品 A+ |
-| amazon-enhanced-brand-content | EBC 品牌内容 | Canva |
 | sys-amazon-title-image-compliance | [已安装] 标题图片合规 | — |
 
 ### 4-广告策略分析（11个 skill）
@@ -107,19 +101,14 @@ PPC结构→出价→否词→DSP→分时 全覆盖
 | lyt-image-prompt | AI 图片提示词 | Canva `generate-design` |
 | lyt-video-script | 视频脚本生成 | — |
 
-### 6-站外营销自动化（7个 skill）
+### 6-站外营销自动化（2个 skill）
 
-促销→Vine→Subscribe&Save→季节规划
+促销→Vine→Subscribe&Save→季节规划→Buy Box
 
 | Skill | 用途 | 搭配 MCP |
 |-------|------|---------|
-| amazon-brand-tailored-promotions | 品牌定向促销 | — |
-| amazon-vine-program | Vine 评论计划 | — |
-| amazon-coupon-strategy | 优惠券策略 | — |
-| amazon-review-strategy | 评论策略 | — |
-| amazon-subscribe-save | 订阅省策略 | — |
-| amazon-seasonal-planning | 季节营销规划 | — |
-| amazon-buy-box | Buy Box 策略 | 卖家精灵 + 领星 |
+| amazon-lifecycle-marketing | 品牌促销/Vine/优惠券/评论/季节性/S&S 6模式（合并自6个skill） | 卖家精灵 + 领星ERP + sys-amazon-ads |
+| amazon-buy-box | Buy Box 策略 | 卖家精灵 + 领星ERP |
 
 ---
 
@@ -132,7 +121,7 @@ PPC结构→出价→否词→DSP→分时 全覆盖
 然后帮我分析这个竞品 ASIN: B0XXXXXXX
 ```
 
-或者直接说自然语言，Claude 会根据已安装的 system skill 自动路由。
+或者直接说自然语言，Claude 会根据已安装的 system skill 自动路由。合并后的skill（`amazon-product-financials`、`amazon-product-strategy-advisor`、`amazon-lifecycle-marketing`）需要先说明或描述场景以确定模式。
 
 ---
 
@@ -140,9 +129,10 @@ PPC结构→出价→否词→DSP→分时 全覆盖
 
 | 来源 | 数量 | 说明 |
 |------|------|------|
-| [nexscope-ai/Amazon-Skills](https://github.com/nexscope-ai/Amazon-Skills) | 52 | MIT 开源，Claude Code 原生格式 |
+| [nexscope-ai/Amazon-Skills](https://github.com/nexscope-ai/Amazon-Skills) | 原52 | MIT 开源，Claude Code 原生格式，重构后部分合并 |
 | 已安装 System Skills | 8 | 通过 `npx skills add` 安装的全局 skill |
+| 自建合并skill | 3 | `amazon-product-financials`、`amazon-product-strategy-advisor`、`amazon-lifecycle-marketing` |
 
 ---
 
-*最后更新: 2026-09-17*
+*最后更新: 2026-09-16（结构重构）*

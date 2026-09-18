@@ -1,6 +1,5 @@
 ---
-name: sys-amazon-dsp
-description: "Analyze Amazon DSP campaigns via the Marketplace Ad Pros MCP server: line items, halo sales, NTB, reach, frequency, audiences. Use when asked about DSP or programmatic ads."
+description: Guide for analyzing and managing Amazon DSP (programmatic display, video, and audio) campaigns through the Marketplace Ad Pros MCP server. Use whenever the user mentions DSP, programmatic, line items, halo sales, new-to-brand (NTB), reach, frequency, audience targeting, video creatives, conversion source, or any Amazon ad spend that lives outside Sponsored Products / Sponsored Brands / Sponsored Display. Also use when the user asks about agency-managed Amazon advertising or wants to find the highest-funnel acquisition channels.
 ---
 
 # Amazon DSP Skill

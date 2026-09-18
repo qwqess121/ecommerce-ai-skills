@@ -1,6 +1,6 @@
 ---
 name: amazon-competitor-analysis
-description: "Full-spectrum Amazon competitor analysis: listings, pricing, reviews, ads, positioning. Use when asked about competitor research, ASIN comparison, or beating rivals."
+description: "Full-spectrum Amazon competitor analysis. Compare listings, pricing, reviews, advertising strategy, and market positioning against direct competitors. Identify weaknesses to exploit and strengths to counter. Use when the user asks about competitor analysis, competitive research, ASIN comparison, pricing analysis, or how to beat competitors on Amazon."
 metadata: {"nexscope":{"emoji":"🏆","category":"amazon"}}
 ---
 

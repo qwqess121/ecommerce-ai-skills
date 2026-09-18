@@ -1,6 +1,6 @@
 ---
 name: amazon-product-research
-description: "Validate Amazon product ideas: demand, competition, profit potential, entry barriers. Use when asked to research a product, validate an idea, or assess market viability."
+description: "Comprehensive product research and opportunity analysis for Amazon sellers. Analyzes demand, competition, profit potential, market entry barriers, and validates product ideas. Covers product sourcing, pricing strategy, and go-to-market planning. Use when the user asks about researching a product to sell, validating product ideas, product opportunity analysis, market research for Amazon, competition analysis, profit potential, should I sell this product, product viability, or any general product research questions."
 metadata: {"nexscope":{"emoji":"🔍","category":"amazon"}}
 ---
 

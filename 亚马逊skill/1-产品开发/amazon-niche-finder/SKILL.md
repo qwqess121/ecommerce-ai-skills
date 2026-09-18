@@ -1,6 +1,6 @@
 ---
 name: amazon-niche-finder
-description: "Find profitable underserved Amazon niches with high demand and low competition. Use when asked about niches, market gaps, blue ocean opportunities, or what market to enter."
+description: "Profitable niche discovery for Amazon sellers. Identifies underserved markets with high demand but low competition. Analyzes market gaps, emerging segments, and untapped opportunities across categories. Use when the user asks about finding niches, profitable markets, underserved segments, market gaps, blue ocean opportunities, niche research, or what markets to enter on Amazon."
 metadata: {"nexscope":{"emoji":"🎯","category":"amazon"}}
 ---
 

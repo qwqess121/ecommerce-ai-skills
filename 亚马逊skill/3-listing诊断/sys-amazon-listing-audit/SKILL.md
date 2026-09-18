@@ -1,6 +1,5 @@
 ---
-name: sys-amazon-listing-audit
-description: "Audit Amazon listings for quality, compliance, and risk: RUFUS scoring, hijacking, suppression, banned claims, buy box loss. Use when checking listing health."
+description: Guide for auditing Amazon Seller Central and Vendor Central listings for quality, compliance, and security issues through the Marketplace Ad Pros MCP server. Use whenever the user mentions listing audits, RUFUS scoring, hijacking, suppressed listings, banned claims, listing quality, missing variations, search term safety, listing health, or anything related to whether their Amazon product pages are healthy, optimized, or at risk. Also use when the user wants to find out why a listing might be losing the buy box, getting suppressed, or under-converting despite ad spend.
 ---
 
 # Amazon Listing Audit Skill

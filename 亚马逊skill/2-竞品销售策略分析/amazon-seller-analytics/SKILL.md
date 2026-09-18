@@ -1,6 +1,6 @@
 ---
 name: amazon-seller-analytics
-description: "Amazon seller storefront analysis: revenue estimation, product portfolio, growth trajectory. Use when asked to analyze a seller, estimate revenue, or study strategies."
+description: "Seller storefront analysis and competitive intelligence for Amazon. Analyzes seller revenue estimation, product portfolio strategy, growth trajectory, and market positioning. Reverse-engineer successful seller strategies and identify expansion opportunities. Use when the user asks about analyzing sellers, competitor seller analysis, seller revenue estimation, storefront analysis, seller strategy, or learning from successful Amazon sellers."
 metadata: {"nexscope":{"emoji":"📊","category":"amazon"}}
 ---
 

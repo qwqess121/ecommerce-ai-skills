@@ -1,6 +1,6 @@
 ---
 name: amazon-review-analyzer
-description: "Deep Amazon review analysis: sentiment patterns, complaints, and feature requests as product insights. Use when asked about review analysis or customer feedback."
+description: "Deep Amazon review analysis for competitive intelligence and product improvement. Extract sentiment patterns, recurring complaints, feature requests, and competitive insights from customer feedback. Turn reviews into actionable product development and marketing strategies. Use when the user asks about review analysis, customer feedback, product complaints, sentiment analysis, or what customers think about products."
 metadata: {"nexscope":{"emoji":"💬","category":"amazon"}}
 ---
 

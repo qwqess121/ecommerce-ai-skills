@@ -1,6 +1,6 @@
 ---
 name: amazon-product-photography
-description: "Plan Amazon product photography: shot lists, image sets, infographics, lifestyle scenes, and budgets. Use when asked for photo briefs or creative direction."
+description: Plan shoot-ready Amazon product photography, listing image sets, infographics, lifestyle scenes, and production briefs. Use when a seller asks for an Amazon photo shot list, creative direction, image-pack plan, photography budget, DIY-versus-done-for-you decision, or handoff to a photographer or image-generation workflow. Do not use for listing copy or image-only performance auditing.
 ---
 
 # Amazon Product Photography

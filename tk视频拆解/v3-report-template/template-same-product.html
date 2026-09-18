@@ -1,0 +1,471 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>{{商品名}} 竞品对比</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FFFFFF;
+  --bg-alt: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --text: #111827;
+  --text-mid: #4B5563;
+  --text-light: #9CA3AF;
+  --border: #E5E7EB;
+  --orange: #F97316;
+  --orange-bg: #FFF7ED;
+  --blue: #2563EB;
+  --blue-bg: #EFF6FF;
+  --purple: #7C3AED;
+  --purple-bg: #F5F3FF;
+  --green: #059669;
+  --green-bg: #ECFDF5;
+  --red: #DC2626;
+  --red-bg: #FEF2F2;
+  --yellow: #D97706;
+  --yellow-bg: #FFFBEB;
+  --shadow: 0 1px 3px rgba(0,0,0,.08);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,.1);
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F172A;--bg-alt:#1E293B;--bg-card:#1E293B;--text:#F1F5F9;--text-mid:#94A3B8;--text-light:#64748B;--border:#334155;
+  --orange-bg:#431407;--blue-bg:#172554;--purple-bg:#2E1065;--green-bg:#052E16;--red-bg:#450A0A;--yellow-bg:#451A03;
+  --shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 4px 12px rgba(0,0,0,.4);
+}}
+:root[data-theme="dark"]{
+  --bg:#0F172A;--bg-alt:#1E293B;--bg-card:#1E293B;--text:#F1F5F9;--text-mid:#94A3B8;--text-light:#64748B;--border:#334155;
+  --orange-bg:#431407;--blue-bg:#172554;--purple-bg:#2E1065;--green-bg:#052E16;--red-bg:#450A0A;--yellow-bg:#451A03;
+  --shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 4px 12px rgba(0,0,0,.4);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:15px;line-height:1.75;max-width:1200px;margin:0 auto;padding:24px 20px}
+h1,h2,h3{font-family:'Syne',sans-serif;font-weight:700}
+.mono{font-family:'JetBrains Mono',monospace}
+
+.block-header{display:flex;align-items:center;gap:12px;margin:48px 0 20px;padding-bottom:12px;border-bottom:2px solid var(--border)}
+.block-num{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:#fff;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.block-header h2{font-size:20px;letter-spacing:-.02em}
+
+.hero{background:linear-gradient(135deg,var(--orange),var(--purple));padding:40px 32px;border-radius:16px;color:#fff;margin-bottom:8px}
+.hero h1{font-size:28px;letter-spacing:-.03em;margin-bottom:6px;text-wrap:balance}
+.hero-sub{opacity:.9;font-size:15px;margin-bottom:20px}
+.hero-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px}
+.hero-stat{background:rgba(255,255,255,.15);border-radius:10px;padding:14px 16px;backdrop-filter:blur(4px)}
+.hero-stat .label{font-size:12px;opacity:.8;text-transform:uppercase;letter-spacing:.06em}
+.hero-stat .val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.tag{font-size:12px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.2)}
+
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+
+/* 转置矩阵表：指标竖排，达人横排 —— 15列需要整页宽度，故突破1200px容器 */
+.wide-wrap{width:min(calc(100vw - 56px),1560px);margin-left:50%;transform:translateX(-50%)}
+.matrix{min-width:1180px;font-size:13.5px}
+.matrix th,.matrix td{padding:12px 12px;border-bottom:1px solid var(--border);text-align:center;white-space:nowrap;vertical-align:middle}
+.matrix thead th{background:var(--bg-alt);font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;vertical-align:middle;padding:14px 12px;border-bottom:2px solid var(--border)}
+.matrix thead th .rank{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text);display:block}
+
+/* 达人对照条：handle 从表头移出，避免19字符名字挤在92px列里 */
+.crew{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.crew a{display:inline-flex;align-items:baseline;gap:7px;font-size:13.5px;padding:6px 13px;border-radius:20px;background:var(--bg-card);border:1px solid var(--border);color:var(--text);text-decoration:none;box-shadow:var(--shadow)}
+.crew a:hover{border-color:var(--blue)}
+.crew a .n{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--blue)}
+.crew a.is-ours{background:var(--green-bg);border-color:var(--green);font-weight:600}
+.crew a.is-ours .n{color:var(--green)}
+.crew-hint{font-size:12.5px;color:var(--text-light);margin-bottom:8px}
+.matrix tr.wrapok td{white-space:normal;line-height:1.35}
+
+/* 中英对照拍摄脚本 */
+.script{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-top:12px}
+.script h5{font-family:'Syne',sans-serif;font-size:14.5px;font-weight:700;margin-bottom:12px;color:var(--purple)}
+.beat{padding:10px 0;border-top:1px solid var(--border)}
+.beat:first-of-type{border-top:none;padding-top:0}
+.bt{font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600;color:var(--blue)}
+.bl{font-size:12px;font-weight:700;color:var(--purple);margin-left:8px;letter-spacing:.03em}
+.beat .en{font-size:14.5px;line-height:1.65;margin-top:5px;color:var(--text);font-weight:500}
+.beat .cn{font-size:13.5px;line-height:1.7;margin-top:3px;color:var(--text-mid)}
+.beat .dir{color:var(--text-light);font-size:12.5px}
+.matrix .rowlab{position:sticky;left:0;z-index:2;background:var(--bg-card);text-align:left;font-weight:600;font-size:13px;text-transform:none;letter-spacing:0;color:var(--text);border-right:1px solid var(--border);min-width:140px;padding-left:16px}
+.matrix thead .rowlab{background:var(--bg-alt);z-index:3;color:var(--text-mid)}
+.matrix tbody tr:hover .rowlab{background:var(--bg-alt)}
+.matrix .ours{background:var(--green-bg)}
+.matrix thead .ours a{color:var(--green)}
+.matrix .agg{background:var(--bg-alt)}
+.matrix .val{font-family:'JetBrains Mono',monospace;font-size:13px}
+.matrix tr.sec th{background:var(--bg-alt);text-align:left;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:none;color:var(--text-light);padding:11px 16px}
+.pri-legend{font-size:13px!important;gap:20px!important;margin-bottom:10px!important}
+.matrix tfoot td{font-size:12px!important;line-height:1.8;padding:14px 16px}
+.matrix .gap-b{color:var(--green);font-weight:600}
+.matrix .gap-w{color:var(--red);font-weight:600}
+.matrix .gap-n{color:var(--text-mid)}
+
+/* 行动方案条目：优先级标签内联 */
+.act{border-left:3px solid var(--border);background:var(--bg-alt);border-radius:0 6px 6px 0;padding:12px 16px;margin-top:10px;font-size:14px;line-height:1.8}
+.act .pri{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;margin-right:9px;white-space:nowrap}
+.act-copy{border-left-color:var(--green)}
+.act-copy .pri{background:var(--green-bg);color:var(--green)}
+.act-eval{border-left-color:var(--yellow)}
+.act-eval .pri{background:var(--yellow-bg);color:var(--yellow)}
+.act-no{border-left-color:var(--red)}
+.act-no .pri{background:var(--red-bg);color:var(--red)}
+.act-no{color:var(--text-mid)}
+.pri-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--text-mid);margin-bottom:4px}
+th{background:var(--bg-alt);font-weight:600;text-align:left;padding:12px 14px;border-bottom:2px solid var(--border);white-space:nowrap;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-mid)}
+td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr.highlight{background:var(--orange-bg);font-weight:600}
+tr:hover{background:var(--bg-alt)}
+
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.card-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
+.badge{font-size:12px;padding:4px 10px;border-radius:6px;font-weight:600}
+.badge-ad{background:var(--yellow-bg);color:var(--yellow)}
+.badge-organic{background:var(--green-bg);color:var(--green)}
+.badge-ours{background:var(--purple-bg);color:var(--purple)}
+
+.score-row{display:flex;align-items:center;gap:10px;margin:7px 0}
+.score-label{font-size:13px;width:68px;flex-shrink:0;color:var(--text-mid)}
+.score-bar{flex:1;height:8px;background:var(--bg-alt);border-radius:4px;overflow:hidden}
+.score-fill{height:100%;border-radius:4px;transition:width .3s}
+.score-val{font-family:'JetBrains Mono',monospace;font-size:13px;width:38px;text-align:right;flex-shrink:0}
+
+.metric{text-align:center;padding:16px}
+.metric .num{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700}
+.metric .unit{font-size:12px;color:var(--text-mid);margin-top:2px}
+
+.gap-better{color:var(--green);font-weight:600}
+.gap-worse{color:var(--red);font-weight:600}
+.gap-neutral{color:var(--text-mid)}
+
+.action-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:768px){.action-grid{grid-template-columns:1fr}}
+.action-col h3{font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.action-item{padding:10px 12px;border-radius:8px;margin-bottom:8px;font-size:13px;border-left:3px solid}
+.action-copy{background:var(--green-bg);border-color:var(--green)}
+.action-eval{background:var(--yellow-bg);border-color:var(--yellow)}
+.action-no{background:var(--red-bg);border-color:var(--red)}
+
+.timeline{position:relative;padding-left:26px}
+.timeline::before{content:'';position:absolute;left:8px;top:4px;bottom:4px;width:2px;background:var(--border)}
+.tl-item{position:relative;margin-bottom:16px;font-size:14px;line-height:1.75}
+.tl-item::before{content:'';position:absolute;left:-22px;top:7px;width:10px;height:10px;border-radius:50%;border:2px solid var(--blue);background:var(--bg)}
+.tl-time{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--blue);font-weight:600}
+.tl-tag{font-size:12px;color:var(--purple);font-weight:700;margin-left:6px;letter-spacing:.03em}
+
+.verdict-box{padding:24px;border-radius:12px;border:2px solid;text-align:center}
+.verdict-bend{border-color:var(--yellow);background:var(--yellow-bg)}
+.verdict-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800}
+
+.conclusion{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;border-radius:16px;padding:32px;margin-top:48px}
+.conclusion h2{font-size:22px;margin-bottom:16px}
+.conclusion p{opacity:.95;margin-bottom:12px}
+
+.proposal{border-left:3px solid var(--purple);padding:20px 24px;margin:16px 0;background:var(--purple-bg);border-radius:0 10px 10px 0}
+.proposal h4{font-size:14px;color:var(--purple);margin-bottom:6px}
+
+details{margin-bottom:8px}
+details summary{cursor:pointer;font-weight:600;font-size:14px;padding:10px;border-radius:8px;background:var(--bg-alt);list-style:none;display:flex;align-items:center;gap:8px}
+details summary::before{content:'▶';font-size:10px;transition:transform .2s}
+details[open] summary::before{transform:rotate(90deg)}
+details .detail-body{padding:16px;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px}
+
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+.text-sm{font-size:14px;line-height:1.8}
+.text-xs{font-size:12.5px;line-height:1.7}
+.mt-2{margin-top:8px}
+.mt-4{margin-top:16px}
+.mb-2{margin-bottom:8px}
+.gap-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.gap-grid{grid-template-columns:1fr}.hero-stats{grid-template-columns:1fr 1fr}}
+</style>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     模式A · 同商品竞品对比报告 骨架
+     用法：把 {{...}} 占位符替换为真实数据，删掉本注释块。
+     ⚠️ 不要改上面的 CSS，不要改区块顺序，不要增删区块。
+     ⚠️ 区块顺序固定：大盘 → 竞品拆解 → 我方拆解 → 行动方案 → 结论
+     ═══════════════════════════════════════════════════════════════════ -->
+
+<!-- ===== 区块0: Hero Header ===== -->
+<div class="hero">
+  <div class="hero-sub">{{商品全名}} · 竞品全量对比（{{选品窗口说明}}）</div>
+  <h1>@{{我方达人}} vs Top 10 竞品达人</h1>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="label">竞品数</div><div class="val">10 条</div></div>
+    <div class="hero-stat"><div class="label">品类</div><div class="val">{{品类}}</div></div>
+    <div class="hero-stat"><div class="label">竞品总播放</div><div class="val">{{竞品播放量合计}}</div></div>
+    <div class="hero-stat"><div class="label">竞品总GMV</div><div class="val">${{竞品GMV合计}}</div></div>
+    <div class="hero-stat"><div class="label">我方播放</div><div class="val">{{我方播放}}</div></div>
+    <div class="hero-stat"><div class="label">我方GMV</div><div class="val">${{我方GMV}}</div></div>
+  </div>
+  <div class="hero-meta">
+    <span class="tag">产品: {{商品名}}</span>
+    <span class="tag">售价 ${{价格}}</span>
+    <span class="tag">评分 {{评分}}/5</span>
+    <span class="tag">viral_index: {{爆款指数}}</span>
+    <span class="tag">报告日期: {{YYYY-MM-DD}}</span>
+  </div>
+</div>
+
+<!-- ===== 区块1: 竞品大盘总览 ===== -->
+<div class="block-header">
+  <div class="block-num" style="background:var(--orange)">01</div>
+  <h2>竞品大盘总览</h2>
+</div>
+
+<!-- 两张关键指标卡：挑最能说明问题的两个数字，不要堆满 -->
+<div class="gap-grid mb-2">
+  <div class="card" style="text-align:center">
+    <div class="metric"><div class="num" style="color:var(--orange)">{{头部差距}}</div><div class="unit">头部竞品 vs 我方 GMV差距</div></div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div class="metric"><div class="num" style="color:var(--blue)">{{竞品平均时长}}</div><div class="unit">竞品平均时长 · 我方{{我方时长}}</div></div>
+  </div>
+</div>
+
+<!-- 达人对照条：@handle 只在这里出现，绝不进表头 -->
+<div class="crew-hint">达人对照 · 点击打开对应的 TikTok 原视频（按销售额排序）</div>
+<div class="crew">
+  <a href="{{视频URL_1}}" target="_blank"><span class="n">#1</span>@{{handle_1}}</a>
+  <!-- … #2 … #10 同格式 … -->
+  <a class="is-ours" href="{{我方视频URL}}" target="_blank"><span class="n">我方</span>@{{我方handle}}</a>
+</div>
+
+<!-- 转置矩阵表：指标竖排、达人横排，共15列 × 25指标行 -->
+<div class="table-wrap wide-wrap">
+  <table class="matrix">
+    <thead>
+      <tr>
+        <th class="rowlab">指标</th>
+        <th><span class="rank">#1</span></th>
+        <!-- … #2 … #10 … -->
+        <th class="ours"><span class="rank">我方</span></th>
+        <th class="agg">竞品均值</th>
+        <th class="agg">竞品最优</th>
+        <th class="agg">我方差距</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- 同商品模式：商品信息所有列相同，用 colspan 只写一次 -->
+      <tr>
+        <th class="rowlab">关联商品·店铺</th>
+        <td colspan="14" style="color:var(--text-mid);text-align:left">{{商品名}} · {{店铺名}} <span style="color:var(--text-light)">（11条视频均为同一商品）</span></td>
+      </tr>
+
+      <tr class="sec"><th colspan="15" class="rowlab">基础信息</th></tr>
+      <!-- 数值格统一 class="val"；我方格加 ours；聚合格加 agg；差距格加 gap-b/gap-w/gap-n -->
+      <tr><th class="rowlab">发布时间</th><td class="val">{{MM-DD}}</td><!-- ×10 --><td class="val ours">{{MM-DD}}</td><td class="agg">—</td><td class="agg">—</td><td class="agg gap-n">{{说明}}</td></tr>
+      <tr><th class="rowlab">时长</th><!-- … --></tr>
+      <tr><th class="rowlab">投流</th><!-- 投流=红字 / 自然=绿字 --></tr>
+
+      <tr class="sec"><th colspan="15" class="rowlab">达人账号</th></tr>
+      <tr><th class="rowlab">粉丝数</th><!-- … --></tr>
+      <tr><th class="rowlab">达人均播</th><!-- … --></tr>
+
+      <tr class="sec"><th colspan="15" class="rowlab">流量与互动</th></tr>
+      <tr><th class="rowlab">播放量</th><!-- … --></tr>
+      <tr><th class="rowlab">点赞数</th><!-- … --></tr>
+      <tr><th class="rowlab">评论数</th><!-- … --></tr>
+      <tr><th class="rowlab">分享数</th><!-- … --></tr>
+      <tr><th class="rowlab">互动率</th><!-- … --></tr>
+      <tr><th class="rowlab">IPM</th><!-- … --></tr>
+      <tr><th class="rowlab">爆发倍数</th><!-- … --></tr>
+
+      <tr class="sec"><th colspan="15" class="rowlab">观看深度（代理指标 · FastMoss 不提供人均观看时长）</th></tr>
+      <tr><th class="rowlab">互动深度比</th><!-- … --></tr>
+      <tr><th class="rowlab">评论/播放比</th><!-- … --></tr>
+      <tr><th class="rowlab">收藏/播放比</th><!-- … --></tr>
+      <!-- 文字等级行必须加 wrapok 允许换行 -->
+      <tr class="wrapok"><th class="rowlab">推测完播</th><!-- 高/中/中低/低/极低 --></tr>
+
+      <tr class="sec"><th colspan="15" class="rowlab">商业转化</th></tr>
+      <tr><th class="rowlab">销售额(28d)</th><!-- … --></tr>
+      <tr><th class="rowlab">销售额(近7天)</th><!-- 超窗口标 —¹ --></tr>
+      <tr><th class="rowlab">广告消耗(近7天)</th><!-- 自然流量=$0 --></tr>
+      <tr><th class="rowlab">ROAS(近7天)</th><!-- 自然流量=∞ --></tr>
+
+      <tr class="sec"><th colspan="15" class="rowlab">内容评分（人工拆解）</th></tr>
+      <tr><th class="rowlab">病毒评分</th><!-- … --></tr>
+      <tr><th class="rowlab">产品出镜时机</th><!-- 未逐帧拆解的竞品填 — --></tr>
+      <tr><th class="rowlab">话题数量</th><!-- … --></tr>
+      <tr><th class="rowlab">有效产品秒数</th><!-- … --></tr>
+    </tbody>
+    <tfoot>
+      <tr><td colspan="15" style="color:var(--text-light);padding-top:8px;border-top:1px solid var(--border);text-align:left">
+        广告消耗和ROAS数据来源：FastMoss ad_data_overview（近7天累计）。ROAS = 广告归因GMV ÷ 广告消耗。自然流量视频无广告支出，ROAS=∞。<br>
+        「竞品均值 / 竞品最优 / 我方差距」三列基于左侧10条竞品计算（ROAS均值仅统计投流视频）。「内容评分」区为人工拆解，非FastMoss数据；部分竞品未做逐帧拆解处标注「—」。<br>
+        ¹ 该视频已超出近7天窗口，近7天GMV≈$0。<br>
+        ⚠️ <strong>降级说明</strong>：{{选品降级说明，未降级则删掉此行}}
+      </td></tr>
+    </tfoot>
+  </table>
+</div>
+
+<!-- 大盘规律：5条以内，每条「粗体结论 — 数据支撑」 -->
+<div class="card mt-4">
+  <h3 style="font-size:15px;margin-bottom:8px">大盘规律</h3>
+  <ul style="font-size:14px;color:var(--text-mid);padding-left:20px">
+    <li><strong style="color:var(--red)">{{结论}}</strong> — {{数据支撑}}</li>
+  </ul>
+</div>
+
+<!-- 两张解读卡：表格只放数字，解读全部落在这里 -->
+<!-- ⚠️ 只写「横向对比」结论（我方在11条里的位置、为什么粉丝多却卖得少）。
+     禁止在这里详述我方的结构问题（88秒出产品 / N个话题 / 时长超长 / 有效秒数）——
+     那是区块03核心诊断的职责，写在这里就是重复。本卡末尾用一句话指向区块03。 -->
+<div class="card mt-4" style="border-left:4px solid var(--red)">
+  <h3 style="font-size:16px;margin-bottom:10px;color:var(--red)">关键发现：粉丝效率倒挂</h3>
+  <p class="text-sm" style="color:var(--text-mid)">
+    @{{我方handle}} 在<strong>流量侧{{n}}项全场第一</strong>：{{粉丝/互动率/IPM/互动深度比，各带+X%}}——但 GMV 仅 <strong>${{}}</strong>，排第{{n}}。<br>
+    对照：@{{竞品A}} {{粉丝量级}}却做到 <strong>${{}}</strong>（第1）；@{{竞品B}} {{粉丝量级}}靠{{打法}}做到 <strong>${{}}</strong>（第2）。<br>
+    但我方 GMV 已接近竞品均值 ${{}}，<strong>仅差{{n}}%</strong> —— 说明达人IP本身已撑起中等转化，<strong style="color:var(--red)">天花板不在流量，在内容结构</strong>。<br>
+    这是典型的「<strong>达人强、视频弱</strong>」模型：粉丝势能已经在那里，瓶颈是脚本。具体是哪几处结构问题、怎么改，见 <strong>区块03 我方视频完整拆解</strong>。
+  </p>
+</div>
+
+<div class="card mt-4" style="border-left:4px solid var(--orange)">
+  <h3 style="font-size:16px;margin-bottom:10px;color:var(--orange)">观看深度解读（为什么要用代理指标）</h3>
+  <p class="text-sm" style="color:var(--text-mid)">{{为什么用代理指标 + 三个公式 + 核心洞察}}</p>
+</div>
+
+<!-- ===== 区块2: 10条竞品逐条拆解 ===== -->
+<div class="block-header">
+  <div class="block-num" style="background:var(--blue)">02</div>
+  <h2>竞品逐条拆解（Top 10）</h2>
+</div>
+
+<!-- ⚠️ 10条必须格式完全一致，不允许 #4-#10 降级为摘要行 -->
+<!-- ⚠️ 每条用 <details> 折叠式；summary 含排名/handle/播放/GMV/时长/投流标签 -->
+<details open>
+  <summary>
+    <span style="color:var(--orange)">#1</span> @{{handle}} · {{播放量}}播放 · ${{GMV}} GMV · {{n}}s
+    <span class="badge badge-ad" style="margin-left:auto">投流</span>
+  </summary>
+  <div class="detail-body">
+    <div class="gap-grid">
+      <div>
+        <h4 style="font-size:14px;color:var(--text-mid);margin-bottom:8px">脚本结构</h4>
+        <div class="timeline">
+          <div class="tl-item"><span class="tl-time">0-3s</span> <span class="tl-tag">HOOK</span><br>{{字幕原文或画面描述}}</div>
+          <!-- 继续按时间段填写 tl-item，每段一行 -->
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:14px;color:var(--text-mid);margin-bottom:8px">5维病毒评分（人工评分）· {{总分}}/100</h4>
+        <div class="score-row"><span class="score-label">钩子力</span><div class="score-bar"><div class="score-fill" style="width:{{n*5}}%;background:var(--orange)"></div></div><span class="score-val">{{n}}/20</span></div>
+        <div class="score-row"><span class="score-label">收藏驱动</span><div class="score-bar"><div class="score-fill" style="width:{{n*5}}%;background:var(--blue)"></div></div><span class="score-val">{{n}}/20</span></div>
+        <div class="score-row"><span class="score-label">分享驱动</span><div class="score-bar"><div class="score-fill" style="width:{{n*5}}%;background:var(--purple)"></div></div><span class="score-val">{{n}}/20</span></div>
+        <div class="score-row"><span class="score-label">完播引导</span><div class="score-bar"><div class="score-fill" style="width:{{n*5}}%;background:var(--green)"></div></div><span class="score-val">{{n}}/20</span></div>
+        <div class="score-row"><span class="score-label">评论激活</span><div class="score-bar"><div class="score-fill" style="width:{{n*5}}%;background:var(--red)"></div></div><span class="score-val">{{n}}/20</span></div>
+        <div class="mt-2 text-sm" style="color:var(--text-mid)">
+          <strong>核心驱动</strong>：{{1-2句，说明最高维度为何得高分}}
+        </div>
+      </div>
+    </div>
+  </div>
+</details>
+<!-- … #2 … #10 重复同一 <details> 结构，#2-#10 初始关闭（无 open 属性） … -->
+
+<div class="card mt-4" style="border-left:4px solid var(--blue)">
+  <p class="text-sm"><strong>10条竞品共性</strong>：{{时长规律 · 展示方式 · 投流比例 · GMV分布 · Top2的共同点}}</p>
+</div>
+
+<!-- ===== 区块3: 我方视频拆解 ===== -->
+<div class="block-header">
+  <div class="block-num" style="background:var(--green)">03</div>
+  <h2>我方视频完整拆解</h2>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-title">@{{我方handle}} · {{商品名}}</div>
+      <div class="text-xs" style="color:var(--text-mid)">video_id: {{}} · {{}}s · {{YYYY-MM-DD}} 发布</div>
+    </div>
+    <span class="badge badge-organic">自然流量</span>
+  </div>
+  <div class="gap-grid">
+    <div>
+      <h4 style="font-size:14px;color:var(--text-mid);margin-bottom:8px">数据面板</h4>
+      <table style="font-size:13.5px"><!-- 播放/点赞/评论/分享/收藏/互动率/IPM/GMV/销量/爆发倍数 --></table>
+    </div>
+    <div>
+      <h4 style="font-size:14px;color:var(--text-mid);margin-bottom:8px">5维评分 · <span style="color:var(--red)">{{总分}}/100</span></h4>
+      <!-- 5条 score-row -->
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <h4 style="font-size:14px;color:var(--text-mid);margin-bottom:12px">脚本时间线 — {{一句话点出结构问题}}</h4>
+  <div class="timeline"><!-- tl-item × N --></div>
+</div>
+
+<div class="card mt-4" style="border-color:var(--red);background:var(--red-bg)">
+  <h4 style="color:var(--red);margin-bottom:8px">核心诊断：{{最致命的1-2个问题}}</h4>
+  <div class="text-sm">
+    <p>{{量化差距，必须带数字}}</p>
+    <p class="mt-2">5段结构诊断：Hook ✗ · Problem ✗ · Solution ⚠ · Proof ✗ · CTA ⚠</p>
+    <p class="mt-2"><strong>修复话术示例</strong>：{{改前 → 改后}}</p>
+    <p class="mt-2"><strong>复制判定</strong>：{{RIDE / BEND / BEND HARD / SKIP}} — {{理由}}</p>
+  </div>
+</div>
+
+<!-- ===== 区块4: 行动方案（行动清单 + 方案建议 合并） ===== -->
+<div class="block-header">
+  <div class="block-num" style="background:var(--green)">04</div>
+  <h2>行动方案</h2>
+</div>
+
+<div class="pri-legend">
+  <span><span class="pri" style="background:var(--green-bg);color:var(--green);font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px">立即可抄</span> 0成本，竞品已验证</span>
+  <span><span class="pri" style="background:var(--yellow-bg);color:var(--yellow);font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px">评估后推进</span> 需资源或测试</span>
+  <span><span class="pri" style="background:var(--red-bg);color:var(--red);font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px">不能直接抄</span> 条件不匹配</span>
+</div>
+
+<!-- ⚠️ 只按执行面分节；优先级是每条的内联标签。每条建议全报告只出现一次。 -->
+<div class="proposal">
+  <h4>4.1 脚本怎么写</h4>
+  <div class="act act-copy"><span class="pri">立即可抄</span><strong>{{要点}}</strong> — {{理由，附竞品证据}}</div>
+  <div class="act act-no"><span class="pri">不能直接抄</span><strong>{{要点}}</strong> — {{为什么不适用我方}}</div>
+  <!-- ⚠️ 成稿必须中英双语：EN = 达人实际出镜口播的原话（美区视频，英文才是可直接用的）
+             CN = 给运营/达人看的中文含义 + 括号里的导演说明（镜头/节奏提示）
+       两版分别对标不同竞品打法，每版按 beat 分段，时间戳必须加总等于目标时长。 -->
+  <p class="text-sm mt-4" style="color:var(--text-mid)"><strong>可直接拍的两版成稿（中英对照 · <span style="color:var(--blue)">EN 为实际出镜口播，中文为导演说明</span>）：</strong></p>
+
+  <div class="script">
+    <h5>版本A — {{名称，如"痛点故事版"}}（对标 @{{竞品}} · 目标 {{n}}s）</h5>
+    <div class="beat"><span class="bt">0-3s</span><span class="bl">Hook</span>
+      <div class="en">"{{英文口播原话}}"</div>
+      <div class="cn">{{中文含义}}<span class="dir">（{{镜头/节奏说明}}）</span></div>
+    </div>
+    <!-- Problem / Solution / Demo+Proof / CTA 同格式 -->
+  </div>
+
+  <div class="script">
+    <h5>版本B — {{名称，如"Demo冲击版"}}（对标 @{{竞品}} · 目标 {{n}}s）</h5>
+    <!-- beat × N -->
+  </div>
+</div>
+
+<div class="proposal"><h4>4.2 视频怎么拍</h4><!-- act × N：画面配比 / 剪辑节奏 / 音频 --></div>
+<div class="proposal"><h4>4.3 商家需要配合什么</h4><!-- act × N：投流预算 / 佣金率 / 库存 / 样品 --></div>
+<div class="proposal"><h4>4.4 需要给达人提供什么</h4><!-- act × N：物料 / 道具 / 话术卡 / 禁区 --></div>
+
+<!-- ===== 结论 ===== -->
+<div class="conclusion">
+  <h2>结论</h2>
+  <p><strong>为什么竞品能爆：</strong>{{Top2共性，带数字}}</p>
+  <p><strong>为什么我方没爆：</strong>{{排除产品/达人因素，锁定内容结构，带数字}}</p>
+  <p><strong>怎么复制：</strong>{{具体动作 + GMV预期区间}}</p>
+</div>
+
+<div style="text-align:center;margin-top:32px;padding:16px;color:var(--text-light);font-size:12.5px;line-height:1.9">
+  数据来源: FastMoss · 报告生成: {{YYYY-MM-DD}} · 产品: {{商品名}} (ID: {{product_id}})<br>
+  选品策略: {{实际使用的时间窗口和降级说明}}
+</div>
+
+</body></html>

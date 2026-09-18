@@ -1,6 +1,6 @@
 ---
 name: amazon-rank-tracker
-description: "Amazon keyword rank tracking and change diagnosis with improvement strategy. Use when asked about rankings, position tracking, or ranking changes."
+description: "Amazon keyword rank tracking and performance analysis. Comprehensive ranking factor analysis, change diagnosis, improvement strategy development, and competitive position monitoring. Use when the user asks about keyword rankings, position tracking, ranking changes, or competitive analysis."
 metadata: {"nexscope":{"emoji":"📍","category":"amazon"}}
 ---
 
