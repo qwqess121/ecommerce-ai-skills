@@ -84,6 +84,13 @@ Listing 上架之后（或上架前就要规划），把模块二找到的关键
 5. 精细化调优 → `amazon-dayparting-strategy` 调时段，`amazon-display-ads` 补展示广告
 6. 涉及DSP程序化广告 → 单独走 `sys-amazon-dsp`
 
+## 竞品对比与评分（新增，2026-09-20）
+
+SIF的`ads_get_asin_ad_structure`等接口可以查**任意ASIN**的广告结构，不需要对方账户授权——这意味着广告策略分析也能做真正的竞品对比，不只是自查。按`../_references/竞品匹配与评分规则.md`筛出可比竞品后：
+- 对比自己和可比竞品的Campaign数量、SP/SB/SD占比、曝光趋势，找出自己在广告投入结构上跟竞品的差距
+- `amazon-advertising-strategy`的预算分配基准（SP65%/SB25%/SD10%）之外，再补一层"跟可比竞品比，谁的结构更接近这个基准"
+- 否词/浪费花费判断维持用自己账户真实数据（`sys-amazon-ads`/`sys-wasted-ad-spend-dashboard`），竞品广告结构只用于战略对比，不涉及对方具体花费金额（拿不到）
+
 ## 评判标准速查表
 
 | 检查项 | 数据来源 | 判定阈值 |

@@ -28,6 +28,13 @@
 2. 大促前：`amazon-lifecycle-marketing`模式5（季节性规划）的备货结果，同步给模式3（优惠券）和模式1（定制促销），让促销和备货节奏对齐
 3. `amazon-buy-box`是相对独立的持续监控项，不依赖`amazon-lifecycle-marketing`
 
+## 竞品对比与评分（新增，2026-09-20）
+
+按`../_references/竞品匹配与评分规则.md`筛出可比竞品后：
+- `amazon-lifecycle-marketing`模式3（优惠券）：对比可比竞品的`asin_coupon_trend`折扣力度和频率，判断自己的促销节奏是激进还是保守
+- `amazon-lifecycle-marketing`模式2（Vine）：对比可比竞品的评论数/评分行业对标百分位，决定要不要用Vine追赶
+- `amazon-buy-box`：绩效指标对比用自己真实数据（领星），Buy Box赢率可以对比可比竞品的价格位置百分位
+
 ## 评判标准速查表
 
 | 检查项 | 数据来源 | 判定阈值 |

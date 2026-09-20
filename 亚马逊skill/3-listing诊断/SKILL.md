@@ -80,6 +80,10 @@
 
 ---
 
+## 竞品对比与评分（新增，2026-09-20）
+
+`amazon-listing-optimization` Mode B 已更新：Step B2的竞品来源必须先按 `../_references/竞品匹配与评分规则.md` 过滤（属性+形态+场景一致），Step B4的Pricing/Reviews两个维度改成"行业对标百分位排名"而不是绝对阈值。其余skill（backend-keywords/search-optimization/listing-images/a-plus-content）涉及竞品对比时同样先过滤再比较，不能拿泛泛的同类目产品。
+
 ## 内部串联逻辑
 
 1. 先用 `amazon-backend-keywords` 或模块二的关键词研究确定关键词池

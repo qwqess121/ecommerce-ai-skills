@@ -238,13 +238,13 @@ Run the bundled script:
 
 If script returns incomplete data, fall back to `web_fetch` on the product URL.
 
-### Step B2: Discover Target Keywords
+### Step B2: Discover Target Keywords（2026-09-20更新：竞品必须先过匹配筛选）
 
 If user provides keywords, use those. Otherwise, auto-discover:
 
 1. Extract apparent keywords from current title and bullets
-2. Run `web_search` for `site:amazon.com "[product type]"` to find competitors
-3. Extract keywords from top 3 competitor titles and bullets
+2. 用卖家精灵 `product_research`/`asin_competitor` 拉候选竞品，按 `../../_references/竞品匹配与评分规则.md` 第一节（属性一致+形态一致+场景一致）过滤，**只用过滤后的可比竞品**，不是随便搜到的同类目产品；被排除的候选写明排除原因
+3. Extract keywords from filtered competitors' titles and bullets（卖家精灵 `asin_detail`，不用web_search抓竞品页面，除非MCP拿不到）
 4. (Optional) Chain with `amazon-keyword-research` skill for deeper analysis
 5. Compile a combined keyword list with estimated priority
 
@@ -279,9 +279,11 @@ Score each on the scale shown, with keyword integration factored in:
 | **Images** | /15 | 7+ images? White bg main? Infographic? Lifestyle? Size ref? Video? |
 | **A+ Content** | /10 | Present? Brand story? Comparison chart? Lifestyle imagery? |
 | **Description** | /10 | Keywords not in title/bullets? Readable? Problem→solution flow? |
-| **Pricing** | /10 | Competitive? Coupon/deal present? |
-| **Reviews** | /15 | 4.0+ stars? 100+ reviews? Recent reviews positive? |
+| **Pricing** | /10 | 在匹配竞品集合里的价格百分位排第几，不是笼统的"有没有竞争力" |
+| **Reviews** | /15 | 评分/评论数在匹配竞品集合里的行业对标百分位（评分规则第二节），不是绝对阈值4.0+/100+ |
 | **SEO Coverage** | /10 | Primary kw in title+bullets+desc? Long-tail present? No wasted repeats? **Keyword coverage %** |
+
+**2026-09-20更新**：Pricing和Reviews两项必须给出具体的"第几名/共N个可比竞品"排名，不能只写文字判断；样本（可比竞品）少于3个时在报告里标注"样本不足，百分位仅供参考"。
 
 ### Step B5: Generate Optimized Copy
 
