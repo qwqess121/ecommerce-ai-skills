@@ -21,9 +21,11 @@
 
 ## 数据源
 
-- **FastMoss MCP**（主）：产品/竞品/类目/达人全部数据
-- **Browser `get_page_text`**（辅，仅 1 次调用）：产品描述正文、图片数量、评论原文、评分分布（FastMoss API 不返回这些字段）
-- **禁止 Browser 截图**（`screenshot` 超时风险高、token 消耗大）——一律用 `get_page_text` 替代
+- **FastMoss MCP**（主）：产品/竞品/类目/达人全部结构化数据
+- **`tiktok_product_scraper.py`**（辅，产品页数据）：描述正文、图片列表、评论原文、评分分布（FastMoss API 不返回这 4 类数据）。使用 SeleniumBase UC 模式**自动绕过 TikTok 反爬验证**
+- **Browser `get_page_text`**（备用，脚本不可用时）：可能被 TikTok 反爬拦截，非必须
+- **WebFetch + Read**（图片分析）：下载 cover_url CDN 图片，不受反爬影响
+- **禁止 Browser 截图**（`screenshot` 超时风险高、token 消耗大）
 
 ## ⚡ 性能强制规则（最高优先级，覆盖 SKILL.md）
 
@@ -41,7 +43,7 @@
 4. **MCP 优化**：按需指定返回字段；报错不无限重试，降级兜底标记【数据缺失】；可并行的请求并行执行
 5. **token 预算 ≤40K**：接近阈值立即落盘清理
 6. **SKILL 文件只读一次**：采集阶段读一次调度逻辑，生成阶段读一次格式模板，不重复读取
-7. **Browser 零截图**：形态识别用三层筛选法（标题初筛 → WebFetch 下载 cover_url 图片验证 → 少量产品页确认，详见 SKILL.md §6.2）；图片诊断用 WebFetch 下载本品+竞品 cover_url 查看主图 + `get_page_text` 文本；SEO 分析是纯计算不需要 Browser；**禁止 `screenshot`**
+7. **Browser 零截图 + 产品页三层降级**：形态识别用三层筛选法（标题初筛 → WebFetch 下载 cover_url 图片验证 → 少量产品页确认，详见 SKILL.md §6.2）；产品页数据（描述/图片/评论/评分分布）优先用 `tiktok_product_scraper.py`（Layer 1，绕过反爬），其次 `get_page_text`（Layer 2），最后降级标注缺失（Layer 3）；图片诊断用 WebFetch 下载 cover_url（不受反爬影响）；SEO 分析是纯计算不需要 Browser；**禁止 `screenshot`**
 
 ### 工作流
 
@@ -50,11 +52,11 @@ Batch 1: detail_info + overview + sku + shop_base → 写 01/02/03 → 丢弃
 Batch 2: video_list + creator_analysis + review_list → 写 04/05 → 丢弃
 Batch 3: ranking page 1-5（全部并行） → 写 06（含三层筛选形态判定） → 丢弃
 Batch 4+5: TOP7 detail_info + 同形态搜索（并行） → 写 07/08 → 丢弃
-Batch 5.5: get_page_text 1 次 + WebFetch 本品/竞品 cover_url → 写 09（图片+描述+评论） + 纯计算写 10（SEO）
+Batch 5.5: tiktok_product_scraper.py（优先）或 get_page_text（备用）+ WebFetch cover_url → 写 09（图片+描述+评论） + 纯计算写 10（SEO）
 最终: 分段生成报告（概览→S1→S2→S3 逐段落盘） → 发布为在线 Artifact → 回传链接
 ```
 
-> **为什么不完全去掉 Browser？** FastMoss API 不返回 4 类数据：产品描述正文、图片完整列表、评论原文（<500条时API常空）、评分星级分布。`get_page_text` 1 次调用即可全部覆盖，比截图快 5 倍以上。SEO 分析（10）完全不需要 Browser——标题和 TOP20 竞品标题全部来自 FastMoss API。
+> **为什么需要三层降级？** FastMoss API 不返回 4 类数据：产品描述正文、图片完整列表、评论原文（<500条时API常空）、评分星级分布。`tiktok_product_scraper.py`（Layer 1）使用 SeleniumBase UC 模式自动绕过 TikTok 反爬验证，成功率最高；内置 Browser `get_page_text`（Layer 2）可能被拦截；Layer 3 确保报告一定能生成。**员工使用前需安装依赖：`pip install seleniumbase`**
 
 ## 内容完整性（不可删减 — 最高优先级）
 

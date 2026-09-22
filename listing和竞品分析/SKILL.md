@@ -110,12 +110,16 @@ Batch 4+5（阶段 D，可合并并行）
   └ 同形态 product_search（1-2 次）→ 提炼写入 08_同形态.md
   同形态搜索不依赖 TOP7 结果（从 06_L3排行.md 形态标注即可确定候选），可与 TOP7 取数并行
 
-Batch 5.5（阶段 E，Browser get_page_text 1 次 + 纯计算）
-  get_page_text(产品页) → 提取：图片数量、描述正文、评论原文+评分分布
+Batch 5.5（阶段 E，产品页数据提取 + 纯计算）
+  ★ 三层降级策略提取：描述正文、图片列表、评论原文+评分分布
+    Layer 1: python scripts/tiktok_product_scraper.py {product_id}
+             → SeleniumBase UC 模式绕过反爬 → SSR JSON 全量提取（推荐）
+    Layer 2: Browser get_page_text(产品页)（Layer 1 失败时尝试，可能被反爬拦截）
+    Layer 3: 仅用 FastMoss API 数据 + WebFetch cover_url，标注【数据缺失】
   → 写入 09_图片描述评论.md
   → 基于 06_L3排行.md TOP20 标题做词频统计 → 写入 10_SEO分析.md
-  ★ 不截图、不滚动、不多次访问——1 次 get_page_text 调用完成
-  ★ 可与 Batch 4+5 并行启动（get_page_text 只需 product_id，不依赖竞品数据）
+  ★ Layer 1 脚本约 15 秒，输出 scripts/product_data/product_{id}.json
+  ★ 可与 Batch 4+5 并行启动（不依赖竞品数据）
 
 最终组装（分段生成，防上下文溢出）：
   ┌ 读 01+02+03 → 写 ★概览 段落 → 落盘到 report 文件
@@ -261,9 +265,9 @@ product_review_list({ filter: { product_id } })
 ```
 降级链路（按优先级执行）：
 1. API 返回评论 → 直接使用，写入 `05_评论.md`
-2. API 返回 0 条（评论<500 常见）→ **不在 Batch 2 阶段降级**，在 `05_评论.md` 中标注"API 未返回评论，待 Batch 5.5 get_page_text 补充"
-3. Batch 5.5 的 `get_page_text` 提取评论原文 + 评分分布 → 补充写入 `09_图片描述评论.md`（评论数据从此文件获取）
-4. `get_page_text` 也未获取到评论 → 只用 `detail_info` 的 `product_rating` + `review_count` 做量化对比，**不编造评论原文**
+2. API 返回 0 条（评论<500 常见）→ **不在 Batch 2 阶段降级**，在 `05_评论.md` 中标注"API 未返回评论，待 Batch 5.5 补充"
+3. Batch 5.5 优先用 `tiktok_product_scraper.py`（Layer 1）提取评论原文 + 评分分布；脚本不可用时尝试 `get_page_text`（Layer 2）→ 补充写入 `09_图片描述评论.md`
+4. 所有方法均失败 → 只用 `detail_info` 的 `product_rating` + `review_count` 做量化对比，**不编造评论原文**，标注【评论原文缺失】
 
 **B7. 店铺**
 ```
@@ -336,22 +340,46 @@ for page in 1..5:
 
 ### 阶段 E：诊断与评分
 
-不新增 FastMoss 取数。Browser 仅用 `get_page_text` 做 **1 次** 文本提取（不截图）。
+不新增 FastMoss 取数。产品页数据通过**三层降级策略**获取（描述正文、图片列表、评论原文、评分分布）。
 
-1. **Browser get_page_text**（**1 次调用，不截图**）：
-   - 打开 `https://shop.tiktok.com/us/pdp/-/{product_id}`
-   - 调用 `get_page_text({ max_chars: 50000 })` 提取页面全文
-   - 从返回文本中提取：**图片数量**（通过图片轮播指示器文本）、**完整描述正文**、**评论原文样本**（好评+差评）、**评分分布**（5★/4★/3★/2★/1★数量）
-   - 全部写入 `09_图片描述评论.md` 后关闭页面
-   - **禁止截图**（screenshot 超时风险高、token 消耗大）
-   - **禁止多次滚动或多次访问**
-   - **本品图片分析**：用 WebFetch 下载本品 `cover_url` + Read 查看主图（1 次），结合 `get_page_text` 返回的图片轮播文本，判定 8 条 TK 官方图片规则
-   - **竞品图片对比**：用 WebFetch 下载 3-5 个对标竞品的 `cover_url` + Read 查看（竞品选自概览⑥），用于填写§2.2 竞品对比表
-   - 无法从主图+文本判定的规则标注 "⚠️ 需人工核实"（如副图内容只能看到数量无法看到具体画面）
-2. **SEO 计算**（**纯文本计算，不需要 Browser**）：基于 `06_L3排行.md` 中已保存的 TOP20 标题做词频统计；基于 `product_detail_info.title`（已在 `01_产品基本.md`）做关键词覆盖分析。结果写入 `10_SEO分析.md`。
-3. **组装最终报告**：读取 `01–10` 全部中间文件，按 §七 结构编写完整 Markdown 报告（格式从 `skills/12-统一报告格式.md` 加载），文件名 `report_{product_id}.md`，**发布为在线 Artifact** 并回传链接；更新时复用同一 URL。
+#### E1. 产品页数据提取（三层降级）
 
-> **为什么不完全去掉 Browser？** FastMoss API 不返回：产品描述正文、图片完整列表、评论原文（<500 评论时 API 常返回 0）、评分星级分布。这些数据只能从产品页获取。但 `get_page_text` 比截图快 5 倍以上（无渲染等待、无图片传输），且 1 次调用即可覆盖所有缺失数据。
+**Layer 1（推荐）：`tiktok_product_scraper.py` 脚本**
+```bash
+python scripts/tiktok_product_scraper.py {product_id}
+```
+- 使用 SeleniumBase UC (Undetected Chrome) 模式**自动绕过 TikTok 反爬验证**
+- 从页面 `<script id="__MODERN_ROUTER_DATA__">` 提取 SSR JSON
+- 一次运行提取全部 4 类数据：**描述正文** + **图片列表(含URL)** + **评论原文(3条)** + **全量评分分布**
+- 输出 `scripts/product_data/product_{product_id}.json`，约 15 秒完成
+- 用 `Read` 读取 JSON 输出，提炼写入 `09_图片描述评论.md`
+
+**Layer 2（Layer 1 失败时）：Browser `get_page_text`**
+- 打开 `https://shop.tiktok.com/us/pdp/-/{product_id}`
+- 调用 `get_page_text({ max_chars: 50000 })` 提取页面全文
+- **注意：此方法可能被 TikTok 反爬验证拦截**——如果返回内容包含 "Security Check" / "Verify" 等关键词，立即放弃，进入 Layer 3
+- 禁止截图、禁止多次访问
+
+**Layer 3（前两层均失败时）：仅用已有数据 + 标注缺失**
+- 描述正文：标注【数据缺失：TikTok 反爬拦截，描述正文未获取】
+- 图片数量：基于 WebFetch 下载 `cover_url` 查看主图 + 统计 FastMoss 返回的 `cover_url`，标注"仅主图可验证"
+- 评论原文：使用 FastMoss `product_review_list`（如有），否则标注"仅有统计数据"
+- 评分分布：使用 `product_detail_info` 的 `product_rating` + `review_count` 做量化对比
+- **不编造任何缺失数据**
+
+#### E2. 图片分析（不受反爬影响）
+- **本品图片分析**：用 WebFetch 下载本品 `cover_url` + Read 查看主图（1 次），结合 Layer 1/2 获取的图片列表，判定 8 条 TK 官方图片规则
+- **竞品图片对比**：用 WebFetch 下载 3-5 个对标竞品的 `cover_url` + Read 查看（竞品选自概览⑥），用于填写§2.2 竞品对比表
+- 无法从主图+文本判定的规则标注 "⚠️ 需人工核实"
+- **WebFetch 下载 CDN 图片链接不会触发反爬**（与访问产品页不同）
+
+#### E3. SEO 计算（纯文本计算，无需访问网页）
+基于 `06_L3排行.md` 中已保存的 TOP20 标题做词频统计；基于 `product_detail_info.title`（已在 `01_产品基本.md`）做关键词覆盖分析。结果写入 `10_SEO分析.md`。
+
+#### E4. 组装最终报告
+读取 `01–10` 全部中间文件，按 §七 结构编写完整 Markdown 报告（格式从 `skills/12-统一报告格式.md` 加载），文件名 `report_{product_id}.md`，**发布为在线 Artifact** 并回传链接；更新时复用同一 URL。
+
+> **为什么需要三层降级？** FastMoss API 不返回：产品描述正文、图片完整列表、评论原文（<500 评论时 API 常返回 0）、评分星级分布。这些数据只能从产品页获取。`tiktok_product_scraper.py`（Layer 1）使用 SeleniumBase UC 模式**自动绕过反爬验证**，成功率远高于内置 Browser（Layer 2）。当员工环境未安装 SeleniumBase 时，仍先尝试 Browser，最后降级到 Layer 3 确保报告一定能生成。
 
 ---
 
@@ -712,16 +740,16 @@ Section 3  风险评估（≥5条）
 
 | # | 规则 | 判定方式 | 数据来源 |
 |---|------|---------|---------|
-| 1 | 主图1张+副图≤8张，建议 5–9 张 | 数数量 | `get_page_text` 图片轮播指示器 |
+| 1 | 主图1张+副图≤8张，建议 5–9 张 | 数数量 | Layer 1 脚本 `images` 数组 / Layer 2 `get_page_text` 图片轮播 / Layer 3 仅 cover_url |
 | 2 | 主图白底/浅色、无水印、无促销文字 | 看主图 | WebFetch 下载本品 `cover_url` → Read 查看 |
-| 3 | ≥1 张多角度实拍 | 文本推断 | `get_page_text` 图片描述（无法确认标注⚠️） |
-| 4 | ≥1 张真实使用场景 | 文本推断 | `get_page_text` 图片描述（无法确认标注⚠️） |
-| 5 | ≥1 张卖点信息图 | 文本推断 | `get_page_text` 图片描述（无法确认标注⚠️） |
-| 6 | 建议含尺寸参照/对比图 | 文本推断 | `get_page_text` 图片描述（无法确认标注⚠️） |
+| 3 | ≥1 张多角度实拍 | 图片URL/文本推断 | Layer 1 图片列表 / Layer 2 `get_page_text`（无法确认标注⚠️） |
+| 4 | ≥1 张真实使用场景 | 图片URL/文本推断 | Layer 1 图片列表 / Layer 2 `get_page_text`（无法确认标注⚠️） |
+| 5 | ≥1 张卖点信息图 | 图片URL/文本推断 | Layer 1 图片列表 / Layer 2 `get_page_text`（无法确认标注⚠️） |
+| 6 | 建议含尺寸参照/对比图 | 图片URL/文本推断 | Layer 1 图片列表 / Layer 2 `get_page_text`（无法确认标注⚠️） |
 | 7 | 多SKU缩略图需可视觉区分 | 看主图 | WebFetch 下载本品 `cover_url`（主图可见 SKU 选择器） |
 | 8 | 建议 15–60 秒视频，前3秒出卖点 | 查视频 | `product_video_list` 已在 Batch 2 取回 |
 
-> **准确性说明**：规则 #2（主图背景）通过下载 cover_url 实际查看图片确保准确。规则 #3-#6 依赖 `get_page_text` 文本推断（TikTok 产品页的图片轮播通常包含 alt 文本或序号），**无法从文本确认的一律标注"⚠️ 需人工核实"，不编造判定结果**。竞品对比表中竞品主图类型通过 WebFetch 下载竞品 cover_url 查看。
+> **准确性说明**：规则 #2（主图背景）通过 WebFetch 下载 cover_url 实际查看图片确保准确。规则 #3-#6：Layer 1 脚本返回完整图片 URL 列表，可用 WebFetch + Read 逐张查看；Layer 2 依赖 `get_page_text` 文本推断；Layer 3 仅有 cover_url 一张图。**无法确认的一律标注"⚠️ 需人工核实"，不编造判定结果**。竞品对比表中竞品主图类型通过 WebFetch 下载竞品 cover_url 查看（不受反爬影响）。
 
 **图片优化表固定 5 列**，逐张不留空：`序号 | 图片类型 | 当前（优化前） | 建议（优化后） | 内容说明`
 
