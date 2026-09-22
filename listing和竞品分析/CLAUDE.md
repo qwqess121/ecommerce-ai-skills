@@ -49,14 +49,14 @@
 
 ```
 Batch 1: detail_info + overview + sku + shop_base → 写 01/02/03 → 丢弃
-Batch 2: video_list + creator_analysis + review_list → 写 04/05 → 丢弃
+Batch 2: video_list + creator_analysis + review_list → 写 04/05 → 丢弃（评论：API优先，≥500评论商品通常有数据）
 Batch 3: ranking page 1-5（全部并行） → 写 06（含三层筛选形态判定） → 丢弃
 Batch 4+5: TOP7 detail_info + 同形态搜索（并行） → 写 07/08 → 丢弃
-Batch 5.5: tiktok_product_scraper.py（优先）或 get_page_text（备用）+ WebFetch cover_url → 写 09（图片+描述+评论） + 纯计算写 10（SEO）
+Batch 5.5: tiktok_product_scraper.py（优先）或 get_page_text（备用）+ WebFetch cover_url → 写 09（图片+描述+评分分布+评论兜底） + 纯计算写 10（SEO）
 最终: 分段生成报告（概览→S1→S2→S3 逐段落盘） → 发布为在线 Artifact → 回传链接
 ```
 
-> **为什么需要三层降级？** FastMoss API 不返回 4 类数据：产品描述正文、图片完整列表、评论原文（<500条时API常空）、评分星级分布。`tiktok_product_scraper.py`（Layer 1）使用 SeleniumBase UC 模式自动绕过 TikTok 反爬验证，成功率最高；内置 Browser `get_page_text`（Layer 2）可能被拦截；Layer 3 确保报告一定能生成。**脚本会自动检测并安装 seleniumbase 依赖，员工无需手动操作。**
+> **数据来源分工：** **评论原文**采用两层策略——FastMoss `product_review_list` 优先（≥500 评论商品通常返回多条完整评论），API 返回 0 时才用爬虫 SSR 的 3 条样本兜底。**描述正文 / 图片列表 / 评分分布**这 3 类数据 FastMoss API 不返回，只能从产品页获取：`tiktok_product_scraper.py`（Layer 1，SeleniumBase UC 无头模式自动绕过反爬）→ Browser `get_page_text`（Layer 2）→ 标注缺失（Layer 3）。**脚本会自动检测并安装 seleniumbase 依赖，员工无需手动操作。**
 
 ## 内容完整性（不可删减 — 最高优先级）
 
