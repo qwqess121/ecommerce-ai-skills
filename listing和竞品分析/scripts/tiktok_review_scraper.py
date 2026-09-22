@@ -13,6 +13,8 @@ TikTok Shop 评论获取工具 v5 (Production)
 
 import json
 import re
+import sys
+import subprocess
 import time
 import argparse
 from pathlib import Path
@@ -20,6 +22,27 @@ from datetime import datetime
 
 SCRIPT_DIR = Path(__file__).parent
 REVIEWS_DIR = SCRIPT_DIR / "reviews"
+
+
+def ensure_seleniumbase():
+    """Auto-install seleniumbase if missing. Returns True if available."""
+    try:
+        import seleniumbase  # noqa: F401
+        return True
+    except ImportError:
+        print("[AUTO-INSTALL] seleniumbase not found, installing...")
+        try:
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "seleniumbase", "-q"],
+                stdout=subprocess.DEVNULL,
+            )
+            import seleniumbase  # noqa: F401
+            print("[AUTO-INSTALL] seleniumbase installed successfully")
+            return True
+        except Exception as e:
+            print(f"[AUTO-INSTALL] Failed to install seleniumbase: {e}")
+            print("[HINT] Run manually: pip install seleniumbase")
+            return False
 
 
 def parse_ssr_data(html_or_json_str):
@@ -119,11 +142,9 @@ def parse_ssr_data(html_or_json_str):
 
 def scrape_browser(product_id):
     """Primary: SeleniumBase UC mode — bypasses anti-bot, extracts SSR data."""
-    try:
-        from seleniumbase import SB
-    except ImportError:
-        print("[SKIP] seleniumbase not installed")
+    if not ensure_seleniumbase():
         return None
+    from seleniumbase import SB
 
     url = f"https://shop.tiktok.com/us/pdp/-/{product_id}"
     all_reviews = []
@@ -143,7 +164,7 @@ def scrape_browser(product_id):
 
     print(f"[Browser] Opening {url}")
     try:
-        with SB(uc=True, headed=True, chromium_arg="--lang=en-US", disable_features="OptimizationGuideModelDownloading") as sb:
+        with SB(uc=True, headless=True, chromium_arg="--lang=en-US", disable_features="OptimizationGuideModelDownloading") as sb:
             sb.uc_open_with_reconnect(url, reconnect_time=6)
             sb.sleep(4)
 
@@ -279,40 +300,48 @@ def build_result(product_id, reviews, total_reported, rating_meta=None):
     return result
 
 
+def _safe_print(text):
+    """Print with fallback for Windows GBK console."""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        print(text.encode("ascii", errors="replace").decode("ascii"))
+
+
 def print_summary(result):
     """Print human-readable summary."""
-    print(f"\n{'='*50}")
-    print(f"评论获取结果")
-    print(f"{'='*50}")
-    print(f"产品 ID: {result['product_id']}")
-    print(f"获取时间: {result['scrape_time']}")
-    print(f"获取评论: {result['total_reviews']}")
+    _safe_print(f"\n{'='*50}")
+    _safe_print("Review Extraction Result")
+    _safe_print(f"{'='*50}")
+    _safe_print(f"Product ID: {result['product_id']}")
+    _safe_print(f"Scrape Time: {result['scrape_time']}")
+    _safe_print(f"Reviews Got: {result['total_reviews']}")
     if result.get("total_reviews_reported"):
-        print(f"商品总评论: {result['total_reviews_reported']}")
+        _safe_print(f"Total Reviews: {result['total_reviews_reported']}")
     if result.get("avg_rating_page"):
-        print(f"平均评分: {result['avg_rating_page']}")
+        _safe_print(f"Avg Rating: {result['avg_rating_page']}")
     elif result.get("avg_rating"):
-        print(f"平均评分 (样本): {result['avg_rating']}")
+        _safe_print(f"Avg Rating (sample): {result['avg_rating']}")
     if result.get("rating_distribution_page"):
-        print("评分分布:")
+        _safe_print("Distribution:")
         dist = result["rating_distribution_page"]
         total = sum(dist.values()) or 1
         for star in ["5", "4", "3", "2", "1"]:
             count = dist.get(star, 0)
             pct = count / total * 100
             bar = "#" * int(pct / 2)
-            print(f"  {star}★: {count:3d} ({pct:5.1f}%) {bar}")
+            _safe_print(f"  {star}*: {count:3d} ({pct:5.1f}%) {bar}")
     elif result.get("rating_distribution"):
-        print("评分分布 (样本):")
+        _safe_print("Distribution (sample):")
         for star in ["5", "4", "3", "2", "1"]:
             count = result["rating_distribution"].get(star, 0)
             total = max(result["total_reviews"], 1)
             pct = count / total * 100
             bar = "#" * int(pct / 2)
-            print(f"  {star}★: {count:3d} ({pct:5.1f}%) {bar}")
-    print(f"有文本: {result.get('reviews_with_text', 0)}")
-    print(f"有图片: {result.get('reviews_with_images', 0)}")
-    print(f"已验证: {result.get('verified_purchases', 0)}")
+            _safe_print(f"  {star}*: {count:3d} ({pct:5.1f}%) {bar}")
+    _safe_print(f"With text: {result.get('reviews_with_text', 0)}")
+    _safe_print(f"With images: {result.get('reviews_with_images', 0)}")
+    _safe_print(f"Verified: {result.get('verified_purchases', 0)}")
 
 
 def main():

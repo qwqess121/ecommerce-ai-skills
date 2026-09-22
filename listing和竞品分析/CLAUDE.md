@@ -56,7 +56,7 @@ Batch 5.5: tiktok_product_scraper.py（优先）或 get_page_text（备用）+ W
 最终: 分段生成报告（概览→S1→S2→S3 逐段落盘） → 发布为在线 Artifact → 回传链接
 ```
 
-> **为什么需要三层降级？** FastMoss API 不返回 4 类数据：产品描述正文、图片完整列表、评论原文（<500条时API常空）、评分星级分布。`tiktok_product_scraper.py`（Layer 1）使用 SeleniumBase UC 模式自动绕过 TikTok 反爬验证，成功率最高；内置 Browser `get_page_text`（Layer 2）可能被拦截；Layer 3 确保报告一定能生成。**员工使用前需安装依赖：`pip install seleniumbase`**
+> **为什么需要三层降级？** FastMoss API 不返回 4 类数据：产品描述正文、图片完整列表、评论原文（<500条时API常空）、评分星级分布。`tiktok_product_scraper.py`（Layer 1）使用 SeleniumBase UC 模式自动绕过 TikTok 反爬验证，成功率最高；内置 Browser `get_page_text`（Layer 2）可能被拦截；Layer 3 确保报告一定能生成。**脚本会自动检测并安装 seleniumbase 依赖，员工无需手动操作。**
 
 ## 内容完整性（不可删减 — 最高优先级）
 

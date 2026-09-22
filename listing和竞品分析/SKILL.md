@@ -348,6 +348,7 @@ for page in 1..5:
 ```bash
 python scripts/tiktok_product_scraper.py {product_id}
 ```
+- **依赖自动安装**：脚本首次运行时检测 seleniumbase，若未安装则自动执行 `pip install seleniumbase`，员工无需手动操作
 - 使用 SeleniumBase UC (Undetected Chrome) 模式**自动绕过 TikTok 反爬验证**
 - 从页面 `<script id="__MODERN_ROUTER_DATA__">` 提取 SSR JSON
 - 一次运行提取全部 4 类数据：**描述正文** + **图片列表(含URL)** + **评论原文(3条)** + **全量评分分布**

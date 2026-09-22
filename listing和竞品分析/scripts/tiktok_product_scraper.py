@@ -16,6 +16,8 @@ TikTok Shop 产品页全量数据提取工具 v1.0
 
 import json
 import re
+import sys
+import subprocess
 import time
 import argparse
 from pathlib import Path
@@ -25,8 +27,35 @@ SCRIPT_DIR = Path(__file__).parent
 OUTPUT_DIR = SCRIPT_DIR / "product_data"
 
 
+def ensure_seleniumbase():
+    """Auto-install seleniumbase if missing. Returns True if available."""
+    try:
+        import seleniumbase  # noqa: F401
+        return True
+    except ImportError:
+        print("[AUTO-INSTALL] seleniumbase not found, installing...")
+        try:
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "seleniumbase", "-q"],
+                stdout=subprocess.DEVNULL,
+            )
+            import seleniumbase  # noqa: F401
+            print("[AUTO-INSTALL] seleniumbase installed successfully")
+            return True
+        except Exception as e:
+            print(f"[AUTO-INSTALL] Failed to install seleniumbase: {e}")
+            print("[HINT] Run manually: pip install seleniumbase")
+            return False
+
+
 def parse_ssr_full(html_or_json_str):
-    """Parse __MODERN_ROUTER_DATA__ — extracts product info + reviews + ratings."""
+    """Parse __MODERN_ROUTER_DATA__ — extracts product info + reviews + ratings.
+
+    TikTok SSR structure (2026):
+    loaderData → (region)/pdp/.../page → page_config → components_map[3]
+      → component_data → product_info.product_model (title/desc/images/skus)
+                       → review_info (reviews + rating_distribution)
+    """
     if isinstance(html_or_json_str, str) and html_or_json_str.strip().startswith('{'):
         data = json.loads(html_or_json_str)
     else:
@@ -45,51 +74,58 @@ def parse_ssr_full(html_or_json_str):
         "review_info": None,
     }
 
-    def find_page_data(obj, depth=0):
-        if depth > 8 or not isinstance(obj, dict):
-            return None
-        for k, v in obj.items():
-            if "product-detail" in str(k) and isinstance(v, dict):
-                return v
-            if isinstance(v, dict):
-                r = find_page_data(v, depth + 1)
-                if r:
-                    return r
-        return None
-
-    page_data = find_page_data(data)
-    if not page_data:
-        loader = data.get("loaderData", {})
-        for k, v in loader.items():
-            if "product" in k.lower() and isinstance(v, dict):
-                page_data = v
-                break
-
+    # Step 1: Find the page loader data
+    page_data = None
+    loader = data.get("loaderData", {})
+    for k, v in loader.items():
+        if ("pdp" in k or "product" in k.lower()) and isinstance(v, dict):
+            page_data = v
+            break
     if not page_data:
         page_data = data
 
-    # --- Extract product info ---
-    product_info = _find_nested(page_data, "product_info") or _find_nested(page_data, "productInfo") or {}
-    result["product_info"] = _extract_product_info(product_info, page_data)
+    # Step 2: Find component_data from components_map (new TikTok SSR structure)
+    comp_data = None
+    page_config = page_data.get("page_config", {})
+    components = page_config.get("components_map", [])
+    for comp in components:
+        if comp.get("component_type") == "product_info":
+            comp_data = comp.get("component_data", {})
+            break
 
-    # --- Extract description ---
-    desc = (
-        product_info.get("desc")
-        or product_info.get("description")
-        or _find_nested(page_data, "description")
-        or _find_nested(page_data, "desc")
-    )
-    if isinstance(desc, dict):
-        desc = desc.get("text") or desc.get("content") or json.dumps(desc, ensure_ascii=False)
-    result["description"] = str(desc).strip() if desc else None
+    # Step 3: Extract from component_data (preferred) or fallback to page_data
+    if comp_data:
+        pi_wrapper = comp_data.get("product_info", {})
+        product_model = pi_wrapper.get("product_model", {})
 
-    # --- Extract images ---
-    images = _extract_images(product_info, page_data)
-    result["images"] = images
+        result["product_info"] = _extract_product_info(product_model, comp_data)
 
-    # --- Extract reviews + rating distribution ---
-    review_data = _extract_reviews(page_data)
-    result["review_info"] = review_data
+        desc = product_model.get("description") or product_model.get("desc")
+        if isinstance(desc, dict):
+            desc = desc.get("text") or desc.get("content") or json.dumps(desc, ensure_ascii=False)
+        result["description"] = str(desc).strip() if desc else None
+
+        result["images"] = _extract_images(product_model, comp_data)
+
+        review_data = _extract_reviews(comp_data)
+        result["review_info"] = review_data
+    else:
+        # Fallback: old SSR structure or flat layout
+        product_info = _find_nested(page_data, "product_info") or {}
+        if isinstance(product_info, dict) and "product_model" in product_info:
+            product_info = product_info["product_model"]
+        result["product_info"] = _extract_product_info(product_info, page_data)
+
+        desc = (
+            product_info.get("description") or product_info.get("desc")
+            or _find_nested(page_data, "description")
+        )
+        if isinstance(desc, dict):
+            desc = desc.get("text") or desc.get("content") or json.dumps(desc, ensure_ascii=False)
+        result["description"] = str(desc).strip() if desc else None
+
+        result["images"] = _extract_images(product_info, page_data)
+        result["review_info"] = _extract_reviews(page_data)
 
     return result
 
@@ -115,8 +151,14 @@ def _find_nested(obj, key, depth=0):
 
 def _extract_product_info(product_info, page_data):
     info = {}
-    info["title"] = product_info.get("title") or _find_nested(page_data, "title") or ""
+    info["title"] = (
+        product_info.get("name")
+        or product_info.get("title")
+        or product_info.get("product_name")
+        or ""
+    )
     info["product_id"] = product_info.get("product_id") or product_info.get("id") or ""
+    info["sold_count"] = product_info.get("sold_count") or ""
 
     price_info = product_info.get("price") or product_info.get("priceInfo") or {}
     if isinstance(price_info, dict):
@@ -126,16 +168,15 @@ def _extract_product_info(product_info, page_data):
         info["price"] = str(price_info)
 
     info["rating"] = product_info.get("rating") or product_info.get("product_rating") or ""
-    info["review_count"] = product_info.get("review_count") or product_info.get("sold_count") or ""
+    info["review_count"] = product_info.get("review_count") or ""
 
-    # SKU/variants
-    skus = product_info.get("skus") or product_info.get("sku_list") or _find_nested(page_data, "skus") or []
+    skus = product_info.get("skus") or product_info.get("sku_list") or []
     if isinstance(skus, list):
         info["sku_count"] = len(skus)
         info["sku_names"] = []
         for sku in skus:
             if isinstance(sku, dict):
-                name = sku.get("title") or sku.get("name") or sku.get("sku_name") or ""
+                name = sku.get("sku_name") or sku.get("title") or sku.get("name") or ""
                 if name:
                     info["sku_names"].append(str(name))
 
@@ -157,30 +198,31 @@ def _extract_images(product_info, page_data):
         seen_urls.add(url)
         images.append({"url": url, "type": img_type})
 
-    # Method 1: product_info.images
-    pi_images = product_info.get("images") or product_info.get("image_list") or product_info.get("product_images") or []
+    def extract_url_from_img(img):
+        if isinstance(img, str):
+            return img
+        if isinstance(img, dict):
+            url_list = img.get("url_list", [])
+            if url_list and isinstance(url_list, list):
+                return url_list[0]
+            return (img.get("url") or img.get("uri") or img.get("thumb_url")
+                    or img.get("origin_url") or "")
+        return ""
+
+    pi_images = product_info.get("images") or product_info.get("image_list") or []
     if isinstance(pi_images, list):
         for img in pi_images:
-            if isinstance(img, str):
-                add_image(img)
-            elif isinstance(img, dict):
-                add_image(img.get("url") or img.get("uri") or img.get("thumb_url") or img.get("origin_url") or "")
+            add_image(extract_url_from_img(img))
 
-    # Method 2: cover image
-    cover = product_info.get("cover") or product_info.get("cover_url") or product_info.get("main_image") or ""
+    cover = product_info.get("cover") or product_info.get("cover_url") or ""
     if isinstance(cover, dict):
-        cover = cover.get("url") or cover.get("uri") or ""
+        cover = extract_url_from_img(cover)
     add_image(cover, "cover")
 
-    # Method 3: search in page_data for image arrays
-    for key in ("productImages", "product_images", "gallery", "media"):
-        found = _find_nested(page_data, key)
-        if isinstance(found, list):
-            for img in found:
-                if isinstance(img, str):
-                    add_image(img)
-                elif isinstance(img, dict):
-                    add_image(img.get("url") or img.get("uri") or img.get("src") or "")
+    sku_images = product_info.get("sku_property_image_map", {})
+    if isinstance(sku_images, dict):
+        for prop_id, img_obj in sku_images.items():
+            add_image(extract_url_from_img(img_obj), "sku")
 
     return images
 
@@ -232,13 +274,17 @@ def _extract_reviews(page_data):
             date_str = str(ts) if ts else ""
 
         review_images = []
-        for img in (r.get("review_images") or []):
+        for img in (r.get("review_images") or r.get("images") or []):
             if isinstance(img, str):
                 review_images.append(img)
             elif isinstance(img, dict):
-                u = img.get("url") or img.get("uri") or img.get("thumb_url") or ""
-                if u:
-                    review_images.append(u)
+                url_list = img.get("url_list", [])
+                if url_list:
+                    review_images.append(url_list[0])
+                else:
+                    u = img.get("url") or img.get("uri") or img.get("thumb_url") or ""
+                    if u:
+                        review_images.append(u)
 
         reviews.append({
             "review_id": r.get("review_id", ""),
@@ -258,17 +304,15 @@ def _extract_reviews(page_data):
 
 def scrape_with_browser(product_id):
     """Primary: SeleniumBase UC mode — bypasses anti-bot, extracts full SSR data."""
-    try:
-        from seleniumbase import SB
-    except ImportError:
-        print("[SKIP] seleniumbase not installed — run: pip install seleniumbase")
+    if not ensure_seleniumbase():
         return None
+    from seleniumbase import SB
 
     url = f"https://shop.tiktok.com/us/pdp/-/{product_id}"
     print(f"[Browser] Opening {url}")
 
     try:
-        with SB(uc=True, headed=True, chromium_arg="--lang=en-US",
+        with SB(uc=True, headless=True, chromium_arg="--lang=en-US",
                 disable_features="OptimizationGuideModelDownloading") as sb:
             sb.uc_open_with_reconnect(url, reconnect_time=6)
             sb.sleep(4)
@@ -398,62 +442,70 @@ def build_output(product_id, ssr_result):
     }
 
 
+def _safe_print(text):
+    """Print with fallback for Windows GBK console."""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        print(text.encode("ascii", errors="replace").decode("ascii"))
+
+
 def print_summary(output):
     """Print human-readable summary."""
-    print(f"\n{'='*60}")
-    print(f"TikTok 产品页数据提取结果")
-    print(f"{'='*60}")
-    print(f"产品 ID:   {output['product_id']}")
-    print(f"提取时间:  {output['scrape_time']}")
-    print(f"状态:      {'✅ 成功' if output['success'] else '❌ 失败'}")
+    _safe_print(f"\n{'='*60}")
+    _safe_print("TikTok Product Page Data Extraction Result")
+    _safe_print(f"{'='*60}")
+    _safe_print(f"Product ID:   {output['product_id']}")
+    _safe_print(f"Scrape Time:  {output['scrape_time']}")
+    _safe_print(f"Status:       {'OK' if output['success'] else 'FAILED'}")
 
     if not output["success"]:
-        print(f"错误:      {output.get('error', 'unknown')}")
+        _safe_print(f"Error:        {output.get('error', 'unknown')}")
         return
 
     pi = output.get("product_info") or {}
-    print(f"\n--- 产品信息 ---")
-    print(f"标题:      {pi.get('title', 'N/A')[:80]}")
-    print(f"价格:      {pi.get('price', 'N/A')}")
-    print(f"SKU数:     {pi.get('sku_count', 'N/A')}")
+    _safe_print(f"\n--- Product Info ---")
+    _safe_print(f"Title:        {pi.get('title', 'N/A')[:80]}")
+    _safe_print(f"Price:        {pi.get('price', 'N/A')}")
+    _safe_print(f"SKU Count:    {pi.get('sku_count', 'N/A')}")
 
     desc = output.get("description")
     if desc:
-        print(f"\n--- 描述正文 ---")
-        print(f"长度:      {len(desc)} 字符")
-        print(f"预览:      {desc[:150]}...")
+        _safe_print(f"\n--- Description ---")
+        _safe_print(f"Length:       {len(desc)} chars")
+        _safe_print(f"Preview:      {desc[:150]}...")
     else:
-        print(f"\n--- 描述正文: 未获取到 ---")
+        _safe_print(f"\n--- Description: not available ---")
 
     imgs = output.get("images", [])
-    print(f"\n--- 图片 ---")
-    print(f"数量:      {len(imgs)}")
+    _safe_print(f"\n--- Images ---")
+    _safe_print(f"Count:        {len(imgs)}")
     for i, img in enumerate(imgs[:5]):
-        print(f"  图{i+1}: [{img.get('type','product')}] {img['url'][:80]}...")
+        _safe_print(f"  img{i+1}: [{img.get('type','product')}] {img['url'][:80]}...")
     if len(imgs) > 5:
-        print(f"  ... 还有 {len(imgs)-5} 张")
+        _safe_print(f"  ... and {len(imgs)-5} more")
 
     ri = output.get("review_info", {})
-    print(f"\n--- 评论与评分 ---")
-    print(f"总评论数:  {ri.get('total_reviews', 0)}")
-    print(f"平均评分:  {ri.get('avg_rating', 'N/A')}")
-    print(f"样本评论:  {len(ri.get('reviews', []))} 条")
+    _safe_print(f"\n--- Reviews & Ratings ---")
+    _safe_print(f"Total:        {ri.get('total_reviews', 0)}")
+    _safe_print(f"Avg Rating:   {ri.get('avg_rating', 'N/A')}")
+    _safe_print(f"Samples:      {len(ri.get('reviews', []))} reviews")
     if ri.get("rating_distribution"):
-        print("评分分布:")
+        _safe_print("Distribution:")
         dist = ri["rating_distribution"]
         total = sum(int(v) for v in dist.values()) or 1
         for star in ["5", "4", "3", "2", "1"]:
             count = int(dist.get(star, 0))
             pct = count / total * 100
-            bar = "█" * int(pct / 2)
-            print(f"  {star}★: {count:5d} ({pct:5.1f}%) {bar}")
+            bar = "#" * int(pct / 2)
+            _safe_print(f"  {star}*: {count:5d} ({pct:5.1f}%) {bar}")
 
     if ri.get("reviews"):
-        print(f"\n--- 评论样本 ---")
+        _safe_print(f"\n--- Review Samples ---")
         for r in ri["reviews"][:3]:
-            stars = "★" * (r.get("rating") or 0) + "☆" * (5 - (r.get("rating") or 0))
+            rating = r.get("rating") or 0
             text = (r.get("text") or "")[:100]
-            print(f"  {stars} [{r.get('sku_spec','')}] {text}")
+            _safe_print(f"  [{rating}/5] [{r.get('sku_spec','')}] {text}")
 
 
 def main():
