@@ -1,12 +1,17 @@
 """
-TikTok Shop 产品页全量数据提取工具 v1.0
-策略: SeleniumBase UC模式 → SSR数据提取(描述+图片+评论+评分分布)
+TikTok Shop 产品页全量数据提取工具 v1.1
+策略: SeleniumBase UC模式 → SSR数据提取(描述+图片+评论样本+评分分布)
 
 替代 Browser get_page_text，解决 TikTok 反爬验证拦截问题。
-复用 tiktok_review_scraper.py 的 SeleniumBase UC 反爬能力，扩展提取范围。
 
 输出: scripts/product_data/product_{product_id}.json
-数据: 产品描述正文 + 图片列表(含URL) + 3条SSR评论 + 全量评分分布
+数据: 产品描述正文 + 图片列表(含URL) + 3条SSR评论样本 + 全量评分分布
+
+评论获取限制（2026-09 实测）:
+  - SSR 永远只包含 3 条评论，无法通过 URL 参数改变
+  - get_product_reviews API 受 X-Tts-Oec-Bsid 一次性 token 保护，无法直接调用
+  - DOM 翻页在 headless 模式下不工作（Service Worker + React 状态管理限制）
+  - 因此评论原文以 FastMoss product_review_list 为主（≥500评论有数据），本脚本 3 条 SSR 评论仅作兜底样本
 
 用法:
   python tiktok_product_scraper.py <product_id>
@@ -509,7 +514,7 @@ def print_summary(output):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="TikTok Shop 产品页全量数据提取工具 v1.0")
+    parser = argparse.ArgumentParser(description="TikTok Shop 产品页全量数据提取工具 v1.1")
     parser.add_argument("product_id", help="TikTok Shop 产品 ID")
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--method", choices=["auto", "browser", "http"], default="auto")

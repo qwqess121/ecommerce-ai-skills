@@ -262,24 +262,26 @@ product_creator_analysis({
 
 **B6. 评论（两层获取策略）**
 
-**Layer 1（优先）：FastMoss API**
+**Layer 1（主力）：FastMoss API — 不限评论数都先尝试**
 ```
 product_review_list({ filter: { product_id } })
 ```
-- 评论数 ≥500 的商品通常能返回评论原文（多条）
+- **不限评论数量都先调用**，≥500 评论商品通常返回 10+ 条完整评论
 - API 返回评论 → 直接使用，写入 `05_评论.md`，标注"来源：FastMoss API"
-- **API 返回的评论数量多（可能10+条）、质量高，是首选数据源**
+- **这是评论原文的唯一可靠批量来源**
 
-**Layer 2（API 返回 0 时）：爬虫兜底**
-- API 返回 0 条（评论<500 常见）→ 在 `05_评论.md` 中标注"API 未返回评论，待 Batch 5.5 爬虫补充"
-- Batch 5.5 的 `tiktok_product_scraper.py` 会从 SSR 提取 3 条评论原文 → 补充写入 `09_图片描述评论.md`
-- 爬虫还会同时提取**评分分布**（1~5星逐级计数），这是 FastMoss API 没有的数据
+**Layer 2（API 返回 0 时）：爬虫 SSR 3 条样本兜底**
+- API 返回 0 条 → 在 `05_评论.md` 中标注"API 未返回评论，待 Batch 5.5 爬虫补充"
+- Batch 5.5 的 `tiktok_product_scraper.py` 从 SSR 提取 **3 条评论样本**（TikTok 反爬限制，无法获取更多，详见下方说明）
+- 爬虫同时提取**全量评分分布**（1~5星逐级计数），这是 FastMoss API 没有的数据
 
 **全部失败时的降级**
 - 只用 `detail_info` 的 `product_rating` + `review_count` 做量化对比
 - **不编造评论原文**，标注【评论原文缺失】
 
-> **评分分布**不受上述两层影响——无论 API 是否返回评论，Batch 5.5 的爬虫都会运行（因为还需提取描述正文和图片列表），评分分布（1~5星）始终来自爬虫 SSR 数据。
+> **为什么爬虫只能获取 3 条？**（2026-09 实测）TikTok SSR 固定只含 3 条评论；`get_product_reviews` API 使用一次性 `X-Tts-Oec-Bsid` token 保护，无法直接调用；DOM 翻页在 headless 模式下不工作（Service Worker + React 状态管理限制）；cookies 导出到外部 HTTP 客户端后 API 返回 404。API 拦截方案全部不可行，3 条 SSR 样本是爬虫的可靠上限。
+>
+> **评分分布**不受上述限制——无论 API 是否返回评论，Batch 5.5 的爬虫都会运行（还需提取描述正文和图片列表），评分分布（1~5星全量）始终来自爬虫 SSR 数据。
 
 **B7. 店铺**
 ```

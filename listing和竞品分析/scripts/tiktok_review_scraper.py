@@ -1,10 +1,16 @@
 """
-TikTok Shop 评论获取工具 v5 (Production)
-策略: SeleniumBase UC模式 → SSR数据提取(评论+评分分布)
+TikTok Shop 评论获取工具 v5.1 (Production)
+策略: SeleniumBase UC模式 → SSR数据提取(评论样本+评分分布)
 适用: FastMoss product_review_list 返回0的小评论量商品(<500评论)
 
 输出: scripts/reviews/reviews_{product_id}.json
-数据: 3条SSR评论(含原文/评分/日期/图片) + 全量评分分布(所有评论的1-5星计数) + 平均评分
+数据: 3条SSR评论样本(含原文/评分/日期/图片) + 全量评分分布(所有评论的1-5星计数) + 平均评分
+
+技术限制（2026-09 实测）:
+  SSR 固定只含 3 条评论，TikTok 的 get_product_reviews API 使用一次性 token 保护，
+  DOM 翻页在 headless 模式下因 Service Worker 限制无法工作。
+  因此本工具只能获取 3 条评论样本 + 全量评分分布。
+  评论原文主力来源应为 FastMoss product_review_list API（≥500评论商品有数据）。
 
 用法:
   python tiktok_review_scraper.py <product_id> [--output reviews.json]
