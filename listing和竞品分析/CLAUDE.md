@@ -22,9 +22,10 @@
 ## 数据源
 
 - **FastMoss MCP**（主）：产品/竞品/类目/达人全部结构化数据
-- **`tiktok_product_scraper.py`**（辅，产品页数据）：描述正文、图片列表、评论原文、评分分布（FastMoss API 不返回这 4 类数据）。使用 SeleniumBase UC 模式**自动绕过 TikTok 反爬验证**
+- **FastMoss 产品页 + Browser JS**（图片提取，100% 可靠）：打开 `fastmoss.com/e-commerce/detail/{id}` → JS 提取全部 Thumbnail URL（`s.500fd.com` CDN）→ WebFetch 下载 → Read 查看。**不受反爬影响，任何机器可用**
+- **`tiktok_product_scraper.py`**（辅，描述正文+评分分布）：FastMoss API 不返回这 2 类数据，需从 TikTok 产品页获取。使用 SeleniumBase UC 模式绕过反爬，成功率取决于 IP 信誉度
 - **Browser `get_page_text`**（备用，脚本不可用时）：可能被 TikTok 反爬拦截，非必须
-- **WebFetch + Read**（图片分析）：下载 cover_url CDN 图片，不受反爬影响
+- **WebFetch + Read**（图片分析）：下载 `s.500fd.com` CDN 图片，不受反爬影响
 - **禁止 Browser 截图**（`screenshot` 超时风险高、token 消耗大）
 
 ## ⚡ 性能强制规则（最高优先级，覆盖 SKILL.md）
@@ -43,7 +44,7 @@
 4. **MCP 优化**：按需指定返回字段；报错不无限重试，降级兜底标记【数据缺失】；可并行的请求并行执行
 5. **token 预算 ≤40K**：接近阈值立即落盘清理
 6. **SKILL 文件只读一次**：采集阶段读一次调度逻辑，生成阶段读一次格式模板，不重复读取
-7. **Browser 零截图 + 产品页三层降级**：形态识别用三层筛选法（标题初筛 → WebFetch 下载 cover_url 图片验证 → 少量产品页确认，详见 SKILL.md §6.2）；产品页数据（描述/图片/评论/评分分布）优先用 `tiktok_product_scraper.py`（Layer 1，绕过反爬），其次 `get_page_text`（Layer 2），最后降级标注缺失（Layer 3）；图片诊断用 WebFetch 下载 cover_url（不受反爬影响）；SEO 分析是纯计算不需要 Browser；**禁止 `screenshot`**
+7. **Browser 零截图 + 图片走 FastMoss**：形态识别用三层筛选法（标题初筛 → WebFetch 下载 cover_url 图片验证 → 少量产品页确认，详见 SKILL.md §6.2）；**产品图片**通过 Browser 打开 FastMoss 产品页 → JS 提取全部 Thumbnail URL → WebFetch 下载 CDN 图片（100% 可靠）；描述正文/评分分布优先用 `tiktok_product_scraper.py`（Layer 1），其次 `get_page_text`（Layer 2），最后标注缺失（Layer 3）；SEO 分析是纯计算不需要 Browser；**禁止 `screenshot`**
 
 ### 工作流
 
@@ -52,11 +53,11 @@ Batch 1: detail_info + overview + sku + shop_base → 写 01/02/03 → 丢弃
 Batch 2: video_list + creator_analysis + review_list → 写 04/05 → 丢弃（评论：不限评论数都先调 FastMoss API）
 Batch 3: ranking page 1-5（全部并行） → 写 06（含三层筛选形态判定） → 丢弃
 Batch 4+5: TOP7 detail_info + 同形态搜索（并行） → 写 07/08 → 丢弃
-Batch 5.5: tiktok_product_scraper.py（优先）或 get_page_text（备用）+ WebFetch cover_url → 写 09（图片+描述+评分分布+评论兜底3条） + 纯计算写 10（SEO）
+Batch 5.5: FastMoss产品页JS提取全部图片URL + WebFetch下载 + tiktok_product_scraper.py（描述+评分分布，可选）→ 写 09（图片+描述+评分分布+评论兜底3条） + 纯计算写 10（SEO）
 最终: 分段生成报告（概览→S1→S2→S3 逐段落盘） → 发布为在线 Artifact → 回传链接
 ```
 
-> **数据来源分工：** **评论原文**采用两层策略——FastMoss `product_review_list` 不限评论数都先调用（≥500 评论商品通常返回 10+ 条完整评论），API 返回 0 时才用爬虫 SSR 的 3 条样本兜底（TikTok 反爬保护限制，爬虫无法获取更多，详见 SKILL.md §B6）。**描述正文 / 图片列表 / 评分分布**这 3 类数据 FastMoss API 不返回，只能从产品页获取：`tiktok_product_scraper.py` v1.2（Layer 1，headless → 遇验证码自动重试 visible 模式）→ Browser `get_page_text`（Layer 2）→ 标注缺失（Layer 3）。**脚本会自动检测并安装 seleniumbase 依赖，员工无需手动操作。Layer 1 是否成功取决于机器 IP 信誉度（TikTok 服务端判定），失败是正常现象，不影响报告生成。**
+> **数据来源分工：** **评论原文**采用两层策略——FastMoss `product_review_list` 不限评论数都先调用（≥500 评论商品通常返回 10+ 条完整评论），API 返回 0 时才用爬虫 SSR 的 3 条样本兜底（TikTok 反爬保护限制，爬虫无法获取更多，详见 SKILL.md §B6）。**产品图片**通过 FastMoss 产品页提取（Browser 打开 `fastmoss.com/e-commerce/detail/{id}` → JS 提取 Thumbnail URL → WebFetch 下载 CDN 图片），**100% 可靠，不依赖爬虫，不受反爬影响**。**描述正文 / 评分分布**从 TikTok 产品页获取：`tiktok_product_scraper.py` v1.2（Layer 1）→ Browser `get_page_text`（Layer 2）→ 标注缺失（Layer 3）。Layer 1 是否成功取决于机器 IP 信誉度，失败不影响报告图片诊断。
 
 ## 内容完整性（不可删减 — 最高优先级）
 

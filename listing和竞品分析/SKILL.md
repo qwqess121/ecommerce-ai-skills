@@ -112,12 +112,13 @@ Batch 4+5（阶段 D，可合并并行）
 
 Batch 5.5（阶段 E，产品页数据提取 + 纯计算）
   ★ 评论两层策略：B6 FastMoss API 优先（≥500评论商品）→ API返回0时用爬虫SSR 3条兜底
-  ★ 三层降级提取（描述正文、图片列表、评分分布——这3类FastMoss API无法返回）：
+  ★ 图片提取（E1b，100% 可靠）：Browser 打开 FastMoss 产品页 → JS 提取全部 Thumbnail URL → WebFetch 下载 CDN 图片 → Read 逐张视觉分析
+  ★ 描述正文+评分分布（三层降级，E1——这2类FastMoss API无法返回）：
     Layer 1: python scripts/tiktok_product_scraper.py {product_id}
              → SeleniumBase UC 无头模式绕过反爬 → SSR JSON 提取（推荐）
     Layer 2: Browser get_page_text(产品页)（Layer 1 失败时尝试，可能被反爬拦截）
-    Layer 3: 仅用 FastMoss API 数据 + WebFetch cover_url，标注【数据缺失】
-  → 写入 09_图片描述评论.md（评论部分：API有则用API，无则用爬虫SSR）
+    Layer 3: 标注【数据缺失】（图片不受影响，已由 E1b 保底）
+  → 写入 09_图片描述评论.md（图片：E1b；评论：API有则用API，无则用爬虫SSR；描述+评分分布：三层降级）
   → 基于 06_L3排行.md TOP20 标题做词频统计 → 写入 10_SEO分析.md
   ★ Layer 1 脚本约 15 秒，无头模式运行，输出 scripts/product_data/product_{id}.json
   ★ 可与 Batch 4+5 并行启动（不依赖竞品数据）
@@ -356,41 +357,66 @@ for page in 1..5:
 
 不新增 FastMoss 取数。产品页数据通过**三层降级策略**获取（描述正文、图片列表、评分分布）。评论原文遵循 B6 两层策略（FastMoss API 优先，爬虫兜底）。
 
-#### E1. 产品页数据提取（三层降级）
+#### E1. 产品页数据提取（描述正文 + 评分分布）
 
-**Layer 1（推荐）：`tiktok_product_scraper.py` 脚本 (v1.2)**
+描述正文和评分分布只能从 TikTok 产品页获取（FastMoss API 不返回），使用三层降级：
+
+**Layer 1：`tiktok_product_scraper.py` 脚本 (v1.2)**
 ```bash
 python scripts/tiktok_product_scraper.py {product_id}
 python scripts/tiktok_product_scraper.py {product_id} --visible  # 办公电脑推荐
 ```
-- **依赖自动安装**：脚本首次运行时检测 seleniumbase，若未安装则自动执行 `pip install seleniumbase`，员工无需手动操作
-- 使用 SeleniumBase UC (Undetected Chrome) 模式**自动绕过 TikTok 反爬验证**
-- **自动重试**（v1.2）：headless 遇到验证码 → 自动切换 visible 模式重试（有桌面环境的机器可自动点击验证码）
-- **`--visible` 参数**：跳过 headless 直接用可见浏览器（办公电脑推荐，验证码处理成功率更高）
-- 从页面 `<script id="__MODERN_ROUTER_DATA__">` 提取 SSR JSON
-- 一次运行提取全部 4 类数据：**描述正文** + **图片列表(含URL)** + **评论原文(3条，仅当 B6 API 未返回评论时使用)** + **全量评分分布**
-- 输出 `scripts/product_data/product_{product_id}.json`，约 15 秒完成
-- 用 `Read` 读取 JSON 输出，提炼写入 `09_图片描述评论.md`
-- **环境依赖说明**：UC 反爬绕过是否成功取决于机器 IP 信誉度（TikTok 服务端判定），同一代码在不同网络/机器上可能结果不同。**Layer 1 失败是正常现象，不影响报告生成**——自动进入 Layer 2/3
+- 使用 SeleniumBase UC 模式绕过反爬，headless 遇验证码自动重试 visible 模式
+- 提取：**描述正文** + **评分分布** + 评论样本(3条兜底) + 图片URL列表(备用)
+- **环境依赖**：成功率取决于 IP 信誉度，不同机器结果不同。**失败是正常现象**——自动进入 Layer 2/3
 
 **Layer 2（Layer 1 失败时）：Browser `get_page_text`**
 - 打开 `https://shop.tiktok.com/us/pdp/-/{product_id}`
 - 调用 `get_page_text({ max_chars: 50000 })` 提取页面全文
-- **注意：此方法可能被 TikTok 反爬验证拦截**——如果返回内容包含 "Security Check" / "Verify" 等关键词，立即放弃，进入 Layer 3
+- 可能被 TikTok 反爬拦截——返回 "Security Check" / "Verify" 则放弃
 - 禁止截图、禁止多次访问
 
-**Layer 3（前两层均失败时）：仅用已有数据 + 标注缺失**
+**Layer 3（前两层均失败时）：标注缺失**
 - 描述正文：标注【数据缺失：TikTok 反爬拦截，描述正文未获取】
-- 图片数量：基于 WebFetch 下载 `cover_url` 查看主图 + 统计 FastMoss 返回的 `cover_url`，标注"仅主图可验证"
 - 评论原文：优先使用 B6 的 FastMoss `product_review_list`（如有）；若 API 也返回 0 则标注"仅有统计数据"
 - 评分分布：使用 `product_detail_info` 的 `product_rating` + `review_count` 做量化对比
 - **不编造任何缺失数据**
 
-#### E2. 图片分析（不受反爬影响）
-- **本品图片分析**：用 WebFetch 下载本品 `cover_url` + Read 查看主图（1 次），结合 Layer 1/2 获取的图片列表，判定 8 条 TK 官方图片规则
-- **竞品图片对比**：用 WebFetch 下载 3-5 个对标竞品的 `cover_url` + Read 查看（竞品选自概览⑥），用于填写§2.2 竞品对比表
-- 无法从主图+文本判定的规则标注 "⚠️ 需人工核实"
-- **WebFetch 下载 CDN 图片链接不会触发反爬**（与访问产品页不同）
+#### E1b. 产品图片提取（via FastMoss 页面 — 100% 可靠，不受反爬影响）
+
+> **图片不再依赖 TikTok 爬虫。** FastMoss 产品页展示了完整的商品图片轮播（5-10张），图片托管在 `s.500fd.com` CDN，任何机器、任何网络都能下载。即使 E1 的 Layer 1/2 全部失败，图片诊断依然完整。
+
+**步骤**：
+1. **Browser 打开 FastMoss 产品页**（无反爬）：
+   ```
+   navigate("https://www.fastmoss.com/e-commerce/detail/{product_id}")
+   ```
+2. **JavaScript 提取全部产品图片 URL**：
+   ```javascript
+   const imgs = document.querySelectorAll('img');
+   const urls = [];
+   imgs.forEach(img => {
+       if (img.alt && img.alt.startsWith('Thumbnail')) {
+           urls.push({index: parseInt(img.alt.replace('Thumbnail ', '')), url: img.src});
+       }
+   });
+   urls.sort((a, b) => a.index - b.index);
+   JSON.stringify(urls);
+   ```
+   返回格式：`[{index: 1, url: "https://s.500fd.com/tt_product/..."}, ...]`
+3. **WebFetch 下载** 每张图片（CDN 直链，无反爬）
+4. **Read 查看** 每张图片做视觉分析
+5. 将图片数量、URL 列表、图片内容要点写入 `09_图片描述评论.md`
+
+**适用范围**：本品图片 + 竞品图片均可用此方法（把 product_id 换成竞品 ID 即可）。
+
+**与 E1 Layer 1 的关系**：如果 E1 Layer 1 脚本成功且返回了图片 URL 列表，可跳过 E1b 的 Browser 步骤，直接用脚本返回的 URL 做 WebFetch 下载。E1b 是 Layer 1 失败时的**图片保底方案**，确保图片诊断不受爬虫环境限制。
+
+#### E2. 图片分析（基于 E1b 提取的完整图片集）
+- **本品图片分析**：对 E1b 提取的全部图片（5-10 张），逐张 WebFetch 下载 + Read 查看，判定 8 条 TK 官方图片规则
+- **竞品图片对比**：对 3-5 个对标竞品，同样用 E1b 方法（FastMoss 页面 → JS 提取 URL → WebFetch 下载 → Read 查看），用于填写§2.2 竞品对比表
+- 无法从图片判定的规则标注 "⚠️ 需人工核实"
+- **全部图片均走 `s.500fd.com` CDN，不触发任何反爬**
 
 #### E3. SEO 计算（纯文本计算，无需访问网页）
 基于 `06_L3排行.md` 中已保存的 TOP20 标题做词频统计；基于 `product_detail_info.title`（已在 `01_产品基本.md`）做关键词覆盖分析。结果写入 `10_SEO分析.md`。
