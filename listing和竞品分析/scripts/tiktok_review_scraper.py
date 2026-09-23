@@ -1,10 +1,12 @@
 """
-TikTok Shop 评论获取工具 v5.1 (Production)
+TikTok Shop 评论获取工具 v5.2 (Production)
 策略: SeleniumBase UC模式 → SSR数据提取(评论样本+评分分布)
 适用: FastMoss product_review_list 返回0的小评论量商品(<500评论)
 
 输出: scripts/reviews/reviews_{product_id}.json
 数据: 3条SSR评论样本(含原文/评分/日期/图片) + 全量评分分布(所有评论的1-5星计数) + 平均评分
+
+v5.2: headless遇验证码自动重试visible模式 + --visible参数
 
 技术限制（2026-09 实测）:
   SSR 固定只含 3 条评论，TikTok 的 get_product_reviews API 使用一次性 token 保护，
@@ -14,6 +16,7 @@ TikTok Shop 评论获取工具 v5.1 (Production)
 
 用法:
   python tiktok_review_scraper.py <product_id> [--output reviews.json]
+  python tiktok_review_scraper.py <product_id> --visible
   python tiktok_review_scraper.py <product_id> --method http
 """
 
@@ -146,13 +149,36 @@ def parse_ssr_data(html_or_json_str):
     return int(total) if isinstance(total, (int, float)) else 0, reviews, rating_meta
 
 
-def scrape_browser(product_id):
-    """Primary: SeleniumBase UC mode — bypasses anti-bot, extracts SSR data."""
+def scrape_browser(product_id, force_visible=False):
+    """Primary: SeleniumBase UC mode — bypasses anti-bot, extracts SSR data.
+
+    Strategy: headless first → if CAPTCHA, retry visible (needs display).
+    Use --visible on office desktops for better CAPTCHA handling.
+    """
     if not ensure_seleniumbase():
         return None
+
+    if force_visible:
+        return _review_browser_attempt(product_id, headless=False)
+
+    result = _review_browser_attempt(product_id, headless=True)
+    if result is not None:
+        return result
+
+    print("[Browser] Headless failed — retrying with visible browser...")
+    try:
+        return _review_browser_attempt(product_id, headless=False)
+    except Exception as e:
+        print(f"[Browser] Visible mode unavailable: {e}")
+        return None
+
+
+def _review_browser_attempt(product_id, headless=True):
+    """Single browser attempt for review extraction."""
     from seleniumbase import SB
 
     url = f"https://shop.tiktok.com/us/pdp/-/{product_id}"
+    mode = "headless" if headless else "visible"
     all_reviews = []
     seen = set()
     total_reported = 0
@@ -168,28 +194,37 @@ def scrape_browser(product_id):
                 seen.add(key)
                 all_reviews.append(r)
 
-    print(f"[Browser] Opening {url}")
+    print(f"[Browser] Opening {url} ({mode})")
     try:
-        with SB(uc=True, headless=True, chromium_arg="--lang=en-US", disable_features="OptimizationGuideModelDownloading") as sb:
+        with SB(uc=True, headless=headless, chromium_arg="--lang=en-US",
+                disable_features="OptimizationGuideModelDownloading") as sb:
             sb.uc_open_with_reconnect(url, reconnect_time=6)
             sb.sleep(4)
 
             title = sb.get_title().lower()
-            if any(w in title for w in ("security", "verify", "captcha", "check")):
-                print("[Browser] CAPTCHA detected, attempting UC click...")
-                try:
-                    sb.uc_gui_click_captcha()
-                except Exception:
-                    pass
-                sb.sleep(8)
-                title = sb.get_title().lower()
-                if any(w in title for w in ("security", "verify", "captcha")):
-                    print("[Browser] CAPTCHA not resolved, aborting browser method")
+            captcha_words = ("security", "verify", "captcha", "check")
+            if any(w in title for w in captcha_words):
+                if headless:
+                    print(f"[Browser] CAPTCHA in headless mode — auto-click not possible")
+                    return None
+
+                print("[Browser] CAPTCHA detected, attempting auto-click...")
+                for attempt in range(3):
+                    try:
+                        sb.uc_gui_click_captcha()
+                    except Exception:
+                        pass
+                    sb.sleep(5)
+                    title = sb.get_title().lower()
+                    if not any(w in title for w in captcha_words):
+                        print(f"[Browser] CAPTCHA resolved on attempt {attempt + 1}")
+                        break
+                else:
+                    print("[Browser] CAPTCHA not resolved after 3 attempts")
                     return None
 
             print(f"[Browser] Page loaded: {sb.get_title()[:60]}")
 
-            # Extract SSR data (reviews + rating distribution)
             try:
                 ssr_text = sb.execute_script(
                     "var el = document.getElementById('__MODERN_ROUTER_DATA__');"
@@ -207,11 +242,13 @@ def scrape_browser(product_id):
                 print(f"[SSR] Extraction error: {e}")
 
     except Exception as e:
-        print(f"[Browser] Fatal error: {e}")
+        print(f"[Browser] Error ({mode}): {e}")
         if all_reviews:
             return build_result(product_id, all_reviews, total_reported, rating_meta)
         return None
 
+    if not all_reviews:
+        return None
     return build_result(product_id, all_reviews, total_reported, rating_meta)
 
 
@@ -351,11 +388,13 @@ def print_summary(result):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="TikTok Shop 评论获取工具 v5")
+    parser = argparse.ArgumentParser(description="TikTok Shop 评论获取工具 v5.2")
     parser.add_argument("product_id", help="TikTok Shop 产品 ID")
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--method", choices=["auto", "browser", "http"], default="auto",
                         help="auto=browser优先, browser=仅UC模式, http=仅HTTP+cookies")
+    parser.add_argument("--visible", action="store_true",
+                        help="Force visible browser (skip headless). Use on office desktops.")
     parser.add_argument("--cookies-file", type=str, default=None)
     args = parser.parse_args()
 
@@ -372,7 +411,7 @@ def main():
 
     if args.method in ("auto", "browser"):
         print("[INFO] Trying SeleniumBase UC mode...")
-        result = scrape_browser(args.product_id)
+        result = scrape_browser(args.product_id, force_visible=args.visible)
 
     if not result and args.method in ("auto", "http"):
         print("[INFO] Trying HTTP + cookies...")

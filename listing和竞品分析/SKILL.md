@@ -358,16 +358,20 @@ for page in 1..5:
 
 #### E1. 产品页数据提取（三层降级）
 
-**Layer 1（推荐）：`tiktok_product_scraper.py` 脚本**
+**Layer 1（推荐）：`tiktok_product_scraper.py` 脚本 (v1.2)**
 ```bash
 python scripts/tiktok_product_scraper.py {product_id}
+python scripts/tiktok_product_scraper.py {product_id} --visible  # 办公电脑推荐
 ```
 - **依赖自动安装**：脚本首次运行时检测 seleniumbase，若未安装则自动执行 `pip install seleniumbase`，员工无需手动操作
 - 使用 SeleniumBase UC (Undetected Chrome) 模式**自动绕过 TikTok 反爬验证**
+- **自动重试**（v1.2）：headless 遇到验证码 → 自动切换 visible 模式重试（有桌面环境的机器可自动点击验证码）
+- **`--visible` 参数**：跳过 headless 直接用可见浏览器（办公电脑推荐，验证码处理成功率更高）
 - 从页面 `<script id="__MODERN_ROUTER_DATA__">` 提取 SSR JSON
 - 一次运行提取全部 4 类数据：**描述正文** + **图片列表(含URL)** + **评论原文(3条，仅当 B6 API 未返回评论时使用)** + **全量评分分布**
 - 输出 `scripts/product_data/product_{product_id}.json`，约 15 秒完成
 - 用 `Read` 读取 JSON 输出，提炼写入 `09_图片描述评论.md`
+- **环境依赖说明**：UC 反爬绕过是否成功取决于机器 IP 信誉度（TikTok 服务端判定），同一代码在不同网络/机器上可能结果不同。**Layer 1 失败是正常现象，不影响报告生成**——自动进入 Layer 2/3
 
 **Layer 2（Layer 1 失败时）：Browser `get_page_text`**
 - 打开 `https://shop.tiktok.com/us/pdp/-/{product_id}`

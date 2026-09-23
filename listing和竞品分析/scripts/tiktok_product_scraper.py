@@ -1,11 +1,16 @@
 """
-TikTok Shop 产品页全量数据提取工具 v1.1
+TikTok Shop 产品页全量数据提取工具 v1.2
 策略: SeleniumBase UC模式 → SSR数据提取(描述+图片+评论样本+评分分布)
 
 替代 Browser get_page_text，解决 TikTok 反爬验证拦截问题。
 
 输出: scripts/product_data/product_{product_id}.json
 数据: 产品描述正文 + 图片列表(含URL) + 3条SSR评论样本 + 全量评分分布
+
+v1.2 改进:
+  - 自动重试：headless 遇到验证码 → 自动切换 visible 模式重试（需要桌面环境）
+  - --visible 参数：强制使用可见浏览器（适合办公电脑）
+  - headless 遇到验证码不再浪费时间尝试 uc_gui_click_captcha（headless 下必然失败）
 
 评论获取限制（2026-09 实测）:
   - SSR 永远只包含 3 条评论，无法通过 URL 参数改变
@@ -15,6 +20,7 @@ TikTok Shop 产品页全量数据提取工具 v1.1
 
 用法:
   python tiktok_product_scraper.py <product_id>
+  python tiktok_product_scraper.py <product_id> --visible        # 办公电脑推荐
   python tiktok_product_scraper.py <product_id> --method http
   python tiktok_product_scraper.py <product_id> -o custom_output.json
 """
@@ -307,32 +313,77 @@ def _extract_reviews(page_data):
     return review_result
 
 
-def scrape_with_browser(product_id):
-    """Primary: SeleniumBase UC mode — bypasses anti-bot, extracts full SSR data."""
+def scrape_with_browser(product_id, force_visible=False):
+    """Primary: SeleniumBase UC mode — bypasses anti-bot, extracts full SSR data.
+
+    Strategy:
+    - Default: try headless first (fast, no display needed).
+      If CAPTCHA detected → auto-retry with visible browser (needs display).
+    - --visible: skip headless, go straight to visible mode (for office desktops).
+
+    CAPTCHA bypass depends on IP reputation — same code may pass on one machine
+    but get CAPTCHA'd on another. This is TikTok's server-side decision, not a bug.
+    """
     if not ensure_seleniumbase():
         return None
+
+    if force_visible:
+        print("[Browser] Visible mode requested, skipping headless attempt")
+        return _browser_attempt(product_id, headless=False)
+
+    # Attempt 1: headless (fast, works when TikTok doesn't challenge)
+    result = _browser_attempt(product_id, headless=True)
+    if result is not None:
+        return result
+
+    # Attempt 2: visible browser (uc_gui_click_captcha needs a real display)
+    print("[Browser] Headless failed — retrying with visible browser...")
+    print("[Browser] (Requires a desktop environment with display)")
+    try:
+        result = _browser_attempt(product_id, headless=False)
+        return result
+    except Exception as e:
+        print(f"[Browser] Visible mode unavailable: {e}")
+        return None
+
+
+def _browser_attempt(product_id, headless=True):
+    """Single browser attempt. Returns SSR result dict or None."""
     from seleniumbase import SB
 
     url = f"https://shop.tiktok.com/us/pdp/-/{product_id}"
-    print(f"[Browser] Opening {url}")
+    mode = "headless" if headless else "visible"
+    print(f"[Browser] Opening {url} ({mode})")
 
     try:
-        with SB(uc=True, headless=True, chromium_arg="--lang=en-US",
+        with SB(uc=True, headless=headless, chromium_arg="--lang=en-US",
                 disable_features="OptimizationGuideModelDownloading") as sb:
             sb.uc_open_with_reconnect(url, reconnect_time=6)
             sb.sleep(4)
 
             title = sb.get_title().lower()
-            if any(w in title for w in ("security", "verify", "captcha", "check")):
-                print("[Browser] CAPTCHA detected, attempting UC click...")
-                try:
-                    sb.uc_gui_click_captcha()
-                except Exception:
-                    pass
-                sb.sleep(8)
-                title = sb.get_title().lower()
-                if any(w in title for w in ("security", "verify", "captcha")):
-                    print("[Browser] CAPTCHA not resolved")
+            captcha_words = ("security", "verify", "captcha", "check")
+            if any(w in title for w in captcha_words):
+                if headless:
+                    # In headless mode, uc_gui_click_captcha cannot work (no real pixels)
+                    # Don't waste time retrying — signal caller to retry with visible
+                    print(f"[Browser] CAPTCHA in headless mode — auto-click not possible")
+                    return None
+
+                # Visible mode: uc_gui_click_captcha can work with a real display
+                print("[Browser] CAPTCHA detected, attempting auto-click...")
+                for attempt in range(3):
+                    try:
+                        sb.uc_gui_click_captcha()
+                    except Exception:
+                        pass
+                    sb.sleep(5)
+                    title = sb.get_title().lower()
+                    if not any(w in title for w in captcha_words):
+                        print(f"[Browser] CAPTCHA resolved on attempt {attempt + 1}")
+                        break
+                else:
+                    print("[Browser] CAPTCHA not resolved after 3 attempts")
                     return None
 
             print(f"[Browser] Page loaded: {sb.get_title()[:80]}")
@@ -344,7 +395,6 @@ def scrape_with_browser(product_id):
             )
             if not ssr_text:
                 print("[Browser] No SSR data found on page")
-                # Fallback: try to get page source for description
                 page_source = sb.get_page_source()
                 if page_source and "__MODERN_ROUTER_DATA__" in page_source:
                     result = parse_ssr_full(page_source)
@@ -358,8 +408,10 @@ def scrape_with_browser(product_id):
                 ri = result.get("review_info") or {}
                 img_count = len(result.get("images") or [])
                 print(f"[SSR] Title: {pi.get('title', 'N/A')[:60]}")
-                print(f"[SSR] Description: {'Yes' if result.get('description') else 'No'} "
-                      f"({len(result['description'])} chars)" if result.get("description") else "[SSR] Description: No")
+                if result.get("description"):
+                    print(f"[SSR] Description: Yes ({len(result['description'])} chars)")
+                else:
+                    print(f"[SSR] Description: No")
                 print(f"[SSR] Images: {img_count}")
                 print(f"[SSR] Reviews: {len(ri.get('reviews', []))} samples, "
                       f"total: {ri.get('total_reviews', 0)}")
@@ -368,7 +420,7 @@ def scrape_with_browser(product_id):
             return result
 
     except Exception as e:
-        print(f"[Browser] Fatal error: {e}")
+        print(f"[Browser] Error ({mode}): {e}")
         return None
 
 
@@ -514,10 +566,12 @@ def print_summary(output):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="TikTok Shop 产品页全量数据提取工具 v1.1")
+    parser = argparse.ArgumentParser(description="TikTok Shop 产品页全量数据提取工具 v1.2")
     parser.add_argument("product_id", help="TikTok Shop 产品 ID")
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--method", choices=["auto", "browser", "http"], default="auto")
+    parser.add_argument("--visible", action="store_true",
+                        help="Force visible browser (skip headless). Use on office desktops for better CAPTCHA handling.")
     parser.add_argument("--cookies-file", type=str, default=None)
     args = parser.parse_args()
 
@@ -533,13 +587,19 @@ def main():
 
     if args.method in ("auto", "browser"):
         print("[INFO] Method 1: SeleniumBase UC mode...")
-        ssr_result = scrape_with_browser(args.product_id)
+        ssr_result = scrape_with_browser(args.product_id, force_visible=args.visible)
 
     if not ssr_result and args.method in ("auto", "http"):
         print("[INFO] Method 2: HTTP + cookies...")
         ssr_result = scrape_with_http(args.product_id, cookies)
 
     output = build_output(args.product_id, ssr_result)
+
+    if not output["success"]:
+        print("\n[NOTE] Scraper failed. This is usually caused by TikTok anti-bot (IP reputation).")
+        print("[NOTE] The skill will automatically use Layer 2/3 fallback — report generation is NOT affected.")
+        if not args.visible:
+            print("[HINT] Try --visible on a desktop machine for better CAPTCHA handling.")
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)

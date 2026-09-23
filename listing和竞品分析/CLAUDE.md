@@ -56,7 +56,7 @@ Batch 5.5: tiktok_product_scraper.py（优先）或 get_page_text（备用）+ W
 最终: 分段生成报告（概览→S1→S2→S3 逐段落盘） → 发布为在线 Artifact → 回传链接
 ```
 
-> **数据来源分工：** **评论原文**采用两层策略——FastMoss `product_review_list` 不限评论数都先调用（≥500 评论商品通常返回 10+ 条完整评论），API 返回 0 时才用爬虫 SSR 的 3 条样本兜底（TikTok 反爬保护限制，爬虫无法获取更多，详见 SKILL.md §B6）。**描述正文 / 图片列表 / 评分分布**这 3 类数据 FastMoss API 不返回，只能从产品页获取：`tiktok_product_scraper.py`（Layer 1，SeleniumBase UC 无头模式自动绕过反爬）→ Browser `get_page_text`（Layer 2）→ 标注缺失（Layer 3）。**脚本会自动检测并安装 seleniumbase 依赖，员工无需手动操作。**
+> **数据来源分工：** **评论原文**采用两层策略——FastMoss `product_review_list` 不限评论数都先调用（≥500 评论商品通常返回 10+ 条完整评论），API 返回 0 时才用爬虫 SSR 的 3 条样本兜底（TikTok 反爬保护限制，爬虫无法获取更多，详见 SKILL.md §B6）。**描述正文 / 图片列表 / 评分分布**这 3 类数据 FastMoss API 不返回，只能从产品页获取：`tiktok_product_scraper.py` v1.2（Layer 1，headless → 遇验证码自动重试 visible 模式）→ Browser `get_page_text`（Layer 2）→ 标注缺失（Layer 3）。**脚本会自动检测并安装 seleniumbase 依赖，员工无需手动操作。Layer 1 是否成功取决于机器 IP 信誉度（TikTok 服务端判定），失败是正常现象，不影响报告生成。**
 
 ## 内容完整性（不可删减 — 最高优先级）
 
