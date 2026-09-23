@@ -48,7 +48,7 @@
 | **B 本品** | 把本品的身份/销售/流量/内容/SKU/评价全部取一遍 | `product_detail_info`、`product_overview`、`product_sku`、`product_video_list`、`product_creator_analysis`、`product_review_list`、`shop_base_info` | 概览 ①诊断产品 ③店铺 ④趋势 ⑤MSKU |
 | **C 大盘** | L3 榜单 1–50 名分页取全，逐条加总 | `product_rank_top_selling`(5页) | 概览 ②类目大盘 + 2.1 选词词源 |
 | **D 竞品** | 7+3 选品（§6.2 三层筛选定形态）→ 精简取数 → 形态生存力验证 | TOP7 各 1 次 `product_detail_info`；仅 2-3 个标杆竞品补 `product_overview`（渠道对比用）；**不全取 overview/video/creator** | 概览 ⑥竞品表 + Section 1 全部 |
-| **E 诊断** | 选词/标题/描述/图片/评论诊断 + 打分 + 风险 | Browser `get_page_text` 1 次（不截图） + 纯计算 | Section 2 + Section 3 |
+| **E 诊断** | 选词/标题/描述/图片/评论诊断 + 打分 + 风险 | E1b FastMoss 产品页图片 + 爬虫/`get_page_text`(描述) + 纯计算 | Section 2 + Section 3 |
 
 ### 1.3 触发与反问
 
@@ -87,7 +87,7 @@
 | `06_L3排行.md` | 50 款精简行（ID/标题/价格/周GMV/周销量/佣金/评分/评论/达人/视频/上架/cover_url） | 阶段 C 5 页全取完后 |
 | `07_竞品矩阵.md` | TOP7 detail_info 提炼（~15 字段/款）+ 形态判定结果 | D1–D3 完成后 |
 | `08_同形态.md` | 同形态搜索结果 + 4 项证据 + 分层结论 | D4 完成后 |
-| `09_图片描述评论.md` | 图片数量+描述正文+评论原文+评分分布（来自 `get_page_text` 1 次调用） | Batch 5.5 完成后 |
+| `09_图片描述评论.md` | 图片数量+URL+视觉要点（E1b FastMoss）+ 描述正文+评分分布（爬虫/get_page_text）+ 评论原文（API/爬虫） | Batch 5.5 完成后 |
 | `10_SEO分析.md` | TOP20 词频表 + 标题字符数 + 改写建议 | Batch 5.5 纯计算（不需要 Browser） |
 
 #### 分批执行流程
@@ -355,7 +355,7 @@ for page in 1..5:
 
 ### 阶段 E：诊断与评分
 
-不新增 FastMoss 取数。产品页数据通过**三层降级策略**获取（描述正文、图片列表、评分分布）。评论原文遵循 B6 两层策略（FastMoss API 优先，爬虫兜底）。
+不新增 FastMoss API 取数。**产品图片**通过 E1b 从 FastMoss 产品页提取（100% 可靠）。**描述正文+评分分布**通过三层降级从 TikTok 产品页获取。评论原文遵循 B6 两层策略（FastMoss API 优先，爬虫兜底）。
 
 #### E1. 产品页数据提取（描述正文 + 评分分布）
 
@@ -426,7 +426,8 @@ python scripts/tiktok_product_scraper.py {product_id} --visible  # 办公电脑�
 
 > **数据来源分工：**
 > - **评论原文**：FastMoss `product_review_list` 优先（≥500 评论商品通常有数据，返回多条完整评论）→ API 返回 0 时才用爬虫 SSR 的 3 条样本
-> - **描述正文 / 图片列表 / 评分分布**：FastMoss API 不返回这 3 类数据，只能从产品页获取 → `tiktok_product_scraper.py`（Layer 1）使用 SeleniumBase UC 模式自动绕过反爬，成功率最高；内置 Browser（Layer 2）可能被拦截；Layer 3 确保报告一定能生成
+> - **产品图片**：E1b 从 FastMoss 产品页提取全部 Thumbnail URL（`s.500fd.com` CDN），WebFetch+Read 逐张视觉分析。**100% 可靠，不依赖爬虫，不受反爬影响**
+> - **描述正文 / 评分分布**：FastMoss API 不返回这 2 类数据，从 TikTok 产品页获取 → `tiktok_product_scraper.py`（Layer 1）→ Browser `get_page_text`（Layer 2）→ 标注缺失（Layer 3）。图片不受影响
 
 ---
 
@@ -787,16 +788,16 @@ Section 3  风险评估（≥5条）
 
 | # | 规则 | 判定方式 | 数据来源 |
 |---|------|---------|---------|
-| 1 | 主图1张+副图≤8张，建议 5–9 张 | 数数量 | Layer 1 脚本 `images` 数组 / Layer 2 `get_page_text` 图片轮播 / Layer 3 仅 cover_url |
-| 2 | 主图白底/浅色、无水印、无促销文字 | 看主图 | WebFetch 下载本品 `cover_url` → Read 查看 |
-| 3 | ≥1 张多角度实拍 | 图片URL/文本推断 | Layer 1 图片列表 / Layer 2 `get_page_text`（无法确认标注⚠️） |
-| 4 | ≥1 张真实使用场景 | 图片URL/文本推断 | Layer 1 图片列表 / Layer 2 `get_page_text`（无法确认标注⚠️） |
-| 5 | ≥1 张卖点信息图 | 图片URL/文本推断 | Layer 1 图片列表 / Layer 2 `get_page_text`（无法确认标注⚠️） |
-| 6 | 建议含尺寸参照/对比图 | 图片URL/文本推断 | Layer 1 图片列表 / Layer 2 `get_page_text`（无法确认标注⚠️） |
-| 7 | 多SKU缩略图需可视觉区分 | 看主图 | WebFetch 下载本品 `cover_url`（主图可见 SKU 选择器） |
+| 1 | 主图1张+副图≤8张，建议 5–9 张 | 数数量 | E1b FastMoss 产品页提取全部图片 URL，直接计数 |
+| 2 | 主图白底/浅色、无水印、无促销文字 | 看主图 | E1b 图片 #1 → WebFetch 下载 → Read 视觉分析 |
+| 3 | ≥1 张多角度实拍 | 逐张看图 | E1b 全部图片 → WebFetch+Read 逐张视觉判定 |
+| 4 | ≥1 张真实使用场景 | 逐张看图 | E1b 全部图片 → WebFetch+Read 逐张视觉判定 |
+| 5 | ≥1 张卖点信息图 | 逐张看图 | E1b 全部图片 → WebFetch+Read 逐张视觉判定 |
+| 6 | 建议含尺寸参照/对比图 | 逐张看图 | E1b 全部图片 → WebFetch+Read 逐张视觉判定 |
+| 7 | 多SKU缩略图需可视觉区分 | 看主图 | E1b 图片 #1 + SKU 数据（Batch 1） |
 | 8 | 建议 15–60 秒视频，前3秒出卖点 | 查视频 | `product_video_list` 已在 Batch 2 取回 |
 
-> **准确性说明**：规则 #2（主图背景）通过 WebFetch 下载 cover_url 实际查看图片确保准确。规则 #3-#6：Layer 1 脚本返回完整图片 URL 列表，可用 WebFetch + Read 逐张查看；Layer 2 依赖 `get_page_text` 文本推断；Layer 3 仅有 cover_url 一张图。**无法确认的一律标注"⚠️ 需人工核实"，不编造判定结果**。竞品对比表中竞品主图类型通过 WebFetch 下载竞品 cover_url 查看（不受反爬影响）。
+> **准确性说明**：全部 8 项规则（#1-#7）的图片数据来自 E1b——通过 Browser 打开 FastMoss 产品页提取全部 Thumbnail URL（`s.500fd.com` CDN），再用 WebFetch+Read 逐张视觉分析。**100% 可靠，不受 TikTok 反爬影响**。如果 E1 Layer 1 脚本成功且返回了图片 URL，可直接使用脚本输出跳过 E1b Browser 步骤。竞品图片同样用 E1b 方法（把 product_id 换成竞品 ID）。**无法从图片直接确认的一律标注"⚠️ 需人工核实"，不编造判定结果**。
 
 **图片优化表固定 5 列**，逐张不留空：`序号 | 图片类型 | 当前（优化前） | 建议（优化后） | 内容说明`
 
