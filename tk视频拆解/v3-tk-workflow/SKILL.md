@@ -864,6 +864,27 @@ Step 3: GMV加权统计
   ├── 4.1 脚本怎么写
   │     ├── 若干条建议，每条格式: [优先级标签] + 粗体要点 + 一句理由（附竞品证据）
   │     ├── 钩子话术（直接给出0-5s开场台词原文）
+  │     │     选钩子时参照以下12个经验证公式（对标竞品最高频公式优先）：
+  │     │     1. 反常识挑战    "Everyone tells you to X. I did Y and got better results."
+  │     │     2. 具体结果先行  "I tested X for 90 days. Here's the only formula that worked."
+  │     │     3. 平台趋势借势  "TikTok just changed X. Here's what's different."
+  │     │     4. 身份精准点名  "If you're a [身份] doing X without Y, you need to see this."
+  │     │     5. 神话粉碎      "Everyone says X. I tried Y for a month. Here's what happened."
+  │     │     6. 前后对比      "[低数字] → [高数字]. Here's the exact change that made the difference."
+  │     │     7. 预测预警/FOMO "X is about to get harder. Most people won't be ready."
+  │     │     8. 许可式开场    "Nobody gives [身份] permission to X. So I will."
+  │     │     9. faux-illegal  "This actually feels illegal to have for free..."
+  │     │    10. 清单式好奇    "3 things I wish I knew before I [动作]."
+  │     │    11. 演示预告      "Watch what happens when I [动作]."
+  │     │    12. 顿悟时刻      "I was today years old when I found out [反常识事实]."
+  │     │
+  │     │     GMV跑量电商场景优先考虑以下5类（适配带货）：
+  │     │     A. 身份标签夸张肯定  "If this isn't [lazy/easy/quick] X then I don't know what is"
+  │     │     B. 经验反差          "I've been doing X for years and I only just realized it could be this easy"
+  │     │     C. 痛点解决          "Someone finally made X easier"
+  │     │     D. 反向吐槽          "I will be returning this [product]..." （先吐槽再反转）
+  │     │     E. 损失厌恶警示      "If you ignore this [problem]..." → 展示后果 → 引入产品
+  │     │
   │     ├── 正文段落结构（Problem/Solution/Proof各几秒说什么）
   │     ├── CTA话术（原文，含购物车引导方式）
   │     └── ⚠️【强制中英双语】末尾附2个可直接拍的完整脚本成稿（分时间段，对标不同竞品）
@@ -872,11 +893,25 @@ Step 3: GMV加权统计
   │           EN: "完整英文口语句，达人直接念出口"  ← 主体，不是关键词罗列
   │           CN: 中文含义（括号内写导演拍摄提示，如「手部特写」「快切」）
   │
+  │     ⚠️【迭代原则】两版成稿对标不同竞品打法，目的是A/B测开头。
+  │     测试规则：保留已验证的人群定位、核心卖点和正文结构，每次只换一个变量（钩子公式/
+  │     开场场景/切入角度），不要同时改多处。24-48小时看3秒留存率：<25%直接淘汰，
+  │     ≥25%保留并继续测下一个变量。积累后形成该产品的钩子素材库。
+  │
   ├── 4.2 视频怎么拍
   │     ├── 画面配比（特写/口播/全景各占比）
   │     ├── 剪辑节奏（每几秒切一次）
   │     ├── 音频策略
-  │     └── 产品出镜方式（何时出现/怎么展示）
+  │     ├── 产品出镜方式（何时出现/怎么展示）
+  │     └── 原生感三层标准（广告感越弱越好，拍摄前对照检查）：
+  │           视觉层: 置景还原真实生活场景（家、办公室、户外），道具符合当地日常习惯；
+  │                   灯光自然柔和避免棚拍感；开场用"不属于这个场景的动作"可多买2秒注意力；
+  │                   封面建议高饱和暖色调（比冷色调点击率约高27%）
+  │           语言层: 0-3s内直接切入，不寒暄、不说"Hey guys"、不展示logo；
+  │                   钩子控制在5-10个词（超过就吃掉3秒窗口）
+  │           结构层: 解决方案区（15-45s）埋1-2个需要回看的细节以提升重看率；
+  │                   结尾留悬念或callback制造loop effect，让人想重看；
+  │                   整体像生活内容分享，不像产品硬广
   │
   ├── 4.3 商家需要配合什么
   │     ├── 广告投放（是否投流/预算建议/前置条件）
@@ -1500,6 +1535,11 @@ python extract_frames.py videoX/videoX.mp4 videoX/frames/ --width 320 --max 10
 - **TL;DR总结**: 1句话
 - **逐段时间线**: 时间戳 + 功能标签 + 字幕原文（斜体引用）+ ✅⚠️❌状态
 - **电商5维诊断评分柱**: 钩子时效/产品出镜/CTA布局/留存机制/卖点传递，各/10，横向条形图
+  - **钩子时效评分细化（三层叠加判断，每层缺失各扣分）**：
+    - 视觉层(0-0.5s): 是否有动态文字/人物特写/反常规动作，封面色调是否暖色高饱和
+    - 语言层(0.5-1.5s): 是否直接切入（无"Hey guys"/无logo展示），钩子文案是否≤10词
+    - 上下文锁定层(1.5-3s): 观众是否能在3秒内判断"这条视频是否和我有关"
+    - 对照上方12公式库，标注该视频属于哪种钩子公式（影响评分基准）
 
 ---
 
