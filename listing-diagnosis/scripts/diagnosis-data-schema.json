@@ -1,0 +1,150 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Listing Diagnosis Data",
+  "description": "Claude skill 输出的诊断数据 JSON 格式，传给 generate-report.py 生成 Excel",
+  "type": "object",
+  "properties": {
+    "report_date": {
+      "type": "string",
+      "format": "date",
+      "example": "2026-09-26"
+    },
+    "amazon_stats": {
+      "type": "object",
+      "properties": {
+        "total": { "type": "integer" },
+        "excellent": { "type": "integer", "description": "评分≥80" },
+        "needs_improvement": { "type": "integer", "description": "评分60-79" },
+        "urgent": { "type": "integer", "description": "评分<60" },
+        "violations_total": { "type": "integer" },
+        "violations_high": { "type": "integer" },
+        "typos_total": { "type": "integer" }
+      }
+    },
+    "tiktok_stats": {
+      "type": "object",
+      "description": "同 amazon_stats 结构"
+    },
+    "amazon_diagnosis": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "国家": { "type": "string", "example": "US" },
+          "平台": { "type": "string", "const": "Amazon" },
+          "店铺": { "type": "string" },
+          "负责人": { "type": "string" },
+          "ASIN": { "type": "string", "example": "B0XXXXXXX1" },
+          "原标题": { "type": "string" },
+          "修改标题": { "type": "string" },
+          "五点描述建议": { "type": "string", "description": "五点描述的优化建议内容" },
+          "主副图修改建议": { "type": "string", "description": "图片修改建议，文字描述" },
+          "A+详情修改建议": { "type": "string", "description": "A+内容修改建议" },
+          "错词": { "type": "string", "description": "多个用逗号分隔" },
+          "正确词": { "type": "string", "description": "与错词一一对应" },
+          "错词位置": { "type": "string", "description": "标题/五点/描述" },
+          "违规词": { "type": "string" },
+          "违规类别": { "type": "string" },
+          "严重程度": { "type": "string", "enum": ["高", "中", "低"] },
+          "建议替换词": { "type": "string" },
+          "综合评分": { "type": "number", "minimum": 0, "maximum": 100 },
+          "优先修改项": { "type": "string" }
+        }
+      }
+    },
+    "tiktok_diagnosis": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "国家": { "type": "string" },
+          "平台": { "type": "string", "const": "TikTok Shop" },
+          "店铺": { "type": "string" },
+          "负责人": { "type": "string" },
+          "产品ID": { "type": "string" },
+          "原标题": { "type": "string" },
+          "修改标题": { "type": "string" },
+          "详情描述建议": { "type": "string" },
+          "主副图修改建议": { "type": "string" },
+          "错词": { "type": "string" },
+          "正确词": { "type": "string" },
+          "错词位置": { "type": "string" },
+          "违规词": { "type": "string" },
+          "违规类别": { "type": "string" },
+          "严重程度": { "type": "string", "enum": ["高", "中", "低"] },
+          "建议替换词": { "type": "string" },
+          "综合评分": { "type": "number", "minimum": 0, "maximum": 100 },
+          "优先修改项": { "type": "string" }
+        }
+      }
+    },
+    "competitor_appearance": {
+      "type": "array",
+      "description": "同外观Top5竞品对比数据",
+      "items": {
+        "type": "object",
+        "properties": {
+          "平台": { "type": "string" },
+          "我的ASIN/产品ID": { "type": "string" },
+          "我的标题": { "type": "string" },
+          "维度": { "type": "string", "description": "标题结构/关键词覆盖/价格/评分/评论数/图片数量/A+详情" },
+          "竞品1": { "type": "string" },
+          "竞品2": { "type": "string" },
+          "竞品3": { "type": "string" },
+          "竞品4": { "type": "string" },
+          "竞品5": { "type": "string" }
+        }
+      }
+    },
+    "competitor_category": {
+      "type": "array",
+      "description": "同场景品类前20统计数据",
+      "items": {
+        "type": "object",
+        "properties": {
+          "平台": { "type": "string" },
+          "品类/场景": { "type": "string" },
+          "统计维度": { "type": "string" },
+          "我的数据": { "type": "string" },
+          "品类前20均值": { "type": "string" },
+          "品类前20中位数": { "type": "string" },
+          "品类前20最小值": { "type": "string" },
+          "品类前20最大值": { "type": "string" },
+          "差距分析": { "type": "string" }
+        }
+      }
+    },
+    "violations_summary": {
+      "type": "array",
+      "description": "违规词去重汇总",
+      "items": {
+        "type": "object",
+        "properties": {
+          "平台": { "type": "string" },
+          "ASIN/产品ID": { "type": "string" },
+          "违规词": { "type": "string" },
+          "违规类别": { "type": "string" },
+          "严重程度": { "type": "string" },
+          "出现位置": { "type": "string" },
+          "建议替换词": { "type": "string" },
+          "平台规则说明": { "type": "string" }
+        }
+      }
+    },
+    "typos_summary": {
+      "type": "array",
+      "description": "错词去重汇总",
+      "items": {
+        "type": "object",
+        "properties": {
+          "平台": { "type": "string" },
+          "ASIN/产品ID": { "type": "string" },
+          "错词": { "type": "string" },
+          "正确词": { "type": "string" },
+          "出现位置": { "type": "string" },
+          "出现次数": { "type": "integer" }
+        }
+      }
+    }
+  }
+}
