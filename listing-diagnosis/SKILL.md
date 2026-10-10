@@ -145,6 +145,19 @@ python -I scripts/scrape_tk_details.py
 
 ### Phase 2：广告分析（Sif MCP，仅亚马逊US）
 
+**⚠️ Sif MCP 连接重试策略：**
+```
+尝试调用 Sif MCP 工具前，先检查连接状态。
+如果连接失败（CONNECT_TIMEOUT 等错误），执行以下重试流程：
+1. 等待 10 秒，第1次重试
+2. 等待 20 秒，第2次重试  
+3. 等待 30 秒，第3次重试
+共3次重试，每次间隔递增。3次全部失败后：
+- 在报告中标注"Sif数据未采集"
+- 广告分析Sheet保留已有数据或标记为待补充
+- 不阻断其他Phase的执行
+```
+
 **对每个US父ASIN（约92个）：**
 ```
 1. ads_get_asin_ad_structure(asin, marketplace="us")
@@ -232,18 +245,20 @@ python -I scripts/phase3_scoring_v3.py
 python -I scripts/phase5_report_v3.py
 ```
 
-#### 8个Sheet
+#### 10个Sheet
 
 | # | Sheet名 | 行数 | 关键特性 |
 |---|---------|------|---------|
 | 1 | **诊断摘要** | ~27 | AMZ+TK等级分布、违规词统计、竞品覆盖率、数据覆盖率 |
 | 2 | **亚马逊Listing诊断** | 122 | ASIN带超链接、修改标题、五点建议、图片建议（含实际张数）、A+建议、综合评分 |
 | 3 | **TikTok Listing诊断** | 64 | 产品ID带超链接、修改标题、描述建议（含实际字数）、图片建议（含实际张数）、综合评分 |
-| 4 | **亚马逊竞品分析** | ~147 | ASIN带超链接、**月销量**、**月销售额**、BSR、评分、评论数、LQS、自有品牌标记(绿底) |
-| 5 | **TikTok竞品分析** | ~83 | 商品ID带超链接、周GMV、累计GMV、达人数、增长率 |
-| 6 | **违规词&错词汇总** | ~173 | ASIN/商品ID、违规词、类别、严重程度、出现位置、上下文、替换建议 |
-| 7 | **广告分析&策略建议** | 92 | ASIN带超链接、Campaign结构(SP/SB/SBV)、流量占比、**详细策略建议**(含竞价) |
-| 8 | **数据覆盖率** | ~13 | 各数据源覆盖统计、状态标色(OK绿/P黄/!红) |
+| 4 | **竞品-同外观Top5** | ~69 | 排除自有品牌，每品类取Top5竞品，含月销量/月销售额/BSR/LQS |
+| 5 | **竞品-同场景品类前20** | ~119 | 含所有品牌（自有品牌标"Y"绿底），每品类Top20 |
+| 6 | **TikTok竞品分析** | ~83 | 商品ID带超链接、周GMV、累计GMV、达人数、增长率 |
+| 7 | **子ASIN运营附表** | ~1000 | 子ASIN价格/FBA库存/配送方式，价格异常(偏差>30%黄/>50%红)，库存预警(断货红/低库存黄) |
+| 8 | **违规词&错词汇总** | ~173 | ASIN/商品ID、违规词、类别、严重程度、出现位置、上下文、替换建议 |
+| 9 | **广告分析&策略建议** | 92 | ASIN带超链接、Campaign结构(SP/SB/SBV)、流量占比、**详细策略建议**(含竞价) |
+| 10 | **数据覆盖率** | ~14 | 各数据源覆盖统计、状态标色(OK绿/P黄/!红) |
 
 #### 超链接规则
 
@@ -260,34 +275,37 @@ python -I scripts/phase5_report_v3.py
 
 ## 快速运行指南
 
+### 一键运行（推荐）
+
+```bash
+python -I scripts/run_all.py
+```
+
+自动执行：数据文件检查 → Phase 3 评分 → Phase 5 报告生成 → 清理旧报告。
+
+```bash
+python -I scripts/run_all.py --data-check-only   # 仅检查数据文件
+python -I scripts/run_all.py --skip-scoring       # 跳过评分，直接生成报告
+```
+
 ### 全量运行（约45-50分钟）
 
-按顺序执行Phase 0-5，MCP数据采集 → HTTP抓取 → 评分 → 报告：
+按顺序执行Phase 0-5，MCP数据采集 → HTTP抓取 → 一键生成：
 
 ```
 1. 执行 Phase 0: 领星拉取AMZ商品 + FastMoss拉取TK商品
 2. 执行 Phase 1.1-1.3: 卖酷asin_detail + FastMoss TK详情
-3. 执行 Phase 1.5-1.6: 卖酷竞品 + FastMoss TK竞品
-4. 执行 Phase 2: Sif广告分析
+3. 执行 Phase 1.5-1.6: 卖酷竞品(每品类Top20) + FastMoss TK竞品
+4. 执行 Phase 2: Sif广告分析（失败自动重试3次）
 5. 运行 python -I scripts/scrape_amz_images.py   (AMZ图片+A+采集, ~10min)
 6. 运行 python -I scripts/scrape_tk_details.py    (TK图片+描述采集, ~2min)
-7. 运行 python -I scripts/phase3_scoring_v3.py    (诊断评分+策略生成)
-8. 运行 python -I scripts/phase5_report_v3.py     (Excel报告生成)
+7. 运行 python -I scripts/run_all.py              (一键评分+报告生成)
 ```
 
 ### 仅重新生成报告（已有数据时，约1分钟）
 
-如果 `output/` 下的数据文件都是最新的，只需：
 ```bash
-python -I scripts/phase3_scoring_v3.py
-python -I scripts/phase5_report_v3.py
-```
-
-### 仅更新评分+报告（不重新采集）
-
-```bash
-python -I scripts/phase3_scoring_v3.py    # 重新评分（读取所有output/*.json）
-python -I scripts/phase5_report_v3.py     # 重新生成Excel
+python -I scripts/run_all.py
 ```
 
 ---
@@ -299,7 +317,8 @@ python -I scripts/phase5_report_v3.py     # 重新生成Excel
 | `scrape_amz_images.py` | 抓取Amazon页面提取图片列表+A+结构 | phase0_data.json | amz_scrape_images.json |
 | `scrape_tk_details.py` | 抓取TikTok页面提取图片+描述 | tiktok_data.json | tk_scrape_details.json |
 | `phase3_scoring_v3.py` | 8维度评分+建议生成+广告策略 | 所有output/*.json + references/*.json | phase3_diagnosis_v3.json |
-| `phase5_report_v3.py` | 生成8-Sheet Excel报告 | 所有output/*.json | Listing诊断报告v3.1_*.xlsx |
+| `phase5_report_v3.py` | 生成10-Sheet Excel报告 | 所有output/*.json | Listing诊断报告v3.1_*.xlsx |
+| `run_all.py` | 一键运行：数据检查→评分→报告→清理 | 所有output/*.json | 最终Excel报告 |
 
 **所有脚本的 BASE 路径：** 脚本内硬编码 `output` 目录路径，运行前确认路径正确。
 

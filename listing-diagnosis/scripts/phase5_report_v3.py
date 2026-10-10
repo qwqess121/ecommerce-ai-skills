@@ -30,6 +30,7 @@ tk_data = load_json('tiktok_data.json')
 phase2_tk = load_json('phase2_tiktok_scores.json')
 amz_scrape = load_json('amz_scrape_images.json')
 tk_scrape = load_json('tk_scrape_details.json')
+phase0 = load_json('phase0_data.json')
 
 # Load asin_detail for badge info (auto-discover all asin_detail_*.json)
 amz_details = {}
@@ -362,60 +363,68 @@ for idx, item in enumerate(diag['tk_results'], 2):
             fill = RED_FILL
         wc(ws3, idx, col, val, fill=fill, link=link)
 
-# ======================== Sheet 4: 亚马逊竞品分析 ========================
-COMP_H = [
+# ======================== Sheet 4 & 5: 亚马逊竞品（拆分为两个Sheet） ========================
+COMP_H_BASE = [
     ("L3品类", 22), ("排名", 6), ("ASIN", 14), ("标题", 50),
     ("品牌", 14), ("价格", 8), ("月销量", 10), ("月销售额", 12),
     ("BSR", 10), ("评分", 6), ("评论数", 10),
-    ("LQS", 6), ("卖家类型", 10), ("自有品牌", 8),
+    ("LQS", 6), ("卖家类型", 10),
 ]
 
-ws4 = wb.create_sheet("亚马逊竞品分析")
-setup_headers(ws4, COMP_H)
-
-row_idx = 2
-if comp_products and comp_products.get('categories'):
+def write_comp_sheet(ws, max_per_cat, exclude_own):
+    """Write competitor products to sheet. exclude_own=True for Top5, False for Top20."""
+    row_idx = 2
+    if not comp_products or not comp_products.get('categories'):
+        wc(ws, 2, 1, '竞品数据未采集')
+        return
     for cat_name, cat_data in comp_products['categories'].items():
         products = cat_data.get('products', [])
-        if cat_data.get('error'):
-            wc(ws4, row_idx, 1, cat_name, font=BOLD_FONT, fill=ORANGE_FILL)
-            wc(ws4, row_idx, 2, f"(API未返回数据)", fill=ORANGE_FILL)
-            for c in range(3, 15):
-                wc(ws4, row_idx, c, '', fill=ORANGE_FILL)
-            row_idx += 1
+        if cat_data.get('error') or not products:
             continue
-
-        wc(ws4, row_idx, 1, f"{cat_name} ({len(products)}个竞品)", font=BOLD_FONT, fill=LIGHT_BLUE)
-        for c in range(2, 15):
-            wc(ws4, row_idx, c, '', fill=LIGHT_BLUE)
+        if exclude_own:
+            filtered = [p for p in products if not p.get('is_own_brand', False)]
+        else:
+            filtered = list(products)
+        show = filtered[:max_per_cat]
+        if not show:
+            continue
+        ncols = ws.max_column or 13
+        wc(ws, row_idx, 1, f"{cat_name} (Top{len(show)})", font=BOLD_FONT, fill=LIGHT_BLUE)
+        for c in range(2, ncols + 1):
+            wc(ws, row_idx, c, '', fill=LIGHT_BLUE)
         row_idx += 1
-
-        for prod in products:
+        for rank, prod in enumerate(show, 1):
             is_own = prod.get('is_own_brand', False)
-            own_label = 'Y' if is_own else ''
             comp_asin = prod.get('asin', '')
             m_units = prod.get('units') or prod.get('monthly_units') or prod.get('totalUnits') or ''
             m_rev = prod.get('revenue') or prod.get('monthly_revenue') or prod.get('totalAmount') or ''
             vals = [
-                '', prod.get('rank', ''), comp_asin,
+                '', rank, comp_asin,
                 (prod.get('title', '') or '')[:60],
                 prod.get('brand', ''), prod.get('price', ''),
                 f"{m_units:,}" if isinstance(m_units, (int, float)) and m_units else ('-' if not m_units else m_units),
                 f"${m_rev:,.0f}" if isinstance(m_rev, (int, float)) and m_rev else ('-' if not m_rev else m_rev),
                 prod.get('bsr', prod.get('bsrRank', '')), prod.get('rating', ''),
                 prod.get('ratings', ''), prod.get('lqs', ''),
-                prod.get('sellerType', prod.get('fulfillment', '')), own_label,
+                prod.get('sellerType', prod.get('fulfillment', '')),
             ]
+            if not exclude_own:
+                vals.append('Y' if is_own else '')
             comp_link = f'https://www.amazon.com/dp/{comp_asin}' if comp_asin else None
             for col, val in enumerate(vals, 1):
                 fill = GREEN_FILL if is_own else None
                 link = comp_link if col == 3 else None
-                wc(ws4, row_idx, col, val, fill=fill, link=link)
+                wc(ws, row_idx, col, val, fill=fill, link=link)
             row_idx += 1
         row_idx += 1
 
-if row_idx == 2:
-    wc(ws4, 2, 1, '竞品数据未采集')
+ws4 = wb.create_sheet("竞品-同外观Top5")
+setup_headers(ws4, COMP_H_BASE)
+write_comp_sheet(ws4, 5, exclude_own=True)
+
+ws4b = wb.create_sheet("竞品-同场景品类前20")
+setup_headers(ws4b, COMP_H_BASE + [("自有品牌", 8)])
+write_comp_sheet(ws4b, 20, exclude_own=False)
 
 # ======================== Sheet 5: TikTok竞品分析 ========================
 TK_COMP_H = [
@@ -466,7 +475,86 @@ if phase2_tk and phase2_tk.get('category_top_selling'):
             row_idx += 1
         row_idx += 1
 
-# ======================== Sheet 6: 违规词&错词汇总 ========================
+# ======================== Sheet 7: 子ASIN运营附表 ========================
+CHILD_H = [
+    ("父ASIN", 14), ("子ASIN", 14), ("国家", 4), ("店铺", 18), ("品牌", 12),
+    ("负责人", 14), ("SKU", 16), ("标题", 40), ("价格", 8),
+    ("FBA库存", 10), ("配送方式", 8), ("BSR排名", 8), ("评论数", 8),
+    ("价格异常", 10), ("库存预警", 10),
+]
+
+ws_child = wb.create_sheet("子ASIN运营附表")
+setup_headers(ws_child, CHILD_H)
+
+row_idx = 2
+if phase0 and phase0.get('children'):
+    children_list = phase0['children']
+    from collections import defaultdict
+    parent_prices = defaultdict(list)
+    for ch in children_list:
+        p = ch.get('price')
+        if isinstance(p, (int, float)) and p > 0:
+            parent_prices[ch.get('parent_asin', '')].append(p)
+    parent_avg = {k: sum(v)/len(v) for k, v in parent_prices.items() if v}
+
+    for ch in sorted(children_list, key=lambda x: (x.get('parent_asin',''), x.get('child_asin',''))):
+        child_asin = ch.get('child_asin', '')
+        parent_asin = ch.get('parent_asin', '')
+        price = ch.get('price', '')
+        fba_qty = ch.get('fba_qty', 0) or 0
+
+        price_flag = ''
+        price_fill_c = None
+        if isinstance(price, (int, float)) and price > 0 and parent_asin in parent_avg:
+            avg = parent_avg[parent_asin]
+            deviation = abs(price - avg) / avg if avg > 0 else 0
+            if deviation > 0.5:
+                price_flag = f'偏差{deviation*100:.0f}%'
+                price_fill_c = RED_FILL
+            elif deviation > 0.3:
+                price_flag = f'偏差{deviation*100:.0f}%'
+                price_fill_c = YELLOW_FILL
+
+        inv_flag = ''
+        inv_fill_c = None
+        fulfillment = ch.get('fulfillment', '')
+        if fulfillment == 'FBA':
+            if fba_qty == 0:
+                inv_flag = '断货'
+                inv_fill_c = RED_FILL
+            elif fba_qty < 10:
+                inv_flag = '低库存'
+                inv_fill_c = YELLOW_FILL
+
+        country = ch.get('country', '')
+        domain = 'amazon.com' if country == 'US' else 'amazon.ca'
+        child_link = f'https://www.{domain}/dp/{child_asin}' if child_asin else None
+
+        vals = [
+            parent_asin, child_asin, country,
+            ch.get('shop', ''), ch.get('brand', ''), ch.get('owner', ''),
+            ch.get('sku', ''), (ch.get('title', '') or '')[:50],
+            f"${price:.2f}" if isinstance(price, (int, float)) else price,
+            f"{fba_qty:,}" if isinstance(fba_qty, (int, float)) else fba_qty,
+            fulfillment, ch.get('rank', ''), ch.get('reviews', ''),
+            price_flag, inv_flag,
+        ]
+        for col, val in enumerate(vals, 1):
+            fill = None
+            link = child_link if col == 2 else None
+            if col == 14:
+                fill = price_fill_c
+            elif col == 15:
+                fill = inv_fill_c
+            elif col == 10 and inv_fill_c:
+                fill = inv_fill_c
+            wc(ws_child, row_idx, col, val, fill=fill, link=link)
+        row_idx += 1
+
+if row_idx == 2:
+    wc(ws_child, 2, 1, '(无子ASIN数据)')
+
+# ======================== Sheet 8: 违规词&错词汇总 ========================
 VIOL_H = [
     ("ASIN/商品ID", 18), ("平台", 8), ("国家/店铺", 14),
     ("类型", 8), ("违规词/错词", 18), ("类别/正确词", 25),
@@ -640,6 +728,11 @@ coverage = [
      "OK", f"Sif MCP, {ads_success}有广告 / {ads_data.get('no_ads',0) if ads_data else 0}无广告"),
     ("违规词检测", amz_total + tk_total, amz_total + tk_total,
      "100%", "OK", f"AMZ:{amz_s['violations']}条 + TK:{tk_s['violations']}条"),
+    ("子ASIN运营数据", len(phase0.get('children', [])) if phase0 else 0,
+     phase0.get('summary', {}).get('total_children', 0) if phase0 else 0,
+     f"{len(phase0.get('children', []))/phase0.get('summary',{}).get('total_children',1)*100:.0f}%" if phase0 and phase0.get('summary',{}).get('total_children') else "0%",
+     "OK" if phase0 and phase0.get('children') else "!",
+     "领星ERP数据, 含价格/库存/配送/Buy Box"),
 ]
 
 status_fill_map = {"OK": GREEN_FILL, "P": YELLOW_FILL, "!": RED_FILL}
