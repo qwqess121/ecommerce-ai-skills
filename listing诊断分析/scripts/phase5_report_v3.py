@@ -1,6 +1,7 @@
 """
-Phase 5: Excel Report v3.1 — 8 Sheets with full data
-Integrates: phase3_diagnosis_v3, ads_analysis, competitor_products, tk_product_details
+Phase 5: Excel Report v3.2 — Dashboard + 8 Sheets with full data
+Integrates: phase3_diagnosis_v3, ads_analysis, competitor_products, tk_product_details,
+            phase2_scores, phase3_child_scan
 """
 import json, os, sys
 from datetime import datetime
@@ -31,6 +32,8 @@ phase2_tk = load_json('phase2_tiktok_scores.json')
 amz_scrape = load_json('amz_scrape_images.json')
 tk_scrape = load_json('tk_scrape_details.json')
 phase0 = load_json('phase0_data.json')
+phase2_amz = load_json('phase2_scores.json')
+child_scan = load_json('phase3_child_scan.json')
 
 # Load asin_detail for badge info (auto-discover all asin_detail_*.json)
 amz_details = {}
@@ -87,6 +90,31 @@ THIN_BORDER = Border(
 WRAP = Alignment(vertical="top", wrap_text=True)
 CENTER = Alignment(horizontal="center", vertical="center")
 
+# Section fills for competitor sheets
+SECTION_FILL = PatternFill(start_color="E8DAEF", end_color="E8DAEF", fill_type="solid")
+OWN_FILL = PatternFill(start_color="D5F5E3", end_color="D5F5E3", fill_type="solid")
+OWN_SECTION_FILL = PatternFill(start_color="ABEBC6", end_color="ABEBC6", fill_type="solid")
+
+# Heatmap dimension fills
+DIM_DEEP_GREEN = PatternFill(start_color="27AE60", end_color="27AE60", fill_type="solid")
+DIM_LIGHT_GREEN = PatternFill(start_color="82E0AA", end_color="82E0AA", fill_type="solid")
+DIM_YELLOW = PatternFill(start_color="F1C40F", end_color="F1C40F", fill_type="solid")
+DIM_ORANGE = PatternFill(start_color="E67E22", end_color="E67E22", fill_type="solid")
+DIM_RED = PatternFill(start_color="E74C3C", end_color="E74C3C", fill_type="solid")
+WHITE_FONT = Font(name="Microsoft YaHei", size=10, color="FFFFFF")
+DARK_FONT = Font(name="Microsoft YaHei", size=10, color="1A1A1A")
+
+# Alert card fills
+ALERT_RED = PatternFill(start_color="E74C3C", end_color="E74C3C", fill_type="solid")
+ALERT_YELLOW = PatternFill(start_color="F39C12", end_color="F39C12", fill_type="solid")
+ALERT_GREEN = PatternFill(start_color="27AE60", end_color="27AE60", fill_type="solid")
+ALERT_NUM_FONT = Font(name="Microsoft YaHei", size=20, bold=True, color="FFFFFF")
+ALERT_LABEL_FONT = Font(name="Microsoft YaHei", size=10, bold=True, color="FFFFFF")
+
+# Gap fills for category competitiveness
+GAP_RED = PatternFill(start_color="FADBD8", end_color="FADBD8", fill_type="solid")
+GAP_GREEN = PatternFill(start_color="D5F5E3", end_color="D5F5E3", fill_type="solid")
+
 def setup_headers(ws, headers):
     for i, (name, width) in enumerate(headers, 1):
         c = ws.cell(row=1, column=i, value=name)
@@ -123,8 +151,448 @@ def score_fill(s):
     if s >= 70: return YELLOW_FILL
     return RED_FILL
 
+def dim_color(score, max_score):
+    """Return (fill, font) for dimension heatmap cell based on score/max percentage."""
+    if max_score <= 0:
+        return (None, DATA_FONT)
+    pct = score / max_score * 100
+    if pct >= 90:
+        return (DIM_DEEP_GREEN, WHITE_FONT)
+    elif pct >= 75:
+        return (DIM_LIGHT_GREEN, DARK_FONT)
+    elif pct >= 60:
+        return (DIM_YELLOW, DARK_FONT)
+    elif pct >= 40:
+        return (DIM_ORANGE, WHITE_FONT)
+    else:
+        return (DIM_RED, WHITE_FONT)
+
+# Build amz_own_by_cat (needed by dashboard and competitor sheet)
+amz_own_by_cat = {}
+for item in diag['amz_results']:
+    cat = item.get('l3_category', '')
+    if not cat:
+        continue
+    if cat not in amz_own_by_cat:
+        amz_own_by_cat[cat] = []
+    asin = item['asin']
+    detail = amz_details.get(asin, {})
+    amz_own_by_cat[cat].append({
+        'asin': asin,
+        'title': item.get('original_title', ''),
+        'brand': item.get('brand', ''),
+        'price': detail.get('price', ''),
+        'coupon': detail.get('coupon', '-'),
+        'units': detail.get('units', detail.get('totalUnits', '')),
+        'revenue': detail.get('revenue', detail.get('totalAmount', '')),
+        'bsr': item.get('bsr', ''),
+        'rating': item.get('rating', ''),
+        'ratings': item.get('reviews', ''),
+        'lqs': item.get('lqs', ''),
+        'sellerType': detail.get('sellerType', ''),
+        'price_trend': detail.get('price_trend', '-'),
+        'country': item.get('country', 'US'),
+    })
+
 wb = Workbook()
 wb.remove(wb.active)
+
+# ======================== Sheet 0: 可视化Dashboard ========================
+ws_dash = wb.create_sheet("可视化Dashboard")
+ws_dash.sheet_properties.tabColor = "E74C3C"
+
+dash_title_font = Font(name="Microsoft YaHei", size=16, bold=True, color="1F4E79")
+dash_section_font = Font(name="Microsoft YaHei", size=13, bold=True, color="1F4E79")
+dash_sub_font = Font(name="Microsoft YaHei", size=11, bold=True)
+
+# --- Title ---
+ws_dash.merge_cells("A1:N1")
+ws_dash["A1"].value = f"Listing 诊断 Dashboard v3.2 — {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+ws_dash["A1"].font = dash_title_font
+ws_dash["A1"].alignment = CENTER
+ws_dash.row_dimensions[1].height = 40
+
+amz_s = diag['amz_summary']
+tk_s = diag['tk_summary']
+
+# --- (a) Alert Cards Row ---
+# Compute alert stats
+oos_count = 0
+low_stock_count = 0
+price_anomaly_count = 0
+
+if child_scan:
+    cs_stats = child_scan.get('stats', child_scan)
+    oos_count = cs_stats.get('out_of_stock', 0) or cs_stats.get('out_of_stock_count', 0) or 0
+    low_stock_count = cs_stats.get('low_stock', 0) or cs_stats.get('low_stock_count', 0) or 0
+    price_anomaly_count = cs_stats.get('price_anomaly', 0) or cs_stats.get('price_anomaly_count', 0) or 0
+
+if oos_count == 0 and low_stock_count == 0 and phase0 and phase0.get('children'):
+    from collections import defaultdict as _dd
+    _pp = _dd(list)
+    for ch in phase0['children']:
+        p = ch.get('price')
+        if isinstance(p, (int, float)) and p > 0:
+            _pp[ch.get('parent_asin', '')].append(p)
+    _pavg = {k: sum(v)/len(v) for k, v in _pp.items() if v}
+    for ch in phase0['children']:
+        ff = ch.get('fulfillment', '')
+        fba = ch.get('fba_qty', 0) or 0
+        if ff == 'FBA':
+            if fba == 0:
+                oos_count += 1
+            elif fba < 10:
+                low_stock_count += 1
+        pr = ch.get('price')
+        pa = ch.get('parent_asin', '')
+        if isinstance(pr, (int, float)) and pr > 0 and pa in _pavg:
+            dev = abs(pr - _pavg[pa]) / _pavg[pa] if _pavg[pa] > 0 else 0
+            if dev > 0.3:
+                price_anomaly_count += 1
+
+violation_total = amz_s.get('violations', 0) + tk_s.get('violations', 0)
+
+cd_count = (amz_s['grades'].get('C', 0) + amz_s['grades'].get('D', 0)
+            + tk_s['grades'].get('C', 0) + tk_s['grades'].get('D', 0))
+
+no_aplus_count = 0
+for _item in diag['amz_results']:
+    _a = _item['asin']
+    _d = amz_details.get(_a, {})
+    _badge = _d.get('badge', {}) if isinstance(_d.get('badge'), dict) else {}
+    if _badge.get('ebc', 'N') != 'Y':
+        no_aplus_count += 1
+
+alert_cards = [
+    ("断货", oos_count, ALERT_RED if oos_count > 0 else ALERT_GREEN),
+    ("低库存", low_stock_count, ALERT_YELLOW if low_stock_count > 0 else ALERT_GREEN),
+    ("价格异常", price_anomaly_count, ALERT_YELLOW if price_anomaly_count > 0 else ALERT_GREEN),
+    ("违规词", violation_total, ALERT_RED if violation_total > 0 else ALERT_GREEN),
+    ("C&D等级", cd_count, ALERT_RED if cd_count > 0 else ALERT_GREEN),
+    ("缺A+", no_aplus_count, ALERT_YELLOW if no_aplus_count > 0 else ALERT_GREEN),
+]
+
+ws_dash.cell(row=2, column=1, value="关键预警指标").font = dash_section_font
+ws_dash.row_dimensions[3].height = 22
+ws_dash.row_dimensions[4].height = 40
+
+for i, (label, num, card_fill) in enumerate(alert_cards):
+    col_start = i * 2 + 1
+    col_end = col_start + 1
+    ws_dash.merge_cells(start_row=3, start_column=col_start, end_row=3, end_column=col_end)
+    lc = ws_dash.cell(row=3, column=col_start, value=label)
+    lc.font = ALERT_LABEL_FONT
+    lc.fill = card_fill
+    lc.alignment = CENTER
+    lc.border = THIN_BORDER
+    ws_dash.cell(row=3, column=col_end).fill = card_fill
+    ws_dash.cell(row=3, column=col_end).border = THIN_BORDER
+
+    ws_dash.merge_cells(start_row=4, start_column=col_start, end_row=4, end_column=col_end)
+    nc = ws_dash.cell(row=4, column=col_start, value=num)
+    nc.font = ALERT_NUM_FONT
+    nc.fill = card_fill
+    nc.alignment = CENTER
+    nc.border = THIN_BORDER
+    ws_dash.cell(row=4, column=col_end).fill = card_fill
+    ws_dash.cell(row=4, column=col_end).border = THIN_BORDER
+
+for i in range(12):
+    ws_dash.column_dimensions[get_column_letter(i + 1)].width = 10
+
+# --- (b) Grade Distribution ---
+dash_row = 6
+ws_dash.cell(row=dash_row, column=1, value="等级分布").font = dash_section_font
+dash_row += 1
+
+grade_colors = {
+    'A': PatternFill(start_color="27AE60", end_color="27AE60", fill_type="solid"),
+    'B': PatternFill(start_color="82E0AA", end_color="82E0AA", fill_type="solid"),
+    'C': PatternFill(start_color="F1C40F", end_color="F1C40F", fill_type="solid"),
+    'D': PatternFill(start_color="E74C3C", end_color="E74C3C", fill_type="solid"),
+}
+grade_fonts = {
+    'A': WHITE_FONT, 'B': DARK_FONT, 'C': DARK_FONT, 'D': WHITE_FONT,
+}
+
+wc(ws_dash, dash_row, 1, "亚马逊", font=BOLD_FONT, align=CENTER)
+for gi, g in enumerate(['A', 'B', 'C', 'D']):
+    cnt = amz_s['grades'].get(g, 0)
+    wc(ws_dash, dash_row, 2 + gi, f"{g}: {cnt}", font=grade_fonts[g], fill=grade_colors[g], align=CENTER)
+dash_row += 1
+
+wc(ws_dash, dash_row, 1, "TikTok", font=BOLD_FONT, align=CENTER)
+for gi, g in enumerate(['A', 'B', 'C', 'D']):
+    cnt = tk_s['grades'].get(g, 0)
+    wc(ws_dash, dash_row, 2 + gi, f"{g}: {cnt}", font=grade_fonts[g], fill=grade_colors[g], align=CENTER)
+dash_row += 2
+
+# --- (c) AMZ Dimension Score Heatmap ---
+ws_dash.cell(row=dash_row, column=1, value="亚马逊维度评分热力图").font = dash_section_font
+dash_row += 1
+
+amz_dims = ['title', 'bullets', 'description', 'aplus', 'images', 'compliance', 'spelling', 'competitor']
+amz_dim_labels = ['标题', '五点', '描述', 'A+', '图片', '合规', '拼写', '竞争力']
+
+amz_hm_headers = [("ASIN", 14)] + [(l, 10) for l in amz_dim_labels] + [("总分", 8), ("优先修复项", 35)]
+for ci, (hname, hw) in enumerate(amz_hm_headers, 1):
+    c = ws_dash.cell(row=dash_row, column=ci, value=hname)
+    c.fill = HEADER_FILL
+    c.font = HEADER_FONT
+    c.alignment = CENTER
+    c.border = THIN_BORDER
+    ws_dash.column_dimensions[get_column_letter(ci)].width = hw
+dash_row += 1
+
+if phase2_amz and phase2_amz.get('scores'):
+    amz_scores_sorted = sorted(phase2_amz['scores'],
+                                key=lambda x: x.get('total_score', 0))
+    for sc_item in amz_scores_sorted:
+        sc_asin = sc_item.get('asin', '')
+        dims = sc_item.get('dimensions', {})
+        wc(ws_dash, dash_row, 1, sc_asin, align=CENTER)
+        for di, dk in enumerate(amz_dims):
+            d = dims.get(dk, {})
+            s = d.get('score', 0)
+            m = d.get('max', 0)
+            fill_d, font_d = dim_color(s, m)
+            cell_val = f"{s}/{m}" if m > 0 else "-"
+            if fill_d:
+                wc(ws_dash, dash_row, 2 + di, cell_val, font=font_d, fill=fill_d, align=CENTER)
+            else:
+                wc(ws_dash, dash_row, 2 + di, cell_val, align=CENTER)
+        total_s = sc_item.get('total_score', 0)
+        ts_fill = score_fill(total_s) if isinstance(total_s, (int, float)) else None
+        if ts_fill:
+            wc(ws_dash, dash_row, 10, total_s, fill=ts_fill, align=CENTER)
+        else:
+            wc(ws_dash, dash_row, 10, total_s, align=CENTER)
+        pf = sc_item.get('priority_fixes', '')
+        if isinstance(pf, list):
+            pf = '; '.join(pf)
+        wc(ws_dash, dash_row, 11, pf)
+        dash_row += 1
+else:
+    wc(ws_dash, dash_row, 1, "(无亚马逊评分数据)")
+    dash_row += 1
+
+dash_row += 1
+
+# --- (d) TK Dimension Score Heatmap ---
+ws_dash.cell(row=dash_row, column=1, value="TikTok维度评分热力图").font = dash_section_font
+dash_row += 1
+
+tk_dims = ['title', 'description', 'images', 'compliance', 'spelling', 'competitor']
+tk_dim_labels = ['标题', '描述', '图片', '合规', '拼写', '竞争力']
+
+tk_hm_headers = [("商品ID", 20)] + [(l, 10) for l in tk_dim_labels] + [("总分", 8), ("28天GMV", 12)]
+for ci, (hname, hw) in enumerate(tk_hm_headers, 1):
+    c = ws_dash.cell(row=dash_row, column=ci, value=hname)
+    c.fill = HEADER_FILL
+    c.font = HEADER_FONT
+    c.alignment = CENTER
+    c.border = THIN_BORDER
+    if hw > ws_dash.column_dimensions[get_column_letter(ci)].width:
+        ws_dash.column_dimensions[get_column_letter(ci)].width = hw
+dash_row += 1
+
+if phase2_tk and phase2_tk.get('scores'):
+    tk_scores_sorted = sorted(phase2_tk['scores'],
+                               key=lambda x: x.get('total_score', 0))
+    for sc_item in tk_scores_sorted:
+        sc_pid = str(sc_item.get('product_id', ''))
+        dims = sc_item.get('dimensions', {})
+        wc(ws_dash, dash_row, 1, sc_pid, align=CENTER)
+        for di, dk in enumerate(tk_dims):
+            d = dims.get(dk, {})
+            s = d.get('score', 0)
+            m = d.get('max', 0)
+            fill_d, font_d = dim_color(s, m)
+            cell_val = f"{s}/{m}" if m > 0 else "-"
+            if fill_d:
+                wc(ws_dash, dash_row, 2 + di, cell_val, font=font_d, fill=fill_d, align=CENTER)
+            else:
+                wc(ws_dash, dash_row, 2 + di, cell_val, align=CENTER)
+        total_s = sc_item.get('total_score', 0)
+        ts_fill = score_fill(total_s) if isinstance(total_s, (int, float)) else None
+        if ts_fill:
+            wc(ws_dash, dash_row, 8, total_s, fill=ts_fill, align=CENTER)
+        else:
+            wc(ws_dash, dash_row, 8, total_s, align=CENTER)
+        gmv28 = sc_item.get('day28_gmv', 0) or sc_item.get('28d_gmv', 0) or 0
+        wc(ws_dash, dash_row, 9, f"${gmv28:,.0f}" if gmv28 else "$0", align=CENTER)
+        dash_row += 1
+else:
+    wc(ws_dash, dash_row, 1, "(无TikTok评分数据)")
+    dash_row += 1
+
+dash_row += 1
+
+# --- (e) Category Competitiveness Table ---
+ws_dash.cell(row=dash_row, column=1, value="品类竞争力对比").font = dash_section_font
+dash_row += 1
+
+# Amazon categories
+cat_comp_headers = [("平台", 6), ("L3品类", 22), ("自有均价", 10), ("竞品均价", 10),
+                    ("价格差距", 10), ("自有均分", 8), ("竞品均分", 8), ("评分差距", 8),
+                    ("自有均评论", 10), ("竞品均评论", 10), ("评论差距", 10)]
+for ci, (hname, hw) in enumerate(cat_comp_headers, 1):
+    c = ws_dash.cell(row=dash_row, column=ci, value=hname)
+    c.fill = HEADER_FILL
+    c.font = HEADER_FONT
+    c.alignment = CENTER
+    c.border = THIN_BORDER
+    if hw > ws_dash.column_dimensions[get_column_letter(ci)].width:
+        ws_dash.column_dimensions[get_column_letter(ci)].width = hw
+dash_row += 1
+
+if comp_products and comp_products.get('categories'):
+    for cat_name, cat_data in comp_products['categories'].items():
+        comps = cat_data.get('true_competitors', []) or cat_data.get('category_ranking', []) or cat_data.get('products', [])
+        own_items = amz_own_by_cat.get(cat_name, [])
+        if not own_items and not comps:
+            continue
+
+        own_prices = [o.get('price', 0) for o in own_items if isinstance(o.get('price'), (int, float)) and o['price'] > 0]
+        own_ratings = [o.get('rating', 0) for o in own_items if isinstance(o.get('rating'), (int, float)) and o['rating'] > 0]
+        own_reviews = [o.get('ratings', 0) for o in own_items if isinstance(o.get('ratings'), (int, float)) and o['ratings'] > 0]
+
+        comp_prices = [c.get('price', 0) for c in comps if isinstance(c.get('price'), (int, float)) and c['price'] > 0 and not c.get('is_own_brand')]
+        comp_ratings = [c.get('rating', 0) for c in comps if isinstance(c.get('rating'), (int, float)) and c['rating'] > 0 and not c.get('is_own_brand')]
+        comp_reviews = [c.get('ratings', 0) for c in comps if isinstance(c.get('ratings'), (int, float)) and c['ratings'] > 0 and not c.get('is_own_brand')]
+
+        own_avg_price = sum(own_prices) / len(own_prices) if own_prices else 0
+        comp_avg_price = sum(comp_prices) / len(comp_prices) if comp_prices else 0
+        own_avg_rating = sum(own_ratings) / len(own_ratings) if own_ratings else 0
+        comp_avg_rating = sum(comp_ratings) / len(comp_ratings) if comp_ratings else 0
+        own_avg_reviews = sum(own_reviews) / len(own_reviews) if own_reviews else 0
+        comp_avg_reviews = sum(comp_reviews) / len(comp_reviews) if comp_reviews else 0
+
+        price_gap = own_avg_price - comp_avg_price if own_avg_price and comp_avg_price else 0
+        rating_gap = own_avg_rating - comp_avg_rating if own_avg_rating and comp_avg_rating else 0
+        review_gap = own_avg_reviews - comp_avg_reviews if own_avg_reviews and comp_avg_reviews else 0
+
+        price_gap_fill = GAP_RED if price_gap > 5 else (GAP_GREEN if price_gap < -2 else None)
+        rating_gap_fill = GAP_RED if rating_gap < -0.3 else (GAP_GREEN if rating_gap > 0.1 else None)
+        review_gap_fill = GAP_RED if review_gap < -500 else (GAP_GREEN if review_gap > 0 else None)
+
+        wc(ws_dash, dash_row, 1, "AMZ", align=CENTER)
+        wc(ws_dash, dash_row, 2, cat_name)
+        wc(ws_dash, dash_row, 3, f"${own_avg_price:.2f}" if own_avg_price else "-", align=CENTER)
+        wc(ws_dash, dash_row, 4, f"${comp_avg_price:.2f}" if comp_avg_price else "-", align=CENTER)
+        gap_str = f"{'+'if price_gap>0 else ''}{price_gap:.2f}" if price_gap else "-"
+        wc(ws_dash, dash_row, 5, gap_str, fill=price_gap_fill, align=CENTER)
+        wc(ws_dash, dash_row, 6, f"{own_avg_rating:.1f}" if own_avg_rating else "-", align=CENTER)
+        wc(ws_dash, dash_row, 7, f"{comp_avg_rating:.1f}" if comp_avg_rating else "-", align=CENTER)
+        gap_str = f"{'+'if rating_gap>0 else ''}{rating_gap:.2f}" if rating_gap else "-"
+        wc(ws_dash, dash_row, 8, gap_str, fill=rating_gap_fill, align=CENTER)
+        wc(ws_dash, dash_row, 9, f"{own_avg_reviews:.0f}" if own_avg_reviews else "-", align=CENTER)
+        wc(ws_dash, dash_row, 10, f"{comp_avg_reviews:.0f}" if comp_avg_reviews else "-", align=CENTER)
+        gap_str = f"{'+'if review_gap>0 else ''}{review_gap:.0f}" if review_gap else "-"
+        wc(ws_dash, dash_row, 11, gap_str, fill=review_gap_fill, align=CENTER)
+        dash_row += 1
+
+# TikTok category competitiveness
+if phase2_tk and phase2_tk.get('category_top_selling'):
+    tk_own_scores_by_cat = {}
+    if phase2_tk.get('scores'):
+        tk_cat_key_map_dash = {
+            "Women's Perfume": "womens_perfume",
+            "Unisex Perfume": "unisex_perfume",
+            "Men's Perfume": "mens_perfume",
+            "Perfume Sets": "perfume_sets",
+            "Perfume": "perfume_generic",
+            "Car Air Freshener": "car_air_freshener",
+            "Car Fragrance": "car_air_freshener",
+            "Pest & Weed Control": "pest_weed_control",
+        }
+        for s in phase2_tk['scores']:
+            l3 = s.get('l3_category', '') or ''
+            ck = tk_cat_key_map_dash.get(l3, '')
+            if ck:
+                if ck not in tk_own_scores_by_cat:
+                    tk_own_scores_by_cat[ck] = []
+                tk_own_scores_by_cat[ck].append(s)
+
+    for cat_key, products in phase2_tk['category_top_selling'].items():
+        cat_display = cat_key.replace('_', ' ').title()
+        own_tk = tk_own_scores_by_cat.get(cat_key, [])
+        own_gmv = sum(o.get('day28_gmv', 0) or 0 for o in own_tk)
+        comp_gmvs = [p.get('period_gmv', 0) or p.get('day28_gmv', 0) or 0
+                     for p in products if not p.get('is_own', False)]
+        comp_top_gmv = max(comp_gmvs) if comp_gmvs else 0
+        comp_avg_gmv = sum(comp_gmvs) / len(comp_gmvs) if comp_gmvs else 0
+
+        gmv_gap = own_gmv - comp_avg_gmv
+        gmv_gap_fill = GAP_RED if gmv_gap < 0 else GAP_GREEN
+
+        wc(ws_dash, dash_row, 1, "TK", align=CENTER)
+        wc(ws_dash, dash_row, 2, cat_display)
+        wc(ws_dash, dash_row, 3, f"${own_gmv:,.0f}", align=CENTER)
+        wc(ws_dash, dash_row, 4, f"${comp_avg_gmv:,.0f}", align=CENTER)
+        gap_str = f"{'+'if gmv_gap>0 else ''}${gmv_gap:,.0f}"
+        wc(ws_dash, dash_row, 5, gap_str, fill=gmv_gap_fill, align=CENTER)
+        wc(ws_dash, dash_row, 6, "-", align=CENTER)
+        wc(ws_dash, dash_row, 7, "-", align=CENTER)
+        wc(ws_dash, dash_row, 8, "-", align=CENTER)
+        wc(ws_dash, dash_row, 9, "-", align=CENTER)
+        wc(ws_dash, dash_row, 10, f"Top: ${comp_top_gmv:,.0f}", align=CENTER)
+        wc(ws_dash, dash_row, 11, "-", align=CENTER)
+        dash_row += 1
+
+dash_row += 1
+
+# --- (f) Ad Dependency Warning ---
+ws_dash.cell(row=dash_row, column=1, value="广告依赖预警 (广告流量>60%)").font = dash_section_font
+dash_row += 1
+
+ad_warn_headers = [("ASIN", 14), ("店铺", 18), ("品牌", 12), ("L3品类", 22),
+                   ("广告流量%", 10), ("自然流量%", 10), ("Campaign数", 10)]
+for ci, (hname, hw) in enumerate(ad_warn_headers, 1):
+    c = ws_dash.cell(row=dash_row, column=ci, value=hname)
+    c.fill = HEADER_FILL
+    c.font = HEADER_FONT
+    c.alignment = CENTER
+    c.border = THIN_BORDER
+    if hw > ws_dash.column_dimensions[get_column_letter(ci)].width:
+        ws_dash.column_dimensions[get_column_letter(ci)].width = hw
+dash_row += 1
+
+amz_lookup_dash = {}
+for _item in diag['amz_results']:
+    amz_lookup_dash[_item['asin']] = _item
+
+ad_warn_list = []
+if ads_data:
+    for r in ads_data.get('results', []):
+        ap = r.get('traffic', {}).get('ad_pct')
+        if isinstance(ap, (int, float)) and ap > 60:
+            ad_warn_list.append(r)
+    ad_warn_list.sort(key=lambda x: -(x.get('traffic', {}).get('ad_pct', 0) or 0))
+
+if ad_warn_list:
+    for r in ad_warn_list:
+        asin = r['asin']
+        amz_i = amz_lookup_dash.get(asin, {})
+        traffic = r.get('traffic', {})
+        ad_pct = traffic.get('ad_pct', 0)
+        organic = traffic.get('organic_pct', 0)
+        camps = r.get('ad_structure', {}).get('total_campaigns', 0)
+        wc(ws_dash, dash_row, 1, asin, align=CENTER)
+        wc(ws_dash, dash_row, 2, amz_i.get('shop', ''))
+        wc(ws_dash, dash_row, 3, amz_i.get('brand', ''))
+        wc(ws_dash, dash_row, 4, amz_i.get('l3_category', ''))
+        wc(ws_dash, dash_row, 5, f"{ad_pct:.1f}%", fill=ALERT_RED, font=WHITE_FONT, align=CENTER)
+        wc(ws_dash, dash_row, 6, f"{organic:.1f}%", align=CENTER)
+        wc(ws_dash, dash_row, 7, camps, align=CENTER)
+        dash_row += 1
+else:
+    wc(ws_dash, dash_row, 1, "(无ASIN广告流量超过60%)")
+    dash_row += 1
+
+# Widen column A for the dashboard
+ws_dash.column_dimensions["A"].width = 22
+ws_dash.column_dimensions["N"].width = 14
 
 # ======================== Sheet 1: 诊断摘要 ========================
 ws1 = wb.create_sheet("诊断摘要")
@@ -133,14 +601,12 @@ sub_font = Font(name="Microsoft YaHei", size=12, bold=True)
 stat_font = Font(name="Microsoft YaHei", size=11)
 
 ws1.merge_cells("A1:F1")
-ws1["A1"].value = f"AB America / HOOGALIFE Listing 诊断报告 v3.1 — {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+ws1["A1"].value = f"AB America / HOOGALIFE Listing 诊断报告 v3.2 — {datetime.now().strftime('%Y-%m-%d %H:%M')}"
 ws1["A1"].font = title_font
 ws1["A1"].alignment = CENTER
 ws1.row_dimensions[1].height = 45
 
 row = 3
-amz_s = diag['amz_summary']
-tk_s = diag['tk_summary']
 
 ws1.cell(row=row, column=1, value="亚马逊诊断概览").font = sub_font
 row += 1
@@ -210,7 +676,7 @@ if comp_products and comp_products.get('categories'):
         ("覆盖L3品类", f"{_sc} / {_tc}"),
         ("竞品产品总数", _tp),
         ("同外观真竞品数", _true_comp_count),
-        ("产品形态验证", f"✓ 全部通过 ({_verified_at})" if _verified else "未验证"),
+        ("产品形态验证", f"V 全部通过 ({_verified_at})" if _verified else "未验证"),
     ]:
         ws1.cell(row=row, column=1, value=label).font = stat_font
         c = ws1.cell(row=row, column=2, value=val)
@@ -229,7 +695,7 @@ if phase2_tk and phase2_tk.get('true_competitors'):
     for label, val in [
         ("TK竞品品类数", tk_cat_count),
         ("TK竞品产品数", tk_comp_total),
-        ("TK产品形态验证", "✓ 全部通过 (浏览器验证)"),
+        ("TK产品形态验证", "V 全部通过 (浏览器验证)"),
     ]:
         ws1.cell(row=row, column=1, value=label).font = stat_font
         c = ws1.cell(row=row, column=2, value=val)
@@ -407,36 +873,6 @@ AMZ_COMP_H = [
     ("BSR", 10), ("评分", 6), ("评论数", 10),
     ("LQS", 6), ("卖家类型", 10), ("价格趋势", 10), ("自有品牌", 8),
 ]
-
-SECTION_FILL = PatternFill(start_color="F4B084", end_color="F4B084", fill_type="solid")
-OWN_FILL = PatternFill(start_color="B4C6E7", end_color="B4C6E7", fill_type="solid")
-OWN_SECTION_FILL = PatternFill(start_color="8DB4E2", end_color="8DB4E2", fill_type="solid")
-
-# Build own-product-by-category map for Amazon
-amz_own_by_cat = {}
-if phase0 and phase0.get('parents'):
-    for p in phase0['parents']:
-        cat = p.get('matched_l3', '') or ''
-        if not cat:
-            continue
-        if cat not in amz_own_by_cat:
-            amz_own_by_cat[cat] = []
-        detail = amz_details.get(p['parent_asin'], {})
-        amz_own_by_cat[cat].append({
-            'asin': p['parent_asin'],
-            'title': detail.get('title', p.get('title', '')),
-            'brand': p.get('brand', ''),
-            'price': detail.get('price', p.get('price', '')),
-            'bsr': detail.get('bsrRank') or detail.get('bsr') or p.get('rank', ''),
-            'rating': detail.get('rating', p.get('rating', '')),
-            'ratings': detail.get('ratings', p.get('reviews', '')),
-            'lqs': detail.get('lqs', ''),
-            'sellerType': detail.get('sellerType') or detail.get('fulfillment', ''),
-            'units': detail.get('totalUnits') or detail.get('units', ''),
-            'revenue': detail.get('totalAmount') or detail.get('revenue', ''),
-            'country': p.get('country', 'US'),
-            'shop': p.get('shop', ''),
-        })
 
 ws4 = wb.create_sheet("亚马逊竞品分析")
 setup_headers(ws4, AMZ_COMP_H)
@@ -717,7 +1153,7 @@ if phase2_tk and phase2_tk.get('category_top_selling'):
             row_idx += 1
         row_idx += 1
 
-# ======================== Sheet 7: 子ASIN运营附表 ========================
+# ======================== Sheet 6: 子ASIN运营附表 ========================
 CHILD_H = [
     ("父ASIN", 14), ("子ASIN", 14), ("国家", 4), ("店铺", 18), ("品牌", 12),
     ("负责人", 14), ("SKU", 16), ("标题", 40), ("价格", 8),
@@ -799,7 +1235,7 @@ if phase0 and phase0.get('children'):
 if row_idx == 2:
     wc(ws_child, 2, 1, '(无子ASIN数据)')
 
-# ======================== Sheet 8: 违规词&错词汇总 ========================
+# ======================== Sheet 7: 违规词&错词汇总 ========================
 VIOL_H = [
     ("ASIN/商品ID", 18), ("平台", 8), ("国家/店铺", 14),
     ("类型", 8), ("违规词/错词", 18), ("类别/正确词", 25),
@@ -847,7 +1283,7 @@ for t in diag.get('tk_typos', []):
 if row_idx == 2:
     wc(ws6, 2, 1, '(未检测到违规词或拼写错误)')
 
-# ======================== Sheet 7: 广告分析&策略建议 ========================
+# ======================== Sheet 8: 广告分析&策略建议 ========================
 ADS_H = [
     ("国家", 6), ("店铺", 18), ("ASIN", 14), ("品牌", 12), ("L3品类", 20),
     ("Campaign数", 10), ("SP", 5), ("SB", 5), ("SBV", 5),
@@ -902,162 +1338,8 @@ if ads_data:
             wc(ws7, row_idx, col, val, fill=fill, link=link)
         row_idx += 1
 
-# ======================== Sheet 8: 数据覆盖率 ========================
-COV_H = [
-    ("数据项", 30), ("覆盖数量", 10), ("总数", 10), ("覆盖率", 10), ("状态", 8), ("备注", 40),
-]
-
-ws8 = wb.create_sheet("数据覆盖率")
-setup_headers(ws8, COV_H)
-
-amz_total = amz_s['total']
-amz_detail = amz_s['with_detail']
-tk_total = tk_s['total']
-tk_with_detail = len(tk_detail_map) if tk_details else 0
-tk_with_creator = sum(1 for r in diag['tk_results'] if r.get('creator_count', 0))
-if comp_products and comp_products.get('categories'):
-    _cats = comp_products['categories']
-    comp_success = sum(1 for v in _cats.values() if v.get('true_competitors') or v.get('category_ranking') or v.get('products'))
-    comp_total_cats = comp_products.get('total_categories') or len(_cats)
-    comp_total_prods = sum(len(v.get('category_ranking', v.get('products', []))) for v in _cats.values())
-else:
-    comp_success = 0
-    comp_total_cats = 24
-    comp_total_prods = 0
-ads_success = ads_data.get('success', 0) if ads_data else 0
-ads_total = ads_data.get('total_asins', 92) if ads_data else 92
-
-coverage = [
-    ("亚马逊ASIN详情(标题+五点)", amz_detail, amz_total,
-     f"{amz_detail/amz_total*100:.0f}%",
-     "OK" if amz_detail/amz_total > 0.8 else "!",
-     "卖酷asin_detail, 含features五点原文"),
-    ("亚马逊图片(主图URL)", amz_detail, amz_total,
-     f"{amz_detail/amz_total*100:.0f}%",
-     "OK" if amz_detail/amz_total > 0.8 else "!",
-     "卖酷asin_detail返回imageUrl"),
-    ("亚马逊副图(采集)", len(scrape_map), amz_total,
-     f"{len(scrape_map)/amz_total*100:.0f}%",
-     "OK" if len(scrape_map)/amz_total > 0.8 else "P",
-     f"Playwright采集, 平均{amz_scrape.get('avg_images',0) if amz_scrape else 0}张"),
-    ("亚马逊A+(有无标记)", amz_detail, amz_total,
-     f"{amz_detail/amz_total*100:.0f}%",
-     "OK" if amz_detail/amz_total > 0.8 else "!",
-     "卖酷asin_detail返回badge.ebc"),
-    ("亚马逊A+模块(采集)", sum(1 for v in scrape_map.values() if v.get('aplus',{}).get('exists')), amz_total,
-     f"{sum(1 for v in scrape_map.values() if v.get('aplus',{}).get('exists'))/amz_total*100:.0f}%",
-     "OK" if sum(1 for v in scrape_map.values() if v.get('aplus',{}).get('exists')) > amz_total * 0.5 else "P",
-     "Playwright采集A+图片数/文本量/模块类型"),
-    ("亚马逊竞品明细", comp_success, comp_total_cats,
-     f"{comp_success/comp_total_cats*100:.0f}%",
-     "OK" if comp_success > 15 else "P",
-     f"卖酷product_research, {comp_total_prods}个竞品产品"),
-    ("TikTok商品基础数据(标题+GMV)", tk_total, tk_total,
-     "100%", "OK", "FastMoss shop_product_analysis"),
-    ("TikTok商品详情(描述+图片)", tk_with_detail, tk_total,
-     f"{tk_with_detail/tk_total*100:.0f}%" if tk_total else "0%",
-     "OK" if tk_with_detail == tk_total else "P",
-     "FastMoss product_detail_info"),
-    ("TikTok图片+描述(采集)", len(tk_scrape_map), tk_total,
-     f"{len(tk_scrape_map)/tk_total*100:.0f}%" if tk_total else "0%",
-     "OK" if len(tk_scrape_map)/tk_total > 0.8 else "P",
-     f"HTTP采集, 平均{tk_scrape.get('avg_images',0) if tk_scrape else 0}张, 平均{tk_scrape.get('avg_desc_length',0) if tk_scrape else 0}字符描述"),
-    ("TikTok达人数据", tk_with_creator, tk_total,
-     f"{tk_with_creator/tk_total*100:.0f}%",
-     "P" if tk_with_creator < tk_total else "OK",
-     "FastMoss product_creator_analysis"),
-    ("TikTok竞品(品类Top10)", 7, 7,
-     "100%", "OK", "FastMoss product_rank_top_selling"),
-    ("亚马逊竞品产品形态验证", 24, 24,
-     "100%", "OK", "浏览器+API逐品类验证, 6个重点品类浏览器截图确认"),
-    ("TikTok竞品产品形态验证", 5, 7,
-     "71%", "OK", "浏览器打开TikTok Shop产品页验证5个品类"),
-    ("广告分析(Sif)", ads_success, ads_total,
-     f"{ads_success/ads_total*100:.0f}%" if ads_total else "0%",
-     "OK", f"Sif MCP, {ads_success}有广告 / {ads_data.get('no_ads',0) if ads_data else 0}无广告"),
-    ("关键词SEO(Sif)", sum(1 for r in diag['amz_results'] if r.get('keyword_indexed_count', '-') != '-'), amz_total,
-     f"{sum(1 for r in diag['amz_results'] if r.get('keyword_indexed_count', '-') != '-')/amz_total*100:.0f}%",
-     "OK" if sum(1 for r in diag['amz_results'] if r.get('keyword_indexed_count', '-') != '-') > amz_total * 0.5 else "P",
-     "Sif reverse ASIN关键词, 作为后台搜索词代理"),
-    ("违规词检测", amz_total + tk_total, amz_total + tk_total,
-     "100%", "OK", f"AMZ:{amz_s['violations']}条 + TK:{tk_s['violations']}条"),
-    ("子ASIN运营数据", len(phase0.get('children', [])) if phase0 else 0,
-     phase0.get('summary', {}).get('total_children', 0) if phase0 else 0,
-     f"{len(phase0.get('children', []))/phase0.get('summary',{}).get('total_children',1)*100:.0f}%" if phase0 and phase0.get('summary',{}).get('total_children') else "0%",
-     "OK" if phase0 and phase0.get('children') else "!",
-     "领星ERP数据, 含价格/库存/配送/Buy Box"),
-]
-
-status_fill_map = {"OK": GREEN_FILL, "P": YELLOW_FILL, "!": RED_FILL}
-
-for idx, (item, covered, total, rate, status, note) in enumerate(coverage, 2):
-    vals = [item, covered, total, rate, status, note]
-    for col, val in enumerate(vals, 1):
-        c = wc(ws8, idx, col, val)
-        if col == 5:
-            c.fill = status_fill_map.get(val, GREEN_FILL)
-
-# ======================== Sheet 9: 竞品验证结果 ========================
-VERIFY_H = [
-    ("平台", 8), ("L3品类", 25), ("验证方式", 14), ("状态", 8),
-    ("我方产品", 50), ("竞品Top1", 50), ("竞品品牌", 15),
-    ("产品形态匹配", 12), ("备注", 40),
-]
-
-ws9 = wb.create_sheet("竞品验证结果")
-setup_headers(ws9, VERIFY_H)
-
-VERIFIED_FILL = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
-
-amz_verifications = [
-    ("Amazon", "LED Bulbs", "浏览器", "✓", "HoogaLife 火焰灯泡 B0H2DPL94Y", "hyrion LED Flame Light Bulbs B0F596ZW9R", "hyrion", "✓ 火焰灯泡", "两者均为E26火焰效果LED灯泡"),
-    ("Amazon", "Nameplates & Desk Tapes", "浏览器", "✓", "Burst Bird Tumbler Name Tag B0CN93L15W", "GIFTBYGIFTY Tumbler Name Plate B0CKS4WHB2", "GIFTBYGIFTY", "✓ Tumbler名牌", "两者均为Stanley杯个性化名牌标签"),
-    ("Amazon", "Stethoscopes", "浏览器", "✓", "ABAMERICA 听诊器套 B0B1912D6G", "Plifal Stethoscope Cover B0DNT94RMT", "Plifal", "✓ 听诊器套", "两者均为弹性听诊器保护套/Scrunchie"),
-    ("Amazon", "Women's Tote Handbags", "浏览器", "✓", "ABAMERICA 护士包 B0D1XF18J5", "RA Bock Doctor Bag B00DMTBACI", "R.A. BÖCK", "✓ 医护包", "两者均为护士/医生专用手提包"),
-    ("Amazon", "Automotive Air Fresheners", "浏览器", "✓", "(多个ASIN已下架)", "AROIC Hanging Diffuser B0DRTK9BJ8", "AROIC", "✓ 挂式香薰瓶", "竞品为挂式精油扩香瓶,匹配产品形态"),
-    ("Amazon", "Essential Oil Sets", "浏览器", "✓", "ABAMERICA Hotel Diffuser Oils B0FHPN1FJG", "Cliganic Organic Essential Oils B08D3WB3CQ", "Cliganic", "✓ 精油套装", "两者均为多瓶装精油礼盒套装"),
-    ("Amazon", "Women's Eau de Parfum", "API", "✓", "Pureamor/PUREU 女士EDP", "DIME 7 Summers / Oscar de la Renta", "DIME等", "✓ 女士香水", "自有品牌已过滤,同品类EDP"),
-    ("Amazon", "Women's Cologne", "API", "✓", "Pureamor 女士古龙水", "品类Top5非自有品牌", "多品牌", "✓ 女士古龙水", "product_research L3节点匹配"),
-    ("Amazon", "Men's Cologne", "API", "✓", "PUREU 男士古龙水", "品类Top5非自有品牌", "多品牌", "✓ 男士古龙水", "product_research L3节点匹配"),
-    ("Amazon", "Women's Fragrance Sets", "API", "✓", "Pureamor/CLASSY 香水套装", "品类Top5", "多品牌", "✓ 香水套装", "product_research L3节点匹配"),
-    ("Amazon", "Women's Eau de Toilette", "API", "✓", "Pureamor 女士EDT", "Vera Wang / Elizabeth Taylor", "多品牌", "✓ 女士淡香水", "标题确认均为EDT淡香水"),
-    ("Amazon", "Women's Body Sprays Fragrance", "API", "✓", "Pureamor/PUREU 身体喷雾", "品类Top5", "多品牌", "✓ 身体喷雾", "product_research L3节点匹配"),
-    ("Amazon", "Flameless Candles", "API", "✓", "HoogaLife 无焰蜡烛", "Luminara / kakoya", "Luminara等", "✓ 无焰蜡烛", "标题确认均为LED无焰蜡烛"),
-    ("Amazon", "Reed Diffuser Oils", "API", "✓", "Purefittech/CLASSY 藤条扩香", "Thymes / COCODOR", "Thymes等", "✓ 藤条扩香油", "标题确认均为Reed Diffuser"),
-    ("Amazon", "Women's Fashion Headbands", "API", "✓", "Abamerica 女士发带", "Conair / Panleding", "Conair等", "✓ 女士发带", "标题确认均为Stretchy/Turban Headband"),
-    ("Amazon", "Medical Hair & Beard Covers", "API", "✓", "Abamerica 医用头套", "品类Top5", "多品牌", "✓ 医用头发罩", "product_research L3节点匹配"),
-    ("Amazon", "Medical Uniforms & Scrubs", "API", "✓", "Abamerica 医用制服", "品类Top5", "多品牌", "✓ 医用制服", "product_research L3节点匹配"),
-    ("Amazon", "Medical Stethoscope Accessories", "API", "✓", "Abamerica 听诊器配件", "Plifal等听诊器套", "Plifal等", "✓ 听诊器配件", "与Stethoscopes共享竞品数据"),
-    ("Amazon", "Men's Food Service Uniforms", "API", "✓", "Abamerica 厨师服", "品类Top5", "多品牌", "✓ 餐饮制服", "product_research L3节点匹配"),
-    ("Amazon", "Essential Oil Singles", "API", "✓", "PUREU 单瓶精油", "Majestic Pure", "Majestic Pure", "✓ 单瓶精油", "标题确认均为4oz单瓶精油"),
-    ("Amazon", "Insect & Pest Repellent Pouches", "API", "✓", "Pesova 驱虫香包", "品类Top5", "多品牌", "✓ 驱虫香包", "product_research L3节点匹配"),
-    ("Amazon", "Ultrasonic Pest Repellers", "API", "✓", "Pesova 超声波驱虫器", "品类Top5", "多品牌", "✓ 超声波驱虫", "product_research L3节点匹配"),
-    ("Amazon", "Travel Tote Bags", "API", "✓", "HoogaLife 旅行托特包", "品类Top5", "多品牌", "✓ 旅行托特包", "product_research L3节点匹配"),
-    ("Amazon", "Automobile Aroma Diffusers", "API", "✓", "CLASSY 车载扩香器", "品类Top5", "多品牌", "✓ 车载扩香器", "product_research L3节点匹配"),
-]
-
-tk_verifications = [
-    ("TikTok", "Women's Perfume", "浏览器", "✓", "PureAmor 迷你钥匙扣香水 $11", "QAWAFI Voyage Nova $31 (46K评)", "QAWAFI", "✓ 女士香水", "两者均为Women's Perfume品类"),
-    ("TikTok", "Unisex Perfume", "浏览器", "✓", "PureAmor 水果钥匙扣香水 $11", "BellaVita Honey Oud $23 (122K评)", "BellaVita", "✓ 中性香水", "品类王者824K总销量"),
-    ("TikTok", "Men's Perfume", "浏览器", "✓", "PureAmor 男士香水线", "YCZ Midnight Marine $16 (98K评)", "Y CZ", "✓ 男士香水", "品类霸主710K总销量"),
-    ("TikTok", "Pest & Weed Control", "浏览器", "✓", "Pesova 驱鼠薄荷香包 $50", "Nexillumiccu 驱鼠香包 $19", "Nexillumiccu", "✓ 驱鼠香包", "同为薄荷精油驱鼠香袋"),
-    ("TikTok", "Car Fragrance", "浏览器", "✓", "(我方无TK产品)", "Star Rabbit 挂式扩香瓶 $11", "Star Rabbit", "✓ 车载香薰", "品类竞品已确认,我方暂无TK产品"),
-    ("TikTok", "Perfume Sets", "API", "✓", "PureAmor 香水套装", "品类Top5", "多品牌", "✓ 香水套装", "FastMoss品类排行匹配"),
-    ("TikTok", "Perfume (Generic)", "API", "✓", "PureAmor 通用香水", "品类Top5", "多品牌", "✓ 通用香水", "FastMoss品类排行匹配"),
-]
-
-v_row = 2
-for row_data in amz_verifications + tk_verifications:
-    for col, val in enumerate(row_data, 1):
-        c = wc(ws9, v_row, col, val)
-        if col == 4 and val == "✓":
-            c.fill = VERIFIED_FILL
-        if col == 8 and "✓" in str(val):
-            c.fill = VERIFIED_FILL
-    v_row += 1
-
 # Save
-out_path = os.path.join(BASE, f'Listing诊断报告v3.1_{datetime.now().strftime("%Y%m%d_%H%M")}.xlsx')
+out_path = os.path.join(BASE, f'Listing诊断报告v3.2_{datetime.now().strftime("%Y%m%d_%H%M")}.xlsx')
 wb.save(out_path)
 print(f'\nReport saved: {out_path}')
 print(f'Sheets: {len(wb.sheetnames)}')
