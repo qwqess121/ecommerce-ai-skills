@@ -1,0 +1,221 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "last_updated": "2026-09-24",
+    "source": "TikTok Shop Seller Center Policies, Restricted Products Policy, Community Guidelines",
+    "notes": "定期根据 TikTok Shop 最新政策更新。严重程度：high=listing可能被下架/账号风险, medium=影响曝光/转化, low=建议优化"
+  },
+  "false_advertising": {
+    "severity": "high",
+    "description": "虚假/夸大宣传——违反TikTok Shop广告真实性政策",
+    "words": [
+      "best", "best seller", "best selling", "#1", "number one", "number 1",
+      "top rated", "top selling", "top quality",
+      "guaranteed", "guarantee", "100% guaranteed",
+      "miracle", "miraculous", "magic", "magical",
+      "risk-free", "risk free", "no risk",
+      "100% effective", "100% results",
+      "instant results", "immediate results", "overnight results",
+      "works for everyone", "suitable for all ages",
+      "never fails", "always works", "foolproof",
+      "the only", "the first", "the original",
+      "world's best", "world's first", "world class",
+      "unbeatable", "unmatched", "unrivaled",
+      "perfect", "flawless", "zero defects",
+      "scientifically proven", "laboratory tested",
+      "award-winning", "award winning",
+      "as seen on TV", "celebrity endorsed", "celebrity favorite",
+      "viral", "trending", "everyone is buying",
+      "sold out everywhere", "selling like crazy"
+    ],
+    "replacement_suggestions": {
+      "best": "premium / high quality",
+      "#1": "(删除)",
+      "guaranteed": "designed for satisfaction",
+      "miracle": "remarkable",
+      "instant results": "quick-acting formula",
+      "perfect": "excellent",
+      "award-winning": "(删除或提供证明)",
+      "viral": "(删除——平台不允许引用自身热度)"
+    }
+  },
+  "medical_health_claims": {
+    "severity": "high",
+    "description": "医疗/健康声明——可导致listing下架和账号处罚",
+    "words": [
+      "cure", "cures", "curing",
+      "treat", "treats", "treatment",
+      "heal", "heals", "healing",
+      "prevent", "prevents", "prevention",
+      "diagnose", "diagnosis",
+      "FDA approved", "FDA cleared", "FDA certified",
+      "clinically proven", "clinically tested",
+      "doctor recommended", "doctor approved",
+      "medical grade", "pharmaceutical grade", "hospital grade",
+      "prescription", "prescription strength",
+      "drug", "medicine", "medication",
+      "antibacterial", "antimicrobial", "antiviral", "antifungal",
+      "antiseptic", "disinfectant",
+      "kills germs", "kills bacteria",
+      "pain relief", "pain killer", "relieves pain",
+      "weight loss", "fat burning", "fat burner", "slimming",
+      "detox", "detoxify", "cleanse",
+      "anti-aging", "anti-wrinkle", "removes wrinkles",
+      "whitening", "skin whitening", "teeth whitening",
+      "hair growth", "hair regrowth", "stops hair loss",
+      "immune boost", "boosts immunity",
+      "blood pressure", "blood sugar", "cholesterol",
+      "anti-inflammatory", "reduces inflammation",
+      "hormone", "hormonal balance"
+    ],
+    "replacement_suggestions": {
+      "cure": "support / help with",
+      "treat": "care for / assist with",
+      "pain relief": "comfort support",
+      "weight loss": "fitness journey support",
+      "anti-aging": "youthful appearance",
+      "whitening": "brightening",
+      "hair growth": "hair care / hair nourishment",
+      "detox": "refresh / renew"
+    }
+  },
+  "absolute_terms": {
+    "severity": "medium",
+    "description": "绝对化用语——中国广告法及TikTok政策限制",
+    "words_zh": [
+      "最", "最好", "最佳", "最优", "最强", "最大", "最小", "最高", "最低",
+      "第一", "唯一", "独一无二", "独家", "首创", "首选",
+      "100%", "绝对", "完全", "彻底", "全面",
+      "永远", "永久", "终身", "一辈子",
+      "无敌", "极致", "顶级", "顶尖", "至尊", "王者",
+      "万能", "全能", "无所不能",
+      "零风险", "零缺陷", "零差评", "零投诉",
+      "必买", "必备", "必入", "不买后悔",
+      "秒杀一切", "碾压", "吊打", "完胜"
+    ],
+    "words_en": [
+      "absolute", "absolutely",
+      "always", "never",
+      "every", "everyone", "everything",
+      "only", "sole", "exclusive",
+      "ultimate", "supreme", "paramount",
+      "total", "totally", "complete", "completely",
+      "forever", "permanent", "permanently",
+      "zero defect", "zero complaint", "zero risk",
+      "must buy", "must have", "can't live without",
+      "destroys competition", "crushes", "dominates"
+    ],
+    "replacement_suggestions": {
+      "最好": "优质 / 精选",
+      "第一": "领先 / 热门",
+      "唯一": "特色 / 独特",
+      "100%": "高达 / 接近",
+      "永远": "持久 / 长效",
+      "absolute": "exceptional",
+      "always": "consistently",
+      "only": "featured / signature",
+      "must buy": "great choice / recommended"
+    }
+  },
+  "urgency_manipulation": {
+    "severity": "medium",
+    "description": "诱导性/紧迫感制造——违反公平交易政策",
+    "words_zh": [
+      "限时", "限量", "限时特价", "限时抢购",
+      "仅剩", "仅剩XX件", "库存紧张", "即将售罄",
+      "马上涨价", "即将涨价", "涨价前最后机会",
+      "最后机会", "错过不再有", "过时不候",
+      "手慢无", "先到先得", "抢完即止",
+      "今日特价", "今天下单", "立即购买",
+      "倒计时", "限时折扣", "限时优惠"
+    ],
+    "words_en": [
+      "limited time", "limited stock", "limited edition",
+      "only X left", "almost gone", "selling fast",
+      "hurry", "rush", "don't miss out", "don't wait",
+      "act now", "act fast", "buy now",
+      "last chance", "final chance", "once in a lifetime",
+      "while supplies last", "while stocks last",
+      "price going up", "price increase soon",
+      "today only", "this week only",
+      "flash sale", "clearance", "going going gone",
+      "order before", "ends soon", "expiring"
+    ],
+    "replacement_suggestions": {
+      "限时": "(删除——促销信息放平台促销工具设置)",
+      "仅剩": "(删除)",
+      "limited time": "(remove — use platform promotion tools)",
+      "hurry": "(remove)",
+      "last chance": "(remove)"
+    }
+  },
+  "sensitive_content": {
+    "severity": "high",
+    "description": "敏感内容词汇——可能触发平台审核或处罚",
+    "words": [
+      "sex", "sexual", "sexy", "erotic", "adult",
+      "nude", "naked", "porn", "pornographic",
+      "weapon", "gun", "firearm", "ammunition", "bullet",
+      "knife", "blade", "sword", "dagger",
+      "drug", "drugs", "marijuana", "cannabis", "CBD", "THC", "weed",
+      "tobacco", "cigarette", "vape", "e-cigarette", "nicotine",
+      "alcohol", "beer", "wine", "liquor", "spirits",
+      "gambling", "casino", "betting",
+      "counterfeit", "fake", "replica", "knockoff", "imitation",
+      "pirated", "bootleg", "unauthorized copy"
+    ],
+    "notes": "部分词汇在特定品类（如厨刀的blade/knife）中是正常描述，需结合品类上下文判断"
+  },
+  "ip_infringement": {
+    "severity": "high",
+    "description": "知识产权侵权——使用未授权的品牌/人名/IP",
+    "detection_rules": [
+      "使用未授权的品牌名称",
+      "使用明星/网红姓名（未授权代言）",
+      "使用影视/动漫/游戏IP名称（未授权）",
+      "'compatible with [Brand]' 需确认为真实兼容性描述",
+      "'for [Brand] [Model]' 需确认为兼容性/配件描述",
+      "仿冒词：style/type/like/inspired by + 品牌名（灰色地带，建议删除）"
+    ],
+    "common_infringement_patterns": [
+      "Disney style", "Nike type", "Apple compatible",
+      "like Dyson", "similar to Lululemon",
+      "inspired by Chanel", "dupe for",
+      "generic [Brand]", "off-brand [Brand]"
+    ]
+  },
+  "platform_specific_tiktok": {
+    "severity": "medium",
+    "description": "TikTok 平台特有的限制词",
+    "words": [
+      "follow for more", "like and share", "follow my shop",
+      "link in bio", "check my profile",
+      "DM for price", "DM to order", "message me",
+      "WhatsApp", "WeChat", "LINE",
+      "cheaper on my website", "buy from my website",
+      "use code", "promo code", "discount code",
+      "subscribe", "subscribe for",
+      "swipe up", "click the link",
+      "giveaway", "free giveaway"
+    ],
+    "notes": "TikTok Shop 不允许将流量导向站外。促销码需通过平台工具设置。"
+  },
+  "country_specific": {
+    "US": {
+      "additional_notes": "FTC要求广告声明有合理依据；健康声明需FDA/FTC合规"
+    },
+    "UK": {
+      "additional_notes": "受ASA广告标准约束；需符合Consumer Protection from Unfair Trading Regulations"
+    },
+    "ID": {
+      "additional_prohibited_zh": ["涉及宗教敏感内容需格外注意"],
+      "additional_notes": "印尼站对宗教/文化敏感内容审查严格"
+    },
+    "TH": {
+      "additional_notes": "泰国站对王室相关内容零容忍"
+    },
+    "MY": {
+      "additional_notes": "马来西亚站注意清真（Halal）声明需认证"
+    }
+  }
+}

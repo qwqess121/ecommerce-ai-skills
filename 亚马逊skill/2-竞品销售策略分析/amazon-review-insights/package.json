@@ -1,0 +1,13 @@
+{
+  "name": "amazon-review-insights",
+  "version": "1.1.0",
+  "private": true,
+  "description": "抓取 Amazon 商品页的评论洞察层（AI Review Insights / Customers say / Customers ask Alexa A+ 模块）；可选登录态抓 Q&A 页。",
+  "scripts": {
+    "insights": "node scripts/amazon_review_insights.js",
+    "qa": "node scripts/amazon_qa_scraper.js"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}

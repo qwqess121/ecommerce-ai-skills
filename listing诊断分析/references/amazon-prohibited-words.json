@@ -1,0 +1,214 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "last_updated": "2026-09-24",
+    "source": "Amazon Seller Central Style Guides, Restricted Products Policy, Claims Guidelines",
+    "notes": "定期根据亚马逊最新政策更新。严重程度：high=可能导致listing下架/账号风险, medium=影响搜索/转化, low=格式不规范"
+  },
+  "promotional_language": {
+    "severity": "high",
+    "description": "促销类语言——亚马逊明确禁止在标题和描述中使用",
+    "words": [
+      "best seller", "bestseller", "#1", "number one", "top rated", "top selling",
+      "best quality", "best price", "best value", "best deal",
+      "free shipping", "free delivery", "free gift", "free bonus",
+      "discount", "discounted", "on sale", "sale price", "clearance",
+      "save money", "save $", "cheapest", "lowest price",
+      "deal of the day", "limited time offer", "limited time deal",
+      "act now", "buy now", "order now", "hurry",
+      "while supplies last", "don't miss out", "last chance",
+      "exclusive offer", "special offer", "special price", "special deal",
+      "promotion", "promo", "promotional",
+      "coupon", "voucher", "rebate",
+      "hot sale", "flash sale", "big sale",
+      "wholesale", "wholesale price",
+      "bargain", "steal", "giveaway"
+    ],
+    "replacement_suggestions": {
+      "best seller": "popular choice",
+      "top rated": "highly reviewed",
+      "#1": "(删除)",
+      "free shipping": "(删除——亚马逊自动处理配送信息)",
+      "discount": "(删除——促销信息放Coupon/Deal设置)",
+      "limited time offer": "(删除)",
+      "buy now": "(删除)"
+    }
+  },
+  "medical_health_claims": {
+    "severity": "high",
+    "description": "医疗/健康声明——未经认证使用可导致listing被下架",
+    "words": [
+      "FDA approved", "FDA cleared", "FDA registered",
+      "clinically proven", "clinically tested", "clinically validated",
+      "doctor recommended", "doctor approved", "physician recommended",
+      "medically proven", "medically tested", "medical grade",
+      "pharmaceutical grade", "hospital grade", "surgical grade",
+      "cure", "cures", "curing",
+      "treat", "treats", "treating", "treatment",
+      "heal", "heals", "healing",
+      "prevent", "prevents", "prevention",
+      "diagnose", "diagnosis", "diagnostic",
+      "remedy", "remedies",
+      "therapeutic", "therapy",
+      "prescription", "prescription strength",
+      "drug", "medicine", "medication",
+      "anti-inflammatory", "anti-aging", "anti-cancer",
+      "antibacterial", "antimicrobial", "antiviral", "antifungal",
+      "antiseptic", "sterilize", "sterilized", "sterile",
+      "disinfect", "disinfectant", "sanitize", "sanitizer",
+      "kills germs", "kills bacteria", "kills viruses",
+      "pain relief", "pain killer", "relieves pain",
+      "blood pressure", "blood sugar", "cholesterol",
+      "weight loss", "fat burning", "fat burner", "slimming",
+      "detox", "detoxify", "cleanse", "purify",
+      "immune boost", "immune booster", "boosts immunity",
+      "allergy relief", "anti-allergy"
+    ],
+    "replacement_suggestions": {
+      "FDA approved": "made in FDA-registered facility (if true)",
+      "clinically proven": "formulated with researched ingredients",
+      "antibacterial": "(删除或获取EPA认证)",
+      "cure": "support",
+      "treat": "help with",
+      "heal": "soothe",
+      "pain relief": "comfort support",
+      "weight loss": "fitness support",
+      "anti-aging": "age-defying appearance"
+    }
+  },
+  "environmental_claims": {
+    "severity": "high",
+    "description": "环保声明——未认证时使用违规",
+    "words": [
+      "eco-friendly", "eco friendly", "environmentally friendly",
+      "organic", "100% organic", "certified organic",
+      "biodegradable", "compostable",
+      "sustainable", "sustainably sourced",
+      "recyclable", "recycled",
+      "green", "green product",
+      "non-toxic", "non toxic", "toxin-free", "toxin free",
+      "chemical-free", "chemical free",
+      "carbon neutral", "carbon-free", "zero carbon",
+      "zero waste", "plastic-free",
+      "vegan", "cruelty-free", "cruelty free",
+      "fair trade", "fairtrade",
+      "natural", "100% natural", "all natural", "all-natural",
+      "pesticide-free", "pesticide free",
+      "BPA-free", "BPA free",
+      "phthalate-free", "phthalate free",
+      "paraben-free", "paraben free"
+    ],
+    "notes": "BPA-free, phthalate-free, paraben-free 等成分声明如有检测报告支撑可以使用。organic/eco-friendly 等需要第三方认证。",
+    "replacement_suggestions": {
+      "eco-friendly": "designed with environmental considerations",
+      "organic": "(删除或出示USDA Organic认证)",
+      "non-toxic": "made without common harsh chemicals",
+      "chemical-free": "formulated without [specific chemical]",
+      "all natural": "made with naturally derived ingredients"
+    }
+  },
+  "pesticide_related": {
+    "severity": "high",
+    "description": "农药/杀虫相关——触发EPA农药产品审查",
+    "words": [
+      "insect repellent", "insect repelling",
+      "mosquito repellent", "bug repellent",
+      "pest control", "pest repellent",
+      "mold resistant", "mold proof", "anti-mold",
+      "mildew resistant", "mildew proof", "anti-mildew",
+      "fungicide", "herbicide", "pesticide",
+      "insecticide", "rodenticide",
+      "bed bug", "flea treatment", "tick treatment",
+      "lice treatment", "lice killer"
+    ],
+    "replacement_suggestions": {
+      "insect repellent": "(需EPA注册或删除)",
+      "mosquito repellent": "(需EPA注册或删除)",
+      "mold resistant": "designed for damp environments",
+      "anti-mold": "(需EPA注册或删除)"
+    }
+  },
+  "exaggeration_claims": {
+    "severity": "medium",
+    "description": "夸大宣传——虚假或无法证实的声明",
+    "words": [
+      "miracle", "miraculous", "magic", "magical",
+      "guaranteed", "guarantee", "100% guaranteed",
+      "100% safe", "completely safe", "totally safe",
+      "risk-free", "risk free", "no risk",
+      "perfect", "perfection", "flawless",
+      "revolutionary", "breakthrough", "game changer", "game-changer",
+      "world's best", "world's finest", "world class", "world-class",
+      "unbeatable", "unmatched", "unrivaled", "unparalleled",
+      "one of a kind", "one-of-a-kind", "unique in the world",
+      "nothing compares", "no comparison", "incomparable",
+      "instant results", "immediate results", "overnight results",
+      "forever", "permanent", "permanently", "lifetime guarantee",
+      "never breaks", "indestructible", "unbreakable",
+      "no side effects", "zero side effects",
+      "works for everyone", "suitable for all",
+      "the only", "the best", "the first", "the original"
+    ],
+    "replacement_suggestions": {
+      "miracle": "remarkable",
+      "guaranteed": "designed for reliable performance",
+      "100% safe": "made with safety in mind",
+      "perfect": "excellent",
+      "revolutionary": "innovative",
+      "indestructible": "highly durable",
+      "the best": "premium quality"
+    }
+  },
+  "format_violations": {
+    "severity": "low",
+    "description": "格式违规——不会导致下架但影响listing质量",
+    "patterns": [
+      "ALL CAPS WORDS (超过品牌名的全大写)",
+      "HTML tags (<br>, <b>, <i>, etc.)",
+      "Special Unicode characters (★, ✅, ❤, etc. in title)",
+      "Repeated keywords (same word >2 times)",
+      "Excessive punctuation (!!!, ???, ...)",
+      "Phone numbers or URLs",
+      "Email addresses",
+      "Social media handles (@, #hashtag in title)"
+    ]
+  },
+  "time_sensitive": {
+    "severity": "medium",
+    "description": "时间敏感词——过期后变成错误信息",
+    "words": [
+      "new", "newest", "latest", "brand new",
+      "2024", "2023", "2022",
+      "new arrival", "just arrived", "just launched",
+      "new model", "new version", "new edition",
+      "new design", "new release", "newly released",
+      "updated", "upgraded", "improved"
+    ],
+    "notes": "年份过期时必须更新。'new'/'latest'等词在超过合理期限后需删除。updated/upgraded/improved 如描述具体改进可保留。"
+  },
+  "competitor_brand_terms": {
+    "severity": "high",
+    "description": "竞品品牌名——在标题/描述/后端关键词中使用构成商标侵权",
+    "notes": "不列举具体品牌名。检查逻辑：提取listing中所有大写词/专有名词，与该ASIN的品牌名对比，不匹配的可能是竞品品牌名，标记人工确认。",
+    "detection_rules": [
+      "标题中出现非自身品牌的大写专有名词",
+      "描述中出现 'compatible with [Brand]' 以外用途的品牌提及",
+      "后端搜索词中包含竞品品牌名",
+      "'for [Brand]' 用法需确认是否为兼容性声明"
+    ]
+  },
+  "country_specific": {
+    "DE": {
+      "additional_prohibited": ["Öko-Test未认证时不可使用", "Stiftung Warentest结果不可引用"],
+      "notes": "德国站需注意WEEE/包装法合规标注"
+    },
+    "JP": {
+      "additional_prohibited": ["景品表示法限制的优良誤認表示", "薬機法限制的医药品暗示"],
+      "notes": "日本站对保健/美容类声明审查极严"
+    },
+    "UK": {
+      "additional_prohibited": ["未经ASA批准的广告声明"],
+      "notes": "英国站受ASA广告标准约束"
+    }
+  }
+}

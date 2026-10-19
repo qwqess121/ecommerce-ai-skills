@@ -1,0 +1,69 @@
+[
+  {
+    "asin": "B0CW9231N3",
+    "ok": true,
+    "fetchedAt": "2026-09-24T02:40:13.429Z",
+    "status": 200,
+    "customersSay": "Customers find the air freshener's scent pleasant and appreciate its easy installation and directions. The longevity and functionality receive mixed reviews - while some say it lasts a long time and works well, others report it doesn't last long and doesn't work for them. The scent strength and durability are also mixed, with some finding it very strong while others say it's not strong enough, and some customers report that it melts plastic surfaces. Customers disagree on whether the product is worth the money and experience mixed results with leakage, with some reporting no issues while others say it spills everywhere while driving.",
+    "insights": [
+      {
+        "dim": "Scent",
+        "count": 492
+      },
+      {
+        "dim": "Longevity",
+        "count": 134
+      },
+      {
+        "dim": "Value for money",
+        "count": 124
+      },
+      {
+        "dim": "Functionality",
+        "count": 43
+      },
+      {
+        "dim": "Scent strength",
+        "count": 42
+      },
+      {
+        "dim": "Ease of use",
+        "count": 41
+      },
+      {
+        "dim": "Durability",
+        "count": 29
+      },
+      {
+        "dim": "Leakage",
+        "count": 28
+      }
+    ],
+    "rating": "4.2",
+    "ratingsCount": "2,111",
+    "starDist": {
+      "5star": "68%",
+      "4star": "9%",
+      "3star": "10%",
+      "2star": "5%",
+      "1star": "8%"
+    },
+    "alexaQuestions": [
+      "How is the scent?",
+      "Is it too strong or pungent?",
+      "How long can the fragrance last?",
+      "Does it fade quickly?",
+      "Is it leak-proof and durable?",
+      "Is it easy to install and nice-looking?",
+      "What advantages does this car air freshener have?"
+    ],
+    "qa": {
+      "present": true,
+      "textLen": 0,
+      "text": null,
+      "link": null
+    },
+    "botCheck": false,
+    "_src": "customer-reviews_feature_div"
+  }
+]

@@ -1,0 +1,61 @@
+[
+  {
+    "asin": "B0D2PCCJVK",
+    "ok": true,
+    "fetchedAt": "2026-09-24T04:02:57.581Z",
+    "status": 200,
+    "customersSay": "Customers love the air freshener's scent and appearance, with one noting it sparkles in the sun, and they get many compliments on its taste. However, the effectiveness and value for money receive mixed reviews, with some finding it great while others say it's not worth the purchase. Moreover, durability is a concern as the top breaks after a few days and the beads that keep it hanging break. Additionally, leakage is a significant issue, with customers reporting that the oil spills all over their cars.",
+    "insights": [
+      {
+        "dim": "Scent",
+        "count": 916
+      },
+      {
+        "dim": "Effectiveness",
+        "count": 408
+      },
+      {
+        "dim": "Value for money",
+        "count": 240
+      },
+      {
+        "dim": "Appearance",
+        "count": 143
+      },
+      {
+        "dim": "Leakage",
+        "count": 92
+      },
+      {
+        "dim": "Durability",
+        "count": 71
+      },
+      {
+        "dim": "Strength",
+        "count": 65
+      },
+      {
+        "dim": "Taste",
+        "count": 62
+      }
+    ],
+    "rating": "3.9",
+    "ratingsCount": "4,491",
+    "starDist": {
+      "5star": "59%",
+      "4star": "9%",
+      "3star": "10%",
+      "2star": "7%",
+      "1star": "15%"
+    },
+    "alexaQuestions": [],
+    "qa": {
+      "present": true,
+      "textLen": 0,
+      "text": null,
+      "link": null
+    },
+    "botCheck": false,
+    "_src": "customer-reviews_feature_div"
+  }
+]

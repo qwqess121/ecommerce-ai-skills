@@ -1,22 +1,22 @@
 # TikTok Shop Listing 诊断 + 竞品分析（v6.3）
 
-> 输入一个 TikTok Shop 产品链接/ID/关键词/店铺名 → 输出一份 **Listing 诊断 + 竞品分析** 报告（**Markdown 格式**，文件名 `report_{product_id}.md`，发布为在线 Artifact）。
+> 输入一个 TikTok Shop 产品链接/ID/关键词/店铺名 → 输出一份 **Listing 诊断 + 竞品分析** 报告（**Markdown 格式**，文件名 `report_{product_id}.md`，发布为在线 Artifact）。>   
 > **本文件是唯一权威**，与 `skills/` 下子文件冲突时一律以本文件为准。
 
 ## 目录
 
-| # | 章节 | 回答什么问题 |
-|---|------|------------|
-| 一 | [运行机制总览](#一运行机制总览) | 这个 Skill 是怎么跑起来的 |
-| 二 | [取数链路（逐步）](#二取数链路逐步) | 每一步调什么 API、传什么参数、取回什么 |
-| 三 | [维度字段总清单](#三维度字段总清单) | 到底取了哪些字段、口径是什么、用在哪 |
-| 四 | [派生指标计算公式](#四派生指标计算公式) | 哪些数字是算出来的、怎么算 |
-| 五 | [数据真实性红线](#五数据真实性红线) | 什么情况下这份报告不合格 |
-| 六 | [竞品选取规范](#六竞品选取规范) | 谁算竞品、怎么选、怎么验证 |
-| 七 | [报告各板块内容规范](#七报告各板块内容规范) | 每个板块必须写什么 |
-| 八 | [评分规定](#八评分规定) | 分数怎么来、怎么展示 |
-| 九 | [写作与排版规范](#九写作与排版规范) | 文字和样式怎么写 |
-| 十 | [交付前检查清单](#十交付前检查清单) | 发布前逐条核对 |
+| # | 章节                       | 回答什么问题                |
+| - | ------------------------ | --------------------- |
+| 一 | [运行机制总览](#一运行机制总览)       | 这个 Skill 是怎么跑起来的      |
+| 二 | [取数链路（逐步）](#二取数链路逐步)     | 每一步调什么 API、传什么参数、取回什么 |
+| 三 | [维度字段总清单](#三维度字段总清单)     | 到底取了哪些字段、口径是什么、用在哪    |
+| 四 | [派生指标计算公式](#四派生指标计算公式)   | 哪些数字是算出来的、怎么算         |
+| 五 | [数据真实性红线](#五数据真实性红线)     | 什么情况下这份报告不合格          |
+| 六 | [竞品选取规范](#六竞品选取规范)       | 谁算竞品、怎么选、怎么验证         |
+| 七 | [报告各板块内容规范](#七报告各板块内容规范) | 每个板块必须写什么             |
+| 八 | [评分规定](#八评分规定)           | 分数怎么来、怎么展示            |
+| 九 | [写作与排版规范](#九写作与排版规范)     | 文字和样式怎么写              |
+| 十 | [交付前检查清单](#十交付前检查清单)     | 发布前逐条核对               |
 
 ---
 
@@ -42,13 +42,13 @@
 
 ### 1.2 五个阶段与报告板块的映射
 
-| 阶段 | 主要动作 | 调用的 API | 产出报告的哪一块 |
-|------|---------|-----------|----------------|
-| **A 定位** | 确定 product_id、拿到 L3 类目 ID | `product_search`、`search_category_by_words` | （不直接产出，为后续提供坐标） |
-| **B 本品** | 把本品的身份/销售/流量/内容/SKU/评价全部取一遍 | `product_detail_info`、`product_overview`、`product_sku`、`product_video_list`、`product_creator_analysis`、`product_review_list`、`shop_base_info` | 概览 ①诊断产品 ③店铺 ④趋势 ⑤MSKU |
-| **C 大盘** | L3 榜单 1–50 名分页取全，逐条加总 | `product_rank_top_selling`(5页) | 概览 ②类目大盘 + 2.1 选词词源 |
-| **D 竞品** | 7+3 选品（§6.2 三层筛选定形态）→ 精简取数 → 形态生存力验证 | TOP7 各 1 次 `product_detail_info`；仅 2-3 个标杆竞品补 `product_overview`（渠道对比用）；**不全取 overview/video/creator** | 概览 ⑥竞品表 + Section 1 全部 |
-| **E 诊断** | 选词/标题/描述/图片/评论诊断 + 打分 + 风险 | E1b FastMoss 产品页图片 + 爬虫/`get_page_text`(描述) + 纯计算 | Section 2 + Section 3 |
+| 阶段       | 主要动作                                 | 调用的 API                                                                                                                                       | 产出报告的哪一块               |
+| -------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| **A 定位** | 确定 product_id、拿到 L3 类目 ID            | `product_search`、`search_category_by_words`                                                                                                   | （不直接产出，为后续提供坐标）        |
+| **B 本品** | 把本品的身份/销售/流量/内容/SKU/评价全部取一遍          | `product_detail_info`、`product_overview`、`product_sku`、`product_video_list`、`product_creator_analysis`、`product_review_list`、`shop_base_info` | 概览 ①诊断产品 ③店铺 ④趋势 ⑤MSKU |
+| **C 大盘** | L3 榜单 1–50 名分页取全，逐条加总                | `product_rank_top_selling`(5页)                                                                                                                | 概览 ②类目大盘 + 2.1 选词词源    |
+| **D 竞品** | 7+3 选品（§6.2 三层筛选定形态）→ 精简取数 → 形态生存力验证 | TOP7 各 1 次 `product_detail_info`；仅 2-3 个标杆竞品补 `product_overview`（渠道对比用）；**不全取 overview/video/creator**                                        | 概览 ⑥竞品表 + Section 1 全部 |
+| **E 诊断** | 选词/标题/描述/图片/评论诊断 + 打分 + 风险           | E1b FastMoss 产品页图片 + 爬虫/`get_page_text`(描述) + 纯计算                                                                                             | Section 2 + Section 3  |
 
 ### 1.3 触发与反问
 
@@ -77,18 +77,18 @@
 
 所有中间文件写入 scratchpad 目录（`{scratchpad}/batch/`），文件名固定：
 
-| 文件 | 内容 | 写入时机 |
-|------|------|---------|
-| `01_产品基本.md` | 产品身份表（~20 行 KV）+ 店铺摘要（~10 行） | 阶段 B1+B7 完成后 |
-| `02_趋势渠道.md` | 28 天汇总 + 渠道/广告占比 + 日销趋势表（28 行） | B2 完成后 |
-| `03_MSKU.md` | SKU 全行表（变体/价格/销量/库存/状态） | B3 完成后 |
-| `04_达人视频.md` | 达人 TOP10 表 + 粉丝分布 + 视频 TOP5 表 | B4+B5 完成后 |
-| `05_评论.md` | API 返回的评论原文（可能为空）+ 痛点关键词；API 空时标注"待 09 补充" | B6 完成后 |
-| `06_L3排行.md` | 50 款精简行（ID/标题/价格/周GMV/周销量/佣金/评分/评论/达人/视频/上架/cover_url） | 阶段 C 5 页全取完后 |
-| `07_竞品矩阵.md` | TOP7 detail_info 提炼（~15 字段/款）+ 形态判定结果 | D1–D3 完成后 |
-| `08_同形态.md` | 同形态搜索结果 + 4 项证据 + 分层结论 | D4 完成后 |
-| `09_图片描述评论.md` | 图片数量+URL+视觉要点（E1b FastMoss）+ 描述正文+评分分布（爬虫/get_page_text）+ 评论原文（API/爬虫） | Batch 5.5 完成后 |
-| `10_SEO分析.md` | TOP20 词频表 + 标题字符数 + 改写建议 | Batch 5.5 纯计算（不需要 Browser） |
+| 文件             | 内容                                                                     | 写入时机                       |
+| -------------- | ---------------------------------------------------------------------- | -------------------------- |
+| `01_产品基本.md`   | 产品身份表（~20 行 KV）+ 店铺摘要（~10 行）                                           | 阶段 B1+B7 完成后               |
+| `02_趋势渠道.md`   | 28 天汇总 + 渠道/广告占比 + 日销趋势表（28 行）                                         | B2 完成后                     |
+| `03_MSKU.md`   | SKU 全行表（变体/价格/销量/库存/状态）                                                | B3 完成后                     |
+| `04_达人视频.md`   | 达人 TOP10 表 + 粉丝分布 + 视频 TOP5 表                                          | B4+B5 完成后                  |
+| `05_评论.md`     | API 返回的评论原文（可能为空）+ 痛点关键词；API 空时标注"待 09 补充"                             | B6 完成后                     |
+| `06_L3排行.md`   | 50 款精简行（ID/标题/价格/周GMV/周销量/佣金/评分/评论/达人/视频/上架/cover_url）                 | 阶段 C 5 页全取完后               |
+| `07_竞品矩阵.md`   | TOP7 detail_info 提炼（~15 字段/款）+ 形态判定结果                                  | D1–D3 完成后                  |
+| `08_同形态.md`    | 同形态搜索结果 + 4 项证据 + 分层结论                                                 | D4 完成后                     |
+| `09_图片描述评论.md` | 图片数量+URL+视觉要点（E1b FastMoss）+ 描述正文+评分分布（爬虫/get_page_text）+ 评论原文（API/爬虫） | Batch 5.5 完成后              |
+| `10_SEO分析.md`  | TOP20 词频表 + 标题字符数 + 改写建议                                               | Batch 5.5 纯计算（不需要 Browser） |
 
 #### 分批执行流程
 
@@ -142,12 +142,13 @@ Batch 5.5（阶段 E，产品页数据提取 + 纯计算）
 
 将诊断拆分为两个独立阶段，**不同阶段加载不同文件**：
 
-| 阶段 | 加载什么 | 不加载什么 |
-|------|---------|-----------|
-| **[数据采集]** Batch 1–5.5 | 仅 SKILL.md 的 §二取数链路（dispatch 逻辑） | 不读 §七报告格式、不读 `skills/12-统一报告格式.md` |
-| **[报告生成]** 组装最终报告 | §七报告格式 + `skills/12-统一报告格式.md`（MD 模板） | 不重读 §二 |
+| 阶段                     | 加载什么                                  | 不加载什么                              |
+| ---------------------- | ------------------------------------- | ---------------------------------- |
+| **[数据采集]** Batch 1–5.5 | 仅 SKILL.md 的 §二取数链路（dispatch 逻辑）      | 不读 §七报告格式、不读 `skills/12-统一报告格式.md` |
+| **[报告生成]** 组装最终报告      | §七报告格式 + `skills/12-统一报告格式.md`（MD 模板） | 不重读 §二                             |
 
 **规则**：
+
 - 数据采集阶段只关心"取什么数据、写到哪个中间文件"，不关心报告怎么排版
 - 报告生成阶段只关心"中间文件里的数据怎么组装成报告"，不再调用 API
 - SKILL.md 整文件**只在会话开始读一次**，不重复读取
@@ -158,18 +159,18 @@ Batch 5.5（阶段 E，产品页数据提取 + 纯计算）
 
 **必须完整输出的模块清单**（遗漏任何一项即为不合格）：
 
-| 模块 | 最低要求 |
-|------|---------|
-| 矩阵行数 | ≥16 行 × 12 列（#1-#7 + 同形态席 + 均值 + 本品） |
-| 同形态逐款明细表 | 每款产品独立一行，10+ 字段，末行合计+本品对比行 |
-| 达人流量对比表 | 多产品横向对比（本品 + 同形态），8 列 |
-| SEO 关键词表 | TOP20 词频表，含方法论说明 + 热度分级 + 同形态覆盖列 + 逐词诊断结论 |
-| 标题优化 | 逐项变更 + 每项对应频次依据，新旧对比 |
-| **商品描述诊断** | ≥6 项检查 + 逐段新旧对比表（段落/优化前/优化后/依据） |
-| 图片优化 | 竞品对比表 + 图1-图7 逐张优化建议（5 列不留空） + SKU 缩略图优化 |
-| 评论分析 | 评论原文样本（好评+差评）+ 竞品痛点差异化分析表 + 核心优化建议 |
-| 风险卡片 | ≥5 条，每条含量化数据 + 具体缓解措施 |
-| 数据核验说明 | 取数日期、数据来源、修正项 |
+| 模块         | 最低要求                                      |
+| ---------- | ----------------------------------------- |
+| 矩阵行数       | ≥16 行 × 12 列（#1-#7 + 同形态席 + 均值 + 本品）      |
+| 同形态逐款明细表   | 每款产品独立一行，10+ 字段，末行合计+本品对比行                |
+| 达人流量对比表    | 多产品横向对比（本品 + 同形态），8 列                     |
+| SEO 关键词表   | TOP20 词频表，含方法论说明 + 热度分级 + 同形态覆盖列 + 逐词诊断结论 |
+| 标题优化       | 逐项变更 + 每项对应频次依据，新旧对比                      |
+| **商品描述诊断** | ≥6 项检查 + 逐段新旧对比表（段落/优化前/优化后/依据）           |
+| 图片优化       | 竞品对比表 + 图1-图7 逐张优化建议（5 列不留空） + SKU 缩略图优化  |
+| 评论分析       | 评论原文样本（好评+差评）+ 竞品痛点差异化分析表 + 核心优化建议        |
+| 风险卡片       | ≥5 条，每条含量化数据 + 具体缓解措施                     |
+| 数据核验说明     | 取数日期、数据来源、修正项                             |
 
 **禁止为了提速而删减以上任何模块**。速度优化的对象是**过程**（减少 API 调用、JSON 不留上下文），不是**结果**（报告内容）。
 
@@ -193,6 +194,7 @@ product_search({
   pagesize: 10
 })
 ```
+
 取回：`product.product_id / title / price_display / product_rating / sku_count`、`sales_summary.last_7d|28d|90d_gmv / units_sold`、`distribution_summary.linked_creator_count / linked_video_count`、`shop.shop_name / shop_id`
 
 **A2. 拿到 L3 类目 ID**
@@ -200,28 +202,34 @@ product_search({
 ```
 search_category_by_words({ query: "<类目词>", top_k: 8 })   ← 参数名是 query，不是 keywords
 ```
-取回：`category_id_level1 / level2 / level3` + `cn_full_name`
+
+取回：`category_id_level1 / level2 / level3` + `cn_full_name`  
 用途：L3 id 是后面所有榜单调用的坐标；**L1 id 只用于记录类目路径，不参与任何数据计算**
 
 ---
 
 ### 阶段 B：本品取数（分 2 批，每批写盘后丢弃）
 
-> **Batch 1**：B1 + B2 + B3 + B7 并行调用 → 提炼写入 `01_产品基本.md` / `02_趋势渠道.md` / `03_MSKU.md` → 丢弃原始 JSON
+> **Batch 1**：B1 + B2 + B3 + B7 并行调用 → 提炼写入 `01_产品基本.md` / `02_趋势渠道.md` / `03_MSKU.md` → 丢弃原始 JSON>   
 > **Batch 2**：B4 + B5 + B6 并行调用 → 提炼写入 `04_达人视频.md` / `05_评论.md` → 丢弃原始 JSON
 
 **B1. 产品主档**
+
 ```
 product_detail_info({ filter: { product_id } })
 ```
-取回（**报告里最核心的一批字段**）：
+
+取回（**报告里最核心的一批字段**）：  
 `title`(完整) / `floor_price`+`ceiling_price` / `commission_rate_percent` / `product_rating` / `review_count` / `shipping_fee` / `stock_count` / `category_sales_rank`(**L3排名**) / `launch_time`(**上架时间**) / `total_gmv`+`total_units_sold`(**累计**) / `has_paid_promotion` / `linked_creator_count` / `linked_video_count` / `linked_live_count` / `cover_url` / `shop.shop_id`(**即 seller_id**) / `shop.shop_total_gmv` / `shop.shop_total_units_sold`
 
 **B2. 流量与渠道结构**
+
 ```
 product_overview({ filter: { product_id, time_range_days: 28 } })
 ```
+
 取回：
+
 - `channel_distribution.breakdown[]` → **affiliate=达人渠道 / product_card=商品卡 / shop_account** 各自 `gmv` 与 `gmv_share_percent`
 - `content_distribution.breakdown[]` → video / live / product_card
 - `ads_distribution.breakdown[]` → **ad_traffic 占比**（判断是自然流量还是买量驱动）
@@ -229,10 +237,13 @@ product_overview({ filter: { product_id, time_range_days: 28 } })
 - `daily_trend[]` → 每日 `date / daily_gmv / daily_units_sold / cumulative_*` → 画28天趋势图
 
 **B3. MSKU 变体**
+
 ```
 product_sku({ filter: { product_id, time_range_days: 28 } })
 ```
+
 取回：
+
 - `sku_variants[]` → 每个变体的 `current_price` / `original_price` / `stock_units`
 - `sku_dimensions[].distribution_summary.breakdown[]` → 每个变体的 `units_sold` / `units_sold_share_percent` / `gmv` / `gmv_share_percent` / `stock_units` / `stock_share_percent`
 - `total_gmv` / `total_units_sold` / `total_stock_units`（SKU 口径合计）
@@ -240,6 +251,7 @@ product_sku({ filter: { product_id, time_range_days: 28 } })
 > ★ SKU 口径合计常小于整品 28 天数据（部分订单未归因到具体变体），**报告中要如实注明差额来源**，不要强行对齐。
 
 **B4. 带货视频**
+
 ```
 product_video_list({
   filter: { product_id, time_range_days: 28 },     ← ★ 不传 time_range_days 会返回空
@@ -247,11 +259,13 @@ product_video_list({
   pagesize: 5
 })
 ```
+
 取回：`videos[].engagement_metrics.play_count / like_count`、`product_contribution.window_gmv / window_units_sold`、**`traffic_flags.is_ad`（是否投流）**、`video_meta.duration_seconds / published_at / tiktok_url`、`creator.creator_handle`
 
 > ★ `is_ad` 很关键：一条"有转化的达人视频"如果是投流的，说明自然内容转化其实为 0。
 
 **B5. 达人明细**
+
 ```
 product_creator_analysis({
   filter: { product_id },
@@ -259,22 +273,27 @@ product_creator_analysis({
   pagesize: 10
 })
 ```
+
 取回：`creator_summary.follower_tier_distribution`（粉丝层级分布）、`linked_creators.list[].creator.creator_handle / follower_count`、**`product_contribution.product_gmv / product_units_sold / product_linked_video_count`（每个达人的累计带货GMV）**
 
 **B6. 评论（两层获取策略）**
 
 **Layer 1（主力）：FastMoss API — 不限评论数都先尝试**
+
 ```
 product_review_list({ filter: { product_id } })
 ```
+
 - **不限评论数量都先调用**，≥500 评论商品通常返回 10+ 条完整评论
 - API 返回评论 → 直接使用，写入 `05_评论.md`，标注"来源：FastMoss API"
 - **这是评论原文的唯一可靠批量来源**
 
 **Layer 2（API 返回 0 时）：爬虫 SSR 3 条样本兜底**
+
 - API 返回 0 条 → 在 `05_评论.md` 中标注"API 未返回评论，待 Batch 5.5 爬虫补充"
 - Batch 5.5 的 `tiktok_product_scraper.py` 从 SSR 提取 **3 条评论样本**（TikTok 反爬限制，无法获取更多，详见下方说明）
 - 爬虫同时提取**全量评分分布**（1~5星逐级计数），这是 FastMoss API 没有的数据
+
 
 **全部失败时的降级**
 - 只用 `detail_info` 的 `product_rating` + `review_count` 做量化对比
@@ -548,6 +567,7 @@ L3 TOP50 周GMV合计 = Σ period_gmv (榜单第1–50名)
 进TOP50的GMV门槛   = 榜单第50名的 period_gmv
 主流价格带        = TOP10 的 floor_price 最小值 ~ ceiling_price 最大值
 ```
+
 
 **矩阵均值**（注意：均值是"矩阵这 10 款"的均值，不是"榜单前10名"的均值，两者产品集不同，标签必须写清楚）
 ```
@@ -860,6 +880,7 @@ Section 3  风险评估（≥5条）
 | 佣金策略只写"建议提高" | 新旧对比表 + 具体数据依据 |
 | 竞品选择理由写"同价位/TOP1" | 三要素模板：外观+场景+属性 |
 | 趋势表后无分析 | 必须有波动特征+峰值原因+趋势判断 |
+
 
 > **速度优化的对象是过程（减少 API 调用、JSON 不留上下文），不是结果（报告内容）。禁止以 token 预算为由删减以上任何模块。接近 token 上限时应分段落盘，不应砍内容。**
 

@@ -1,0 +1,180 @@
+[
+  {
+    "asin": "B0DRTK9BJ8",
+    "ok": true,
+    "fetchedAt": "2026-09-24T02:40:29.454Z",
+    "status": 200,
+    "customersSay": "Customers find the air freshener cute in appearance and appreciate its size, though some note it's smaller than expected. The effectiveness and value for money receive mixed feedback, with some finding it great and worth the price while others say it's not effective and not worth ten bucks. Moreover, the longevity is concerning as customers report it runs out in 3 days, and the scent strength is weak. Additionally, the leakage aspect is mixed, with some saying it doesn't leak while others report issues.",
+    "insights": [
+      {
+        "dim": "Scent",
+        "count": 463
+      },
+      {
+        "dim": "Effectiveness",
+        "count": 253
+      },
+      {
+        "dim": "Value for money",
+        "count": 140
+      },
+      {
+        "dim": "Longevity",
+        "count": 104
+      },
+      {
+        "dim": "Appearance",
+        "count": 81
+      },
+      {
+        "dim": "Scent strength",
+        "count": 24
+      },
+      {
+        "dim": "Leakage",
+        "count": 20
+      },
+      {
+        "dim": "Size",
+        "count": 16
+      },
+      {
+        "dim": "I wanted the Beautiful scent",
+        "count": 5
+      }
+    ],
+    "rating": "4",
+    "ratingsCount": "1,838",
+    "starDist": {
+      "5star": "61%",
+      "4star": "10%",
+      "3star": "10%",
+      "2star": "6%",
+      "1star": "13%"
+    },
+    "alexaQuestions": [
+      "How to use it after receiving the air freshener diffuser ?",
+      "Is it easy to spill when placed in the car ?",
+      "How long can the fragrance last ?",
+      "Is there anything to pay attention to when using car air freshener ?"
+    ],
+    "qa": {
+      "present": true,
+      "textLen": 0,
+      "text": null,
+      "link": null
+    },
+    "botCheck": false,
+    "_src": "customer-reviews_feature_div"
+  },
+  {
+    "asin": "B0FS1NL9GJ",
+    "ok": true,
+    "fetchedAt": "2026-09-24T02:40:37.268Z",
+    "status": 200,
+    "customersSay": "Customers find the air freshener's scent good and appreciate its pretty appearance. The effectiveness and value for money receive mixed reviews, with some finding it perfect and worth the price, while others say it doesn't do the job and isn't worth it. The duration and leakage aspects also get mixed feedback - while some say it lasts long with no leaks, others report it doesn't last and have leakage issues. The evaporation time receives negative feedback, with customers noting the liquid evaporates in about 5 days.",
+    "insights": [
+      {
+        "dim": "Scent",
+        "count": 102
+      },
+      {
+        "dim": "Effectiveness",
+        "count": 65
+      },
+      {
+        "dim": "Value for money",
+        "count": 32
+      },
+      {
+        "dim": "Duration",
+        "count": 28
+      },
+      {
+        "dim": "Appearance",
+        "count": 10
+      },
+      {
+        "dim": "Leakage",
+        "count": 8
+      },
+      {
+        "dim": "Evaporation time",
+        "count": 6
+      }
+    ],
+    "rating": "4",
+    "ratingsCount": "396",
+    "starDist": {
+      "5star": "57%",
+      "4star": "14%",
+      "3star": "13%",
+      "2star": "5%",
+      "1star": "11%"
+    },
+    "alexaQuestions": [],
+    "qa": {
+      "present": true,
+      "textLen": 0,
+      "text": null,
+      "link": null
+    },
+    "botCheck": false,
+    "_src": "customer-reviews_feature_div"
+  },
+  {
+    "asin": "B0FHJH45QD",
+    "ok": true,
+    "fetchedAt": "2026-09-24T02:40:44.676Z",
+    "status": 200,
+    "customersSay": "Customers find the air freshener wonderful smelling, easy to hang anywhere, and appreciate its appearance, particularly how it looks hanging on the rearview mirror. The product receives positive feedback for its effectiveness, with one customer noting it lasts longer than candles at its price point. However, there are mixed opinions about its longevity, with some saying it lasts a long time while others report it runs out quickly. Additionally, customers report leakage issues with oil spilling everywhere, and while some find it very strong, others say it's not strong enough. Value for money is also mixed, with some considering it excellent while others say it's not worth the cost.",
+    "insights": [
+      {
+        "dim": "Effectiveness",
+        "count": 785
+      },
+      {
+        "dim": "Value for money",
+        "count": 353
+      },
+      {
+        "dim": "Longevity",
+        "count": 269
+      },
+      {
+        "dim": "Appearance",
+        "count": 147
+      },
+      {
+        "dim": "Leakage",
+        "count": 118
+      },
+      {
+        "dim": "Strength",
+        "count": 113
+      },
+      {
+        "dim": "Ease of use",
+        "count": 92
+      }
+    ],
+    "rating": "4.1",
+    "ratingsCount": "5,009",
+    "starDist": {
+      "5star": "65%",
+      "4star": "10%",
+      "3star": "9%",
+      "2star": "6%",
+      "1star": "10%"
+    },
+    "alexaQuestions": [],
+    "qa": {
+      "present": true,
+      "textLen": 0,
+      "text": null,
+      "link": null
+    },
+    "botCheck": false,
+    "_src": "customer-reviews_feature_div"
+  }
+]

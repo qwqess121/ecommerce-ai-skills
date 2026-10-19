@@ -33,29 +33,46 @@
 ### 阶段隔离
 
 任务拆成**数据采集阶段**和**报告生成阶段**：
-- **数据采集阶段**：只加载 SKILL.md 调度逻辑，**禁止读取格式模板**；只拉取 FastMoss 数据、提炼要点写入本地 01~10 中间 MD 文件；不渲染报告、不绘制表格
-- **报告生成阶段**：全部 API 采集完成后才加载格式规范，分批读取中间文件组装报告
+- **数据采集阶段**：加载 SKILL.md 调度逻辑 + [skills/12-统一报告格式.md](skills/12-统一报告格式.md)（一次性读入，后续不重复读取）；只拉取 FastMoss 数据、提炼要点写入本地 01~10 中间 MD 文件；不渲染报告、不绘制表格
+- **报告生成阶段**：全部 API 采集完成后，分批读取中间文件组装报告（格式模板已在采集阶段预加载，无需重读）
 
 ### 核心约束
 
-1. **禁止子代理**：数据采集全程禁用子代理；报告组装也直接执行
+1. **数据采集允许子代理并行**：Batch A/B/C 可使用子代理并行执行（每个子代理负责一组 API 调用，采集完写入对应中间 MD 文件）；报告组装阶段仍由主线程直接执行
 2. **原始 JSON 不进上下文**：API 返回的原始 JSON 只写入本地磁盘，会话内存仅保留精简后的中间 MD 摘要
-3. **分批读取**：组装报告时单次最多同时读取 2 份中间文件，写完对应片段就释放
+3. **分批读取**：组装报告时单次最多同时读取 **4 份**中间文件，写完对应片段就释放
 4. **MCP 优化**：按需指定返回字段；报错不无限重试，降级兜底标记【数据缺失】；可并行的请求并行执行
-5. **token 预算 ≤40K**：接近阈值立即落盘清理
-6. **SKILL 文件只读一次**：采集阶段读一次调度逻辑，生成阶段读一次格式模板，不重复读取
-7. **Browser 零截图 + 图片走 FastMoss**：形态识别用三层筛选法（标题初筛 → WebFetch 下载 cover_url 图片验证 → 少量产品页确认，详见 SKILL.md §6.2）；**产品图片**通过 Browser 打开 FastMoss 产品页 → JS 提取全部 Thumbnail URL → WebFetch 下载 CDN 图片（100% 可靠）；描述正文/评分分布优先用 `tiktok_product_scraper.py`（Layer 1），其次 `get_page_text`（Layer 2），最后标注缺失（Layer 3）；SEO 分析是纯计算不需要 Browser；**禁止 `screenshot`**
+5. **token 预算 ≤80K**：接近阈值立即落盘清理（目标：单会话内完成全部采集+报告，避免跨会话续跑）
+6. **SKILL 文件只读一次**：采集阶段一次性读入 SKILL.md 调度逻辑 + skills/12 格式模板，生成阶段直接使用，不重复读取
+7. **Browser 零截图 + 图片走 FastMoss + 并行下载**：形态识别用三层筛选法（标题初筛 → WebFetch 下载 cover_url 图片验证 → 少量产品页确认，详见 SKILL.md §6.2）；**产品图片**通过 Browser 打开 FastMoss 产品页 → JS 提取全部 Thumbnail URL → **所有图片 WebFetch 并行发出**（一次性发出 8 个 WebFetch 调用下载全部图片）→ **所有图片 Read 并行发出**（一次性发出 8 个 Read 调用查看全部图片）；描述正文/评分分布优先用 `tiktok_product_scraper.py`（Layer 1），其次 `get_page_text`（Layer 2），最后标注缺失（Layer 3）；SEO 分析是纯计算不需要 Browser；**禁止 `screenshot`**
+8. **报告写入必须用 Write 工具**：禁止用 Bash heredoc 写报告文件（heredoc 遇到内容中的引号会失败），一律使用 Write 工具写入 `report_{product_id}.md`
 
 ### 工作流
 
+采集阶段合并为 3 个并行批次 + 1 个后台任务，最大化并行度：
+
 ```
-Batch 1: detail_info + overview + sku + shop_base → 写 01/02/03 → 丢弃
-Batch 2: video_list + creator_analysis + review_list → 写 04/05 → 丢弃（评论：不限评论数都先调 FastMoss API）
-Batch 3: ranking page 1-5（全部并行） → 写 06（含三层筛选形态判定） → 丢弃
-Batch 4+5: TOP7 detail_info + 同形态搜索（并行） → 写 07/08 → 丢弃
-Batch 5.5: FastMoss产品页JS提取全部图片URL + WebFetch下载 + tiktok_product_scraper.py（描述+评分分布，可选）→ 写 09（图片+描述+评分分布+评论兜底3条） + 纯计算写 10（SEO）
-最终: 分段生成报告（概览→S1→S2→S3 逐段落盘） → 发布为在线 Artifact → 回传链接
+┌─ 后台任务（Batch 0）: tiktok_product_scraper.py 后台启动（描述+评分分布，可选）
+│
+├─ 子代理 A（本品数据）: detail_info + overview + sku + shop_base + video_list + creator_analysis + review_list
+│  → 写 01/02/03/04/05 → 丢弃
+│
+├─ 子代理 B（类目大盘）: ranking page 1-5（全部并行）
+│  → 写 06（含三层筛选形态判定） → 丢弃
+│
+└─ 主线程等待 A+B 完成后 ──→ 子代理 C: TOP7 detail_info + 同形态搜索（并行）
+                              → 写 07/08 → 丢弃
+
+收尾（子代理 D + 主线程并行）:
+├─ 子代理 D（图片）: FastMoss产品页 → JS提取全部URL → 8张WebFetch并行下载 → 8张Read并行查看 → 写图片分析部分到 09
+└─ 主线程: 收集 Batch 0 爬虫结果 → 写描述+评分分布+评论兜底到 09 + 纯计算写 10（SEO）
+
+最终: 分段生成报告（概览→S1→S2→S3 逐段落盘，用 Write 工具写入） → 发布为在线 Artifact → 回传链接
 ```
+
+> **并行说明**: 子代理 A 合并了原 Batch 1+2 的 7 个 API 调用（全部并行发出），子代理 B 并行拉取 L3 排行 5 页。A 和 B 同时启动。C 依赖 A+B 的结果（需要知道 TOP7 是谁 + 同形态候选），因此等 A+B 完成后再启动。爬虫（Batch 0）在最开始后台启动，不阻塞任何批次。子代理 D 负责图片提取+分析，与主线程的爬虫结果收集+SEO计算并行执行。
+> 
+> **图片并行规则**: E1b 图片下载必须并行——JS 提取到 N 张图片 URL 后，一次性发出 N 个 WebFetch 调用（不要一张一张串行），全部下载完成后再一次性发出 N 个 Read 调用查看。从原来的 2N 轮串行调用（每张图 WebFetch→Read 交替）压缩为 2 轮并行调用（一轮 WebFetch、一轮 Read），节省约 60-80 秒。
 
 > **数据来源分工：** **评论原文**采用两层策略——FastMoss `product_review_list` 不限评论数都先调用（≥500 评论商品通常返回 10+ 条完整评论），API 返回 0 时才用爬虫 SSR 的 3 条样本兜底（TikTok 反爬保护限制，爬虫无法获取更多，详见 SKILL.md §B6）。**产品图片**通过 FastMoss 产品页提取（Browser 打开 `fastmoss.com/e-commerce/detail/{id}` → JS 提取 Thumbnail URL → WebFetch 下载 CDN 图片），**100% 可靠，不依赖爬虫，不受反爬影响**。**描述正文 / 评分分布**从 TikTok 产品页获取：`tiktok_product_scraper.py` v1.2（Layer 1）→ Browser `get_page_text`（Layer 2）→ 标注缺失（Layer 3）。Layer 1 是否成功取决于机器 IP 信誉度，失败不影响报告图片诊断。
 

@@ -1,0 +1,547 @@
+{
+ "version": 2,
+ "说明": "每个任务由 取数流程.py 按顺序给出。tool 为 tool_map 中的别名，执行时换成完整 MCP 工具名。占位符：{SITE}{OWN}{PARENT}{NODE}{MONTH}{YOY}{HEAD}{SEARCH_KEYWORD}{M}{ASIN}{PAGE}{PRICE_LO}{PRICE_HI}。for_each: months（配置中的六个月）/ objects（本品 + 真竞品 + 类目 Top15，去重）。objects 只能在 judge_competitors 与 judge_top15 都完成后展开（取数流程.py expand）。needs: head_keyword 表示头号词为空时跳过。所有输出文件名与 取数完整性检查.py 读取的是同一份清单，不另写死。",
+ "tool_map": {
+  "sellersprite.asin_detail": "mcp__237a35ba-b1fe-47f0-991d-52bc5cd2f4c3__asin_detail",
+  "sellersprite.product_research": "mcp__237a35ba-b1fe-47f0-991d-52bc5cd2f4c3__product_research",
+  "sellersprite.market_research": "mcp__237a35ba-b1fe-47f0-991d-52bc5cd2f4c3__market_research",
+  "sellersprite.market_price_distribution": "mcp__237a35ba-b1fe-47f0-991d-52bc5cd2f4c3__market_price_distribution",
+  "sellersprite.market_product_concentration": "mcp__237a35ba-b1fe-47f0-991d-52bc5cd2f4c3__market_product_concentration",
+  "sellersprite.market_ratings_count_distribution": "mcp__237a35ba-b1fe-47f0-991d-52bc5cd2f4c3__market_ratings_count_distribution",
+  "sellersprite.keepa_info": "mcp__237a35ba-b1fe-47f0-991d-52bc5cd2f4c3__keepa_info",
+  "sellersprite.asin_sales_trend": "mcp__237a35ba-b1fe-47f0-991d-52bc5cd2f4c3__asin_sales_trend",
+  "sellersprite.traffic_keyword": "mcp__237a35ba-b1fe-47f0-991d-52bc5cd2f4c3__traffic_keyword",
+  "sellersprite.traffic_extend": "mcp__237a35ba-b1fe-47f0-991d-52bc5cd2f4c3__traffic_extend",
+  "sellersprite.review": "mcp__237a35ba-b1fe-47f0-991d-52bc5cd2f4c3__review",
+  "sellersprite.aba_research_monthly": "mcp__237a35ba-b1fe-47f0-991d-52bc5cd2f4c3__aba_research_monthly",
+  "sellersprite.google_trend": "mcp__237a35ba-b1fe-47f0-991d-52bc5cd2f4c3__google_trend",
+  "sellersprite.keyword_research": "mcp__237a35ba-b1fe-47f0-991d-52bc5cd2f4c3__keyword_research",
+  "sif.ops_get_listing_traffic_overview": "mcp__b4c2f5aa-0989-42bf-95ac-ff4bfb0a12a8__ops_get_listing_traffic_overview",
+  "sif.ops_get_asin_traffic_trend": "mcp__b4c2f5aa-0989-42bf-95ac-ff4bfb0a12a8__ops_get_asin_traffic_trend",
+  "sif.ops_get_asin_sales_trend": "mcp__b4c2f5aa-0989-42bf-95ac-ff4bfb0a12a8__ops_get_asin_sales_trend",
+  "sif.ads_get_asin_ad_structure": "mcp__b4c2f5aa-0989-42bf-95ac-ff4bfb0a12a8__ads_get_asin_ad_structure",
+  "sif.market_get_keyword_demand": "mcp__b4c2f5aa-0989-42bf-95ac-ff4bfb0a12a8__market_get_keyword_demand",
+  "sif.market_get_keyword_competition": "mcp__b4c2f5aa-0989-42bf-95ac-ff4bfb0a12a8__market_get_keyword_competition",
+  "sif.market_get_keyword_history": "mcp__b4c2f5aa-0989-42bf-95ac-ff4bfb0a12a8__market_get_keyword_history"
+ },
+ "jobs": [
+  {
+   "id": "own_detail",
+   "tool": "sellersprite.asin_detail",
+   "params": {
+    "marketplace": "{SITE}",
+    "asin": "{OWN}"
+   },
+   "out": "listing/asin_detail.json",
+   "depends": [],
+   "required": true
+  },
+  {
+   "id": "node_pool",
+   "paginate": true,
+   "tool": "sellersprite.product_research",
+   "params": {
+    "request": {
+     "marketplace": "{SITE}",
+     "nodeIdPath": "{NODE}",
+     "month": "{MONTH}",
+     "minPrice": "{PRICE_LO}",
+     "maxPrice": "{PRICE_HI}",
+     "keyword": "{SEARCH_KEYWORD}",
+     "matchType": 1,
+     "page": "{PAGE}",
+     "size": 50,
+     "order": {
+      "field": "total_units",
+      "desc": true
+     },
+     "returnFields": "asin,brand,title,price,units,ratings,rating,nodeLabelPath"
+    }
+   },
+   "out": "candidates/pool_band_p{PAGE}.json",
+   "depends": [
+    "own_detail"
+   ],
+   "required": true,
+   "desc": "价格带内候选池，逐页取全部页（第一页 data.pages 决定总页数，取数流程自动追加）。SEARCH_KEYWORD 为空时删去 keyword 参数。PRICE_LO/PRICE_HI 由 gate.price_band 与本品售价算出。"
+  },
+  {
+   "id": "judge_competitors",
+   "type": "script",
+   "command": "python -X utf8 固定报告模板Skill/竞品门槛.py <DIR>",
+   "out": "candidates/true_competitors.json",
+   "depends": [
+    "node_pool"
+   ],
+   "required": true,
+   "desc": "竞品门槛.py 从本品数据推导门槛后选出真竞品与备选，写入 candidates/gate.json 与 candidates/true_competitors.json。缺额（shortfall）必须写入报告。"
+  },
+  {
+   "id": "node_top15",
+   "paginate": true,
+   "max_pages": 6,
+   "tool": "sellersprite.product_research",
+   "params": {
+    "request": {
+     "marketplace": "{SITE}",
+     "nodeIdPath": "{NODE}",
+     "nodeIdPathEqual": true,
+     "month": "{MONTH}",
+     "page": "{PAGE}",
+     "size": 50,
+     "order": {
+      "field": "total_units",
+      "desc": true
+     },
+     "returnFields": "asin,brand,price,units,ratings,rating,nodeLabelPath"
+    }
+   },
+   "out": "candidates/node_top15_p{PAGE}.json",
+   "depends": [
+    "own_detail"
+   ],
+   "required": true,
+   "desc": "本品精确节点按月销量降序，最多取 6 页（300 个 ASIN）。选类目Top15.py 按品牌去重（每品牌取销量最高的 ASIN）后取前 15 个品牌。标题不在这里取（体积大），Top15 的标题与详情由逐对象 asin_detail 补。"
+  },
+  {
+   "id": "judge_top15",
+   "type": "script",
+   "command": "python -X utf8 固定报告模板Skill/选类目Top15.py <DIR>",
+   "out": "candidates/top15.json",
+   "depends": [
+    "node_top15"
+   ],
+   "required": true,
+   "desc": "选类目Top15.py 从 node_top15 取前 15 个 ASIN（去掉本品），写 candidates/top15.json。不足 15 个时写 shortfall。"
+  },
+  {
+   "id": "node_market",
+   "for_each": "months",
+   "tool": "sellersprite.market_research",
+   "params": {
+    "request": {
+     "marketplace": "{SITE}",
+     "nodeIdPath": "{NODE}",
+     "month": "{M}",
+     "topNum": 10
+    }
+   },
+   "out": "market/market_research_{M}.json",
+   "depends": [],
+   "required": true
+  },
+  {
+   "id": "node_market_yoy",
+   "tool": "sellersprite.market_research",
+   "params": {
+    "request": {
+     "marketplace": "{SITE}",
+     "nodeIdPath": "{NODE}",
+     "month": "{YOY}",
+     "topNum": 10
+    }
+   },
+   "out": "market/market_research_{YOY}.json",
+   "depends": [],
+   "required": true,
+   "desc": "上一年同月，用于 2.3 市场紧度 C 同比增长率。"
+  },
+  {
+   "id": "price_distribution",
+   "tool": "sellersprite.market_price_distribution",
+   "params": {
+    "request": {
+     "marketplace": "{SITE}",
+     "nodeIdPath": "{NODE}",
+     "month": "{MONTH}",
+     "topN": 10
+    }
+   },
+   "out": "market/price_distribution_{MONTH}.json",
+   "depends": [],
+   "required": true
+  },
+  {
+   "id": "concentration",
+   "tool": "sellersprite.market_product_concentration",
+   "params": {
+    "request": {
+     "marketplace": "{SITE}",
+     "nodeIdPath": "{NODE}",
+     "month": "{MONTH}",
+     "topN": 100
+    }
+   },
+   "out": "market/concentration_{MONTH}.json",
+   "depends": [],
+   "required": true
+  },
+  {
+   "id": "ratings_count_dist",
+   "tool": "sellersprite.market_ratings_count_distribution",
+   "params": {
+    "request": {
+     "marketplace": "{SITE}",
+     "nodeIdPath": "{NODE}",
+     "month": "{MONTH}",
+     "topN": 100
+    }
+   },
+   "out": "market/ratings_count_{MONTH}.json",
+   "depends": [],
+   "required": true,
+   "desc": "评分数区间分布，用于 2.3 市场紧度 G（低评论产品占比）与新品进入难度。"
+  },
+  {
+   "id": "keepa_own",
+   "tool": "sellersprite.keepa_info",
+   "params": {
+    "marketplace": "{SITE}",
+    "asin": "{OWN}",
+    "dailyLatest": true
+   },
+   "out": "market/keepa_{OWN}.json",
+   "depends": [],
+   "required": true,
+   "desc": "本品 Keepa，用于 2.3 市场紧度 F（BS100 门槛）。"
+  },
+  {
+   "id": "aba_headword",
+   "tool": "sellersprite.aba_research_monthly",
+   "params": {
+    "request": {
+     "marketplace": "{SITE}",
+     "date": "{MONTH}",
+     "includeKeywords": "{HEAD}",
+     "size": 10,
+     "order": {
+      "field": "searches",
+      "desc": true
+     }
+    }
+   },
+   "out": "keywords/aba_headword_{MONTH}.json",
+   "depends": [
+    "pick_head_keyword"
+   ],
+   "required": true,
+   "needs": "head_keyword",
+   "desc": "头号词在 ABA 中的搜索排名、搜索量、点击集中度，用于 2.3 市场紧度 D（ABA 信号）。"
+  },
+  {
+   "id": "google_trend_headword",
+   "tool": "sellersprite.google_trend",
+   "params": {
+    "request": {
+     "marketplace": "{SITE}",
+     "keyword": "{HEAD}",
+     "monthly": true,
+     "googleProp": "web"
+    }
+   },
+   "out": "keywords/google_trend_headword.json",
+   "depends": [
+    "pick_head_keyword"
+   ],
+   "required": true,
+   "needs": "head_keyword",
+   "desc": "Google Trends 月序列，用于 2.3 市场紧度 D。"
+  },
+  {
+   "id": "keyword_research_headword",
+   "tool": "sellersprite.keyword_research",
+   "params": {
+    "request": {
+     "marketplace": "{SITE}",
+     "keywords": "{HEAD}",
+     "month": "{MONTH}",
+     "size": 10,
+     "order": {
+      "field": "searches",
+      "desc": true
+     }
+    }
+   },
+   "out": "keywords/keyword_research_headword_{MONTH}.json",
+   "depends": [
+    "pick_head_keyword"
+   ],
+   "required": true,
+   "needs": "head_keyword",
+   "desc": "头号词的供需比、PPC 竞价（CPC）、商品数，用于 2.3 市场紧度 H（需供比）与 I（CPC 快照）。"
+  },
+  {
+   "id": "variants",
+   "tool": "sif.ops_get_asin_sales_trend",
+   "params": {
+    "asin": "{PARENT}",
+    "country": "{SITE}",
+    "dimension": "asin"
+   },
+   "out": "sales/variants_{PARENT}.json",
+   "depends": [],
+   "required": true
+  },
+  {
+   "id": "own_keywords",
+   "tool": "sellersprite.traffic_keyword",
+   "params": {
+    "request": {
+     "asin": "{OWN}",
+     "marketplace": "{SITE}",
+     "size": 100
+    }
+   },
+   "out": "keywords/{OWN}.json",
+   "depends": [],
+   "required": true,
+   "desc": "本品流量词及排名。不要带 month 参数，带了返回 0 条。"
+  },
+  {
+   "id": "pick_head_keyword",
+   "type": "script",
+   "command": "python -X utf8 固定报告模板Skill/推荐头号词.py <DIR>",
+   "out": "candidates/head_keyword.json",
+   "depends": [
+    "own_keywords"
+   ],
+   "required": true,
+   "desc": "推荐头号词.py：本品有自然排名、不含品牌名的流量词中取流量占比最高者，写入 取数配置.json 的 head_keyword 与 head_keyword_basis。"
+  },
+  {
+   "id": "headword_demand",
+   "tool": "sif.market_get_keyword_demand",
+   "params": {
+    "keywords": [
+     "{HEAD}"
+    ],
+    "country": "{SITE}"
+   },
+   "out": "keywords/headword_demand.json",
+   "depends": [
+    "pick_head_keyword"
+   ],
+   "required": true,
+   "needs": "head_keyword"
+  },
+  {
+   "id": "headword_competition",
+   "tool": "sif.market_get_keyword_competition",
+   "params": {
+    "keyword": "{HEAD}",
+    "asin": "{OWN}",
+    "country": "{SITE}"
+   },
+   "out": "keywords/headword_competition.json",
+   "depends": [
+    "pick_head_keyword"
+   ],
+   "required": true,
+   "needs": "head_keyword"
+  },
+  {
+   "id": "headword_history",
+   "tool": "sif.market_get_keyword_history",
+   "params": {
+    "keywords": [
+     "{HEAD}"
+    ],
+    "country": "{SITE}",
+    "granularity": "month"
+   },
+   "out": "keywords/headword_history.json",
+   "depends": [
+    "pick_head_keyword"
+   ],
+   "required": true,
+   "needs": "head_keyword"
+  },
+  {
+   "id": "traffic_extend_own",
+   "tool": "sellersprite.traffic_extend",
+   "params": {
+    "request": {
+     "asinList": [
+      "{OWN}"
+     ],
+     "marketplace": "{SITE}",
+     "queryType": 2,
+     "size": 10,
+     "order": {
+      "field": "trafficPercentage",
+      "desc": true
+     }
+    }
+   },
+   "out": "ads/traffic_extend_{OWN}.json",
+   "depends": [],
+   "required": true
+  },
+  {
+   "id": "lingxing_own",
+   "type": "manual",
+   "desc": "领星 help→search→action 查询本品整月效率（花费、广告销售、ACOS、CPC、CVR、库存）。不可用时写一份带未取原因的 JSON 再标记完成。",
+   "out": "ads/lingxing_{OWN}_{MONTH}.json",
+   "depends": [],
+   "required": false
+  },
+  {
+   "id": "object_detail",
+   "for_each": "objects",
+   "tool": "sellersprite.asin_detail",
+   "params": {
+    "marketplace": "{SITE}",
+    "asin": "{ASIN}"
+   },
+   "out": "listing/detail/{ASIN}.json",
+   "depends": [
+    "judge_competitors",
+    "judge_top15"
+   ],
+   "required": true,
+   "desc": "每个对象的详情：价格、评分、评分数、BSR、卖家数、上架时间、配送、变体数。八维评分用它。"
+  },
+  {
+   "id": "sales_trend",
+   "for_each": "objects",
+   "tool": "sellersprite.asin_sales_trend",
+   "params": {
+    "marketplace": "{SITE}",
+    "asin": "{ASIN}"
+   },
+   "out": "sales/trend_{ASIN}.json",
+   "depends": [
+    "judge_competitors",
+    "judge_top15"
+   ],
+   "required": true
+  },
+  {
+   "id": "traffic_overview",
+   "for_each": "objects",
+   "tool": "sif.ops_get_listing_traffic_overview",
+   "params": {
+    "asin": "{ASIN}",
+    "country": "{SITE}",
+    "timePieceType": "latelyDay",
+    "timePieceValue": "30"
+   },
+   "out": "traffic/overview_{ASIN}.json",
+   "depends": [
+    "judge_competitors",
+    "judge_top15"
+   ],
+   "required": true
+  },
+  {
+   "id": "traffic_weekly",
+   "for_each": "objects",
+   "tool": "sif.ops_get_asin_traffic_trend",
+   "params": {
+    "asin": "{ASIN}",
+    "country": "{SITE}",
+    "granularity": "week",
+    "lastMonths": 6
+   },
+   "out": "traffic/weekly_{ASIN}.json",
+   "depends": [
+    "judge_competitors",
+    "judge_top15"
+   ],
+   "required": true
+  },
+  {
+   "id": "ad_structure",
+   "for_each": "objects",
+   "tool": "sif.ads_get_asin_ad_structure",
+   "params": {
+    "asin": "{ASIN}",
+    "country": "{SITE}",
+    "granularity": "month"
+   },
+   "out": "ads/structure_{ASIN}.json",
+   "depends": [
+    "judge_competitors",
+    "judge_top15"
+   ],
+   "required": true
+  },
+  {
+   "id": "reviews_neg",
+   "for_each": "objects",
+   "tool": "sellersprite.review",
+   "params": {
+    "marketplace": "{SITE}",
+    "asin": "{ASIN}",
+    "starList": [
+     1,
+     2,
+     3
+    ],
+    "size": 100
+   },
+   "out": "reviews/{ASIN}_neg.json",
+   "depends": [
+    "judge_competitors",
+    "judge_top15"
+   ],
+   "required": true,
+   "desc": "差评逐 ASIN。0 条时如实写 0，并在报告中注明样本量。"
+  },
+  {
+   "id": "reviews_pos",
+   "for_each": "objects",
+   "tool": "sellersprite.review",
+   "params": {
+    "marketplace": "{SITE}",
+    "asin": "{ASIN}",
+    "starList": [
+     4,
+     5
+    ],
+    "size": 100
+   },
+   "out": "reviews/{ASIN}_pos.json",
+   "depends": [
+    "judge_competitors",
+    "judge_top15"
+   ],
+   "required": true
+  },
+  {
+   "id": "listing_capture",
+   "type": "manual",
+   "desc": "一次抓取全部对象：node amazon_listing_capture.js --asins <本品 + 真竞品 + Top15 全部 ASIN，见 candidates/true_competitors.json 与 candidates/top15.json> --out listing/listing_capture_all.json（固定报告模板Skill 目录下执行，需 playwright）。结果中每个对象都要有标题、五点、A+ 文本。",
+   "out": "listing/listing_capture_all.json",
+   "depends": [
+    "judge_competitors",
+    "judge_top15"
+   ],
+   "required": true
+  },
+  {
+   "id": "image_main",
+   "type": "manual",
+   "for_each": "objects",
+   "desc": "node amazon_image_capture.js --asins <全部对象 ASIN> --video --frame-interval 3 --out images/images.json --download --outdir images，再按 共享规则/取数/取数手册.md 第 3 节逐张读图，写 images/analysis/main_<ASIN>.json（每个对象一份）；视频逐帧读取写 images/analysis/video_<ASIN>.json（流程见 共享规则/图片标准.md 第零节 0.1）。",
+   "out": "images/analysis/main_{ASIN}.json",
+   "depends": [
+    "judge_competitors",
+    "judge_top15"
+   ],
+   "required": true
+  },
+  {
+   "id": "image_aplus",
+   "type": "manual",
+   "for_each": "objects",
+   "desc": "与 image_main 同一次抓图，逐张读 A+ 后写 images/analysis/aplus_<ASIN>.json。",
+   "out": "images/analysis/aplus_{ASIN}.json",
+   "depends": [
+    "judge_competitors",
+    "judge_top15"
+   ],
+   "required": true
+  }
+ ]
+}

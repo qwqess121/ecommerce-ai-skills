@@ -1,0 +1,72 @@
+{
+  "说明": "竞品门槛的词表。竞品门槛.py 用它把本品标题归入一个形态族，并排除其他形态族与不可比的标题。词表可按品类增加；不要删除已有族，以免误选。",
+  "form_families": {
+    "hanging_diffuser": [
+      "hanging",
+      "diffuser",
+      "car air freshener diffuser"
+    ],
+    "vent_clip": [
+      "vent clip",
+      "vent wrap",
+      "car vent"
+    ],
+    "visor_clip": [
+      "visor clip",
+      "visor"
+    ],
+    "roll_on": [
+      "roll-on",
+      "roll on",
+      "rollerball",
+      "roller ball",
+      "roll-on perfume"
+    ],
+    "perfume_spray": [
+      "eau de parfum",
+      "extrait de parfum",
+      "perfume spray",
+      "eau de toilette",
+      "spray"
+    ],
+    "oil_bottle": [
+      "essential oil",
+      "fragrance oil",
+      "perfume oil",
+      "oil"
+    ]
+  },
+  "exclude_title_terms": [
+    "refill",
+    "replacement",
+    "no clip",
+    "replacement cartridge",
+    "gift set",
+    "sampler",
+    "travel kit"
+  ],
+  "family_priority": [
+    "hanging_diffuser",
+    "vent_clip",
+    "visor_clip",
+    "roll_on",
+    "perfume_spray",
+    "oil_bottle"
+  ],
+  "scenario_families": {
+    "pheromone": [
+      "pheromone"
+    ],
+    "designer_dupe": [
+      "impression",
+      "alternative to designer",
+      "inspired by",
+      "affordable alternative"
+    ]
+  },
+  "scenario_priority": [
+    "pheromone",
+    "designer_dupe"
+  ],
+  "注意": "形态族按 family_priority 从前往后匹配标题，先匹配到的为准。\"oil\" 这类短词容易误匹配，只在没有其他族时才用。"
+}

@@ -1,0 +1,16 @@
+{
+  "note": "2026-09-24 实测基线。Alexa 计数为卖家 A+ 自建模块的问题数（卖家 authored，相对稳定）；洞察标签条数随时间变化仅供参考。复现校验用：node amazon_review_insights.js --asins B0CW9231N3,B0DRTK9BJ8,... --baseline baseline.example.json --out 实测.json",
+  "asins": {
+    "B0CW9231N3": { "alexa": 7, "expectInsights": true },
+    "B0DRTK9BJ8": { "alexa": 4, "expectInsights": true },
+    "B0FS1NL9GJ": { "alexa": 0, "expectInsights": true },
+    "B0FKLR2XFN": { "alexa": 0, "expectInsights": true },
+    "B0C1HJV7BJ": { "alexa": 0, "expectInsights": true },
+    "B0BXMNC25J": { "alexa": 0, "expectInsights": true },
+    "B0D463CFT6": { "alexa": 0, "expectInsights": true },
+    "B0C1HG7DJ3": { "alexa": 0, "expectInsights": true },
+    "B0CD9G7S9B": { "alexa": 0, "expectInsights": true },
+    "B0CZ5DQP9C": { "alexa": 0, "expectInsights": true },
+    "B0C1HH2FTQ": { "alexa": 0, "expectInsights": true }
+  }
+}
