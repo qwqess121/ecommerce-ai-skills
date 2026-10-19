@@ -1,0 +1,550 @@
+{
+  "_version": "2.2.0",
+  "_updated": "2026-09-24",
+  "_instructions": "全量验证版。910条活跃listing→122个parent ASIN→14个亚马逊店铺+2个TikTok店铺。所有数据已通过领星MCP全量遍历+卖酷MCP+FastMoss MCP三方交叉验证。",
+
+  "report_name": "Listing诊断周报",
+  "output_dir": "D:\\报告\\listing诊断",
+  "filename_template": "Listing诊断_{date}.xlsx",
+
+  "schedule": {
+    "frequency": "weekly",
+    "day": "friday",
+    "time": "17:00",
+    "timezone": "America/Los_Angeles"
+  },
+
+  "competitor_config_defaults": {
+    "same_appearance_top_n": 5,
+    "same_scenario_category_top_n": 20
+  },
+
+  "amazon_inventory_summary": {
+    "_as_of": "2026-09-24",
+    "total_active_listings": 910,
+    "total_parent_asins": 122,
+    "us_parent_asins": 92,
+    "ca_parent_asins": 30,
+    "total_stores": 15,
+    "total_brands": 17,
+    "top_level_categories": 12,
+    "subcategories": 63
+  },
+
+  "amazon_stores": [
+    {
+      "store_name": "Pureamor-Yu-25-4-US",
+      "country": "US",
+      "marketplace_id": "ATVPDKIKX0DER",
+      "owner": "AMZ-L2-Alvin Yue",
+      "brands": ["Pureamor", "PUREAMOR", "LUXEA"],
+      "parent_asins": 10,
+      "child_asins": 103,
+      "main_categories": ["Women's Eau de Parfum", "Women's Cologne", "Women's Fragrance Sets", "Women's Body Sprays Fragrance"]
+    },
+    {
+      "store_name": "Pureamor-Yu-25-4-CA",
+      "country": "CA",
+      "marketplace_id": "A2EUQ1WTGCTBG2",
+      "owner": "AMZ-L2-Alvin Yue",
+      "brands": ["Pureamor", "PUREAMOR"],
+      "parent_asins": 6,
+      "child_asins": 60,
+      "main_categories": ["Women's Eau de Parfum", "Women's Cologne"]
+    },
+    {
+      "store_name": "Caliwest PU-Zhang-26-5-US",
+      "country": "US",
+      "marketplace_id": "ATVPDKIKX0DER",
+      "owner": "AMZ-L3-Richer,超级管理员",
+      "brands": ["PUREU"],
+      "parent_asins": 4,
+      "child_asins": 54,
+      "main_categories": ["Women's Eau de Parfum", "Essential Oil Singles", "Men's Cologne"]
+    },
+    {
+      "store_name": "PureU-Lori-25-6-US",
+      "country": "US",
+      "marketplace_id": "ATVPDKIKX0DER",
+      "owner": "AMZ-L2-Alvin Yue,AMZ-L2-Luo",
+      "brands": ["PUREU"],
+      "parent_asins": 10,
+      "child_asins": 33,
+      "main_categories": ["Women's Eau de Parfum", "Women's Cologne", "Men's Cologne", "Women's Body Sprays Fragrance", "Women's Fragrance Sets"]
+    },
+    {
+      "store_name": "PureU-Lori-25-6-CA",
+      "country": "CA",
+      "marketplace_id": "A2EUQ1WTGCTBG2",
+      "owner": "AMZ-L2-Alvin Yue,AMZ-L2-Luo",
+      "brands": ["PUREU"],
+      "parent_asins": 3,
+      "child_asins": 8,
+      "main_categories": ["Women's Cologne"]
+    },
+    {
+      "store_name": "PureFitTech-Mei-25-7-US",
+      "country": "US",
+      "marketplace_id": "ATVPDKIKX0DER",
+      "owner": "AMZ-L2-Luo,DesL2-AMZL3-Stella",
+      "brands": ["Purefittech", "purefittech"],
+      "parent_asins": 5,
+      "child_asins": 21,
+      "main_categories": ["Women's Eau de Parfum", "Essential Oil Singles", "Reed Diffuser Oils"]
+    },
+    {
+      "store_name": "PureFitTech-Mei-25-7-CA",
+      "country": "CA",
+      "marketplace_id": "A2EUQ1WTGCTBG2",
+      "owner": "AMZ-L2-Luo,DesL2-AMZL3-Stella",
+      "brands": ["Purefittech"],
+      "parent_asins": 2,
+      "child_asins": 13,
+      "main_categories": ["Women's Eau de Parfum"]
+    },
+    {
+      "store_name": "Abamerica-Tony-19-3-US",
+      "country": "US",
+      "marketplace_id": "ATVPDKIKX0DER",
+      "owner": "AMZ-L2-Abbott",
+      "brands": ["Abamerica", "ABAMERICA", "HoogaLife"],
+      "parent_asins": 19,
+      "child_asins": 284,
+      "main_categories": ["Medical Hair & Beard Covers", "Medical Uniforms & Scrubs", "Women's Tote Handbags", "Medical Stethoscope Accessories", "Men's Food Service Uniforms", "Essential Oil Sets", "Automobile Aroma Diffusers", "Women's Fashion Headbands"]
+    },
+    {
+      "store_name": "Abamerica-Tony-19-3-CA",
+      "country": "CA",
+      "marketplace_id": "A2EUQ1WTGCTBG2",
+      "owner": "AMZ-L2-Abbott",
+      "brands": ["Abamerica", "HoogaLife"],
+      "parent_asins": 11,
+      "child_asins": 221,
+      "main_categories": ["Medical Hair & Beard Covers", "Automobile Aroma Diffusers", "Automotive Air Fresheners", "Travel Tote Bags", "Stethoscopes"]
+    },
+    {
+      "store_name": "Classy AP-HL-25-2-US",
+      "country": "US",
+      "marketplace_id": "ATVPDKIKX0DER",
+      "owner": "AMZ-L3-Chong,AMZ-L3-Richer,AMZ-L2-Alvin Yue,AMZ-L2-Luo,DesL2-AMZL3-Stella",
+      "brands": ["CLASSY", "Airpurelle", "AirPurelle", "Pureamor", "C CLASSY PERSONALIZED JEWELRY", "Generic"],
+      "parent_asins": 41,
+      "child_asins": 157,
+      "main_categories": ["Automotive Air Fresheners", "Automobile Aroma Diffusers", "Women's Eau de Parfum", "Women's Fragrance Sets", "Reed Diffuser Oils", "Nameplates & Desk Tapes"]
+    },
+    {
+      "store_name": "Classy AP-HL-25-2-CA",
+      "country": "CA",
+      "marketplace_id": "A2EUQ1WTGCTBG2",
+      "owner": "AMZ-L3-Chong",
+      "brands": ["CLASSY", "Airpurelle"],
+      "parent_asins": 0,
+      "child_asins": 0,
+      "notes": "CA店暂无活跃listing(全量扫描未发现)"
+    },
+    {
+      "store_name": "Hoogalife-Tao-19-1-US",
+      "country": "US",
+      "marketplace_id": "ATVPDKIKX0DER",
+      "owner": "AMZ-L2-Abbott,AMZ-L3-Richer",
+      "brands": ["HoogaLife"],
+      "parent_asins": 7,
+      "child_asins": 24,
+      "main_categories": ["Automobile Aroma Diffusers", "LED Bulbs", "Travel Tote Bags", "Flameless Candles"]
+    },
+    {
+      "store_name": "Hoogalife-Tao-19-1-CA",
+      "country": "CA",
+      "marketplace_id": "A2EUQ1WTGCTBG2",
+      "owner": "AMZ-L2-Abbott,AMZ-L3-Richer",
+      "brands": ["HoogaLife"],
+      "parent_asins": 1,
+      "child_asins": 14,
+      "main_categories": ["Automobile Aroma Diffusers", "LED Bulbs"]
+    },
+    {
+      "store_name": "Pesova-Du-25-8-US",
+      "country": "US",
+      "marketplace_id": "ATVPDKIKX0DER",
+      "owner": "AMZ-L3-Chong",
+      "brands": ["Pesova"],
+      "parent_asins": 1,
+      "child_asins": 4,
+      "main_categories": ["Insect & Pest Repellent Pouches"]
+    },
+    {
+      "store_name": "Burst-US",
+      "country": "US",
+      "marketplace_id": "ATVPDKIKX0DER",
+      "owner": "",
+      "brands": ["Burst Bird", "PUREFITINSOLES"],
+      "parent_asins": 2,
+      "child_asins": 4,
+      "main_categories": ["Medical Hair & Beard Covers"],
+      "notes": "全量扫描新发现的店铺"
+    }
+  ],
+
+  "tiktok_shops": [
+    {
+      "shop_name": "Pureamor",
+      "country": "US",
+      "seller_id": "7496269973698153227",
+      "owner": "",
+      "active_products": 47,
+      "total_products": 71,
+      "total_gmv_usd": 170411.84,
+      "shop_rating": 4.5,
+      "main_categories": ["Women's Perfume", "Unisex Perfume"],
+      "notes": "TK主店, Beauty & Personal Care > Perfume 100%"
+    },
+    {
+      "shop_name": "PureAmor California",
+      "country": "US",
+      "seller_id": "7495896645916002610",
+      "owner": "",
+      "active_products": 9,
+      "total_products": 12,
+      "total_gmv_usd": 4976.57,
+      "shop_rating": 4.7,
+      "main_categories": ["Women's Perfume", "Unisex Perfume", "Pest & Weed Control"],
+      "notes": "TK副店, 含Pesova驱虫袋产品"
+    }
+  ],
+
+  "tiktok_inventory_summary": {
+    "_as_of": "2026-09-24",
+    "total_active_products": 56,
+    "total_shops": 2,
+    "categories_breakdown": {
+      "Women's Perfume (855952)": "约40个",
+      "Unisex Perfume (855824)": "约8个",
+      "Pest & Weed Control (600466)": "1个"
+    }
+  },
+
+  "category_l3_mapping": {
+    "_verification_note": "主要节点ID已通过卖酷product_node验证+领星small_rank全量交叉确认。次要品类的nodeIdPaths待运行时通过product_node查询补全。",
+
+    "amazon": {
+      "Automotive Air Fresheners": {
+        "nodeIdPaths": ["15684181:15857501:15735121"],
+        "verified_path": "Automotive > Interior Accessories > Air Fresheners",
+        "products_count": 3897,
+        "listing_count": 97,
+        "applies_to_brands": ["CLASSY", "Airpurelle", "AirPurelle"]
+      },
+      "Automobile Aroma Diffusers": {
+        "nodeIdPaths": ["15684181:15857501:38276428011"],
+        "verified_path": "Automotive > Interior Accessories > Aroma Diffusers",
+        "products_count": 373,
+        "listing_count": 73,
+        "applies_to_brands": ["HoogaLife", "CLASSY", "C CLASSY PERSONALIZED JEWELRY"]
+      },
+      "Women's Eau de Parfum": {
+        "nodeIdPaths": ["3760911:11056591:11056931:11057071"],
+        "verified_path": "Beauty & Personal Care > Fragrance > Women's > Eau de Parfum",
+        "products_count": 7964,
+        "listing_count": 146,
+        "applies_to_brands": ["Pureamor", "PUREAMOR", "PUREU", "Purefittech"]
+      },
+      "Women's Cologne": {
+        "nodeIdPaths": ["3760911:11056591:11056931:11057051"],
+        "verified_path": "Beauty & Personal Care > Fragrance > Women's > Cologne",
+        "listing_count": 20,
+        "applies_to_brands": ["Pureamor", "PUREU"]
+      },
+      "Women's Fragrance Sets": {
+        "nodeIdPaths": ["3760911:11056591:11056931:11057111"],
+        "verified_path": "Beauty & Personal Care > Fragrance > Women's > Fragrance Sets",
+        "listing_count": 28,
+        "applies_to_brands": ["Pureamor", "PUREU", "CLASSY"]
+      },
+      "Men's Cologne": {
+        "nodeIdPaths": ["3760911:11056591:11056811:11056851"],
+        "verified_path": "Beauty & Personal Care > Fragrance > Men's > Cologne",
+        "listing_count": 9,
+        "applies_to_brands": ["PUREU", "Pureamor"],
+        "notes": "nodeIdPaths待卖酷验证。PUREU roll-on for men"
+      },
+      "Women's Body Sprays Fragrance": {
+        "nodeIdPaths": ["3760911:11056591:11056931:11057011"],
+        "verified_path": "Beauty & Personal Care > Fragrance > Women's > Body Sprays",
+        "listing_count": 11,
+        "applies_to_brands": ["Pureamor", "PUREU", "CLASSY"],
+        "notes": "nodeIdPaths待卖酷验证"
+      },
+      "Women's Eau de Toilette": {
+        "nodeIdPaths": ["3760911:11056591:11056931:11057091"],
+        "verified_path": "Beauty & Personal Care > Fragrance > Women's > Eau de Toilette",
+        "listing_count": 5,
+        "applies_to_brands": ["Pureamor"],
+        "notes": "nodeIdPaths待卖酷验证"
+      },
+      "LED Bulbs": {
+        "nodeIdPaths": ["228013:322525011:2314207011"],
+        "verified_path": "Tools & Home Improvement > Light Bulbs > LED Bulbs",
+        "products_count": 14828,
+        "listing_count": 11,
+        "applies_to_brands": ["HoogaLife"]
+      },
+      "Medical Hair & Beard Covers": {
+        "nodeIdPaths": ["16310091:8404647011"],
+        "verified_path": "Industrial & Scientific > Medical > Hair & Beard Covers",
+        "listing_count": 112,
+        "applies_to_brands": ["Abamerica", "ABAMERICA", "Burst Bird", "PUREFITINSOLES"]
+      },
+      "Medical Stethoscope Accessories": {
+        "nodeIdPaths": ["16310091:17277660011"],
+        "verified_path": "Industrial & Scientific > Medical > Stethoscope Accessories",
+        "listing_count": 18,
+        "applies_to_brands": ["Abamerica"]
+      },
+      "Stethoscopes": {
+        "nodeIdPaths": ["16310091:17277659011"],
+        "verified_path": "Industrial & Scientific > Medical > Stethoscopes",
+        "listing_count": 12,
+        "applies_to_brands": ["Abamerica"],
+        "notes": "nodeIdPaths待卖酷验证。实际听诊器产品"
+      },
+      "Medical Uniforms & Scrubs": {
+        "nodeIdPaths": ["7141123011:7586144011:1265851011:1268047011"],
+        "verified_path": "Clothing > Uniforms, Work & Safety > Clothing > Medical",
+        "listing_count": 29,
+        "applies_to_brands": ["Abamerica", "ABAMERICA"]
+      },
+      "Women's Tote Handbags": {
+        "nodeIdPaths": ["7141123011:7147440011:15743631:16977746011"],
+        "verified_path": "Clothing > Women > Handbags & Wallets > Tote Handbags",
+        "listing_count": 32,
+        "applies_to_brands": ["HoogaLife", "Abamerica"]
+      },
+      "Travel Tote Bags": {
+        "nodeIdPaths": ["7141123011:7147440011:15743631:15743241"],
+        "verified_path": "Clothing > Women > Handbags & Wallets > Travel Tote Bags",
+        "listing_count": 23,
+        "applies_to_brands": ["HoogaLife", "Abamerica"],
+        "notes": "nodeIdPaths待卖酷验证。HoogaLife Waterproof Tote Bags"
+      },
+      "Men's Food Service Uniforms": {
+        "nodeIdPaths": ["7141123011:7147441011:7581682011:6575930011"],
+        "verified_path": "Clothing > Men > Uniforms, Work & Safety > Food Service Uniforms",
+        "listing_count": 2,
+        "applies_to_brands": ["Abamerica"]
+      },
+      "Insect & Pest Repellent Pouches": {
+        "nodeIdPaths": ["2972638011:553844:3737951:220628941011"],
+        "verified_path": "Patio, Lawn & Garden > Pest Control > Repellents > Pouches",
+        "products_count": 105,
+        "listing_count": 2,
+        "applies_to_brands": ["Pesova"]
+      },
+      "Ultrasonic Pest Repellers": {
+        "nodeIdPaths": ["2972638011:553844:3737951:23539054011"],
+        "verified_path": "Patio, Lawn & Garden > Pest Control > Repellents > Ultrasonic Repellers",
+        "products_count": 2334,
+        "applies_to_brands": ["Pesova"],
+        "notes": "备选品类"
+      },
+      "Essential Oil Singles": {
+        "nodeIdPaths": ["3760901:3760941:18502612011"],
+        "verified_path": "Health & Household > Health Care > Essential Oil Singles",
+        "listing_count": 5,
+        "applies_to_brands": ["PUREU", "Purefittech"]
+      },
+      "Essential Oil Sets": {
+        "nodeIdPaths": ["3760901:3760941:18502613011"],
+        "verified_path": "Health & Household > Health Care > Essential Oil Sets",
+        "listing_count": 3,
+        "applies_to_brands": ["Abamerica"]
+      },
+      "Women's Fashion Headbands": {
+        "nodeIdPaths": ["3760911:11058051"],
+        "verified_path": "Beauty & Personal Care > Hair Care > Fashion Headbands",
+        "listing_count": 56,
+        "applies_to_brands": ["Abamerica"]
+      },
+      "Reed Diffuser Oils": {
+        "nodeIdPaths": ["1055398:3734261:3734281:16400691"],
+        "verified_path": "Home & Kitchen > Home Décor > Candles & Holders > Reed Diffuser Oils",
+        "listing_count": 7,
+        "applies_to_brands": ["Purefittech", "CLASSY"],
+        "notes": "nodeIdPaths待卖酷验证"
+      },
+      "Flameless Candles": {
+        "nodeIdPaths": ["228013:495224:3734261:14087331"],
+        "verified_path": "Tools & Home Improvement > Lighting > Flameless Candles",
+        "listing_count": 1,
+        "applies_to_brands": ["HoogaLife"],
+        "notes": "nodeIdPaths待卖酷验证。仅1个parent ASIN"
+      },
+      "Nameplates & Desk Tapes": {
+        "nodeIdPaths": ["1064954:12900881"],
+        "verified_path": "Office Products > Nameplates & Desk Tapes",
+        "listing_count": 1,
+        "applies_to_brands": ["C CLASSY PERSONALIZED JEWELRY"],
+        "notes": "nodeIdPaths待卖酷验证。Acrylic Tumbler Name Plates"
+      }
+    },
+
+    "tiktok": {
+      "Women's Perfume": {
+        "category_path": [14, 856208, 855952],
+        "l3_id": 855952,
+        "verified_name": "Beauty & Personal Care > Perfume > Women's Perfume",
+        "approx_products": 40,
+        "notes": "主力品类"
+      },
+      "Unisex Perfume": {
+        "category_path": [14, 856208, 855824],
+        "l3_id": 855824,
+        "verified_name": "Beauty & Personal Care > Perfume > Unisex Perfume",
+        "approx_products": 8
+      },
+      "Men's Perfume": {
+        "category_path": [14, 856208, 855696],
+        "l3_id": 855696,
+        "verified_name": "Beauty & Personal Care > Perfume > Men's Perfume"
+      },
+      "Perfume Sets": {
+        "category_path": [14, 856208, 856080],
+        "l3_id": 856080,
+        "verified_name": "Beauty & Personal Care > Perfume > Perfume Sets"
+      },
+      "Perfume (Generic)": {
+        "category_path": [14, 856208, 601583],
+        "l3_id": 601583,
+        "verified_name": "Beauty & Personal Care > Perfume > Perfume"
+      },
+      "Car Air Freshener": {
+        "category_path": [23, 930184, 842256],
+        "l3_id": 842256,
+        "verified_name": "Automotive > Interior Accessories > Car Air Freshener"
+      },
+      "Pest & Weed Control": {
+        "category_path": [10, 852232, 600466],
+        "l3_id": 600466,
+        "verified_name": "Home Supplies > Home Care Supplies > Pest & Weed Control",
+        "approx_products": 1,
+        "notes": "PureAmor California店铺中的Pesova驱虫香袋"
+      }
+    }
+  },
+
+  "product_category_auto_mapping": {
+    "_instructions": "运行时根据领星的 small_rank 字段自动匹配正确的L3节点。以下覆盖全部63个已知子品类。",
+    "rules": [
+      {"small_rank_category": "Automobile Aroma Diffusers", "amazon_l3": "Automobile Aroma Diffusers"},
+      {"small_rank_category": "Automotive Air Fresheners", "amazon_l3": "Automotive Air Fresheners"},
+      {"small_rank_category": "Women's Eau de Parfum", "amazon_l3": "Women's Eau de Parfum"},
+      {"small_rank_category": "Women's Cologne", "amazon_l3": "Women's Cologne"},
+      {"small_rank_category": "Women's Fragrance Sets", "amazon_l3": "Women's Fragrance Sets"},
+      {"small_rank_category": "Women's Perfume", "amazon_l3": "Women's Eau de Parfum"},
+      {"small_rank_category": "Women's Essential Fragrance Oils", "amazon_l3": "Women's Eau de Parfum"},
+      {"small_rank_category": "Perfumes & Fragrances", "amazon_l3": "Women's Eau de Parfum"},
+      {"small_rank_category": "Women's Body Sprays Fragrance", "amazon_l3": "Women's Body Sprays Fragrance"},
+      {"small_rank_category": "Women's Eau de Toilette", "amazon_l3": "Women's Eau de Toilette"},
+      {"small_rank_category": "Men's Cologne", "amazon_l3": "Men's Cologne"},
+      {"small_rank_category": "Men's Eau de Parfum", "amazon_l3": "Men's Cologne"},
+      {"small_rank_category": "Men's Scented Body Sprays", "amazon_l3": "Men's Cologne"},
+      {"small_rank_category": "Body Oils", "amazon_l3": "Women's Eau de Parfum"},
+      {"small_rank_category": "LED Bulbs", "amazon_l3": "LED Bulbs"},
+      {"small_rank_category": "Flameless Candles", "amazon_l3": "Flameless Candles"},
+      {"small_rank_category": "Medical Hair & Beard Covers", "amazon_l3": "Medical Hair & Beard Covers"},
+      {"small_rank_category": "Protective Caps", "amazon_l3": "Medical Hair & Beard Covers"},
+      {"small_rank_category": "Shower Caps", "amazon_l3": "Medical Hair & Beard Covers"},
+      {"small_rank_category": "Hard Hat Accessories", "amazon_l3": "Medical Hair & Beard Covers"},
+      {"small_rank_category": "Surgical Instrument Caps", "amazon_l3": "Medical Hair & Beard Covers"},
+      {"small_rank_category": "Medical Stethoscope Accessories", "amazon_l3": "Medical Stethoscope Accessories"},
+      {"small_rank_category": "Stethoscopes", "amazon_l3": "Stethoscopes"},
+      {"small_rank_category": "Medical Uniforms & Scrubs", "amazon_l3": "Medical Uniforms & Scrubs"},
+      {"small_rank_category": "Women's Medical Scrub Sets", "amazon_l3": "Medical Uniforms & Scrubs"},
+      {"small_rank_category": "Men's Medical Scrub Sets", "amazon_l3": "Medical Uniforms & Scrubs"},
+      {"small_rank_category": "Women's Medical Uniforms & Scrubs", "amazon_l3": "Medical Uniforms & Scrubs"},
+      {"small_rank_category": "Men's Medical Uniforms & Scrubs", "amazon_l3": "Medical Uniforms & Scrubs"},
+      {"small_rank_category": "Women's Uniforms, Work & Safety", "amazon_l3": "Medical Uniforms & Scrubs"},
+      {"small_rank_category": "Men's Work & Safety Clothing", "amazon_l3": "Medical Uniforms & Scrubs"},
+      {"small_rank_category": "Uniforms, Work & Safety", "amazon_l3": "Medical Uniforms & Scrubs"},
+      {"small_rank_category": "Medical Apparel & Gloves", "amazon_l3": "Medical Uniforms & Scrubs"},
+      {"small_rank_category": "Medical Examination Supplies & Consumables", "amazon_l3": "Medical Uniforms & Scrubs"},
+      {"small_rank_category": "Insect & Pest Repellent Pouches", "amazon_l3": "Insect & Pest Repellent Pouches"},
+      {"small_rank_category": "Pest Repellents", "amazon_l3": "Insect & Pest Repellent Pouches"},
+      {"small_rank_category": "Ultrasonic Repellers", "amazon_l3": "Ultrasonic Pest Repellers"},
+      {"small_rank_category": "Women's Tote Handbags", "amazon_l3": "Women's Tote Handbags"},
+      {"small_rank_category": "Men's Totes", "amazon_l3": "Women's Tote Handbags"},
+      {"small_rank_category": "Travel Tote Bags", "amazon_l3": "Travel Tote Bags"},
+      {"small_rank_category": "Casual Daypacks", "amazon_l3": "Travel Tote Bags"},
+      {"small_rank_category": "Luggage", "amazon_l3": "Travel Tote Bags"},
+      {"small_rank_category": "Luggage & Bags", "amazon_l3": "Travel Tote Bags"},
+      {"small_rank_category": "Men's Food Service Uniforms", "amazon_l3": "Men's Food Service Uniforms"},
+      {"small_rank_category": "Women's Fashion Headbands", "amazon_l3": "Women's Fashion Headbands"},
+      {"small_rank_category": "Men's Fashion Headbands", "amazon_l3": "Women's Fashion Headbands"},
+      {"small_rank_category": "Men's Sport Headbands", "amazon_l3": "Women's Fashion Headbands"},
+      {"small_rank_category": "Essential Oil Singles", "amazon_l3": "Essential Oil Singles"},
+      {"small_rank_category": "Essential Oil Sets", "amazon_l3": "Essential Oil Sets"},
+      {"small_rank_category": "Reed Diffuser Oils", "amazon_l3": "Reed Diffuser Oils"},
+      {"small_rank_category": "Reed Diffuser Sets", "amazon_l3": "Reed Diffuser Oils"},
+      {"small_rank_category": "Nameplates & Desk Tapes", "amazon_l3": "Nameplates & Desk Tapes"},
+      {"small_rank_category": "Women's Keyrings & Keychains", "amazon_l3": "Women's Eau de Parfum"},
+      {"small_rank_category": "Women's Novelty Keychains", "amazon_l3": "Women's Cologne"},
+      {"small_rank_category": "Badge Lanyards", "amazon_l3": "Medical Uniforms & Scrubs"},
+      {"small_rank_category": "Men's Baseball Caps", "amazon_l3": "Medical Hair & Beard Covers"},
+      {"small_rank_category": "Men's Skullies & Beanies", "amazon_l3": "Medical Hair & Beard Covers"},
+      {"small_rank_category": "Women's Skullies & Beanies", "amazon_l3": "Medical Hair & Beard Covers"},
+      {"small_rank_category": "Women's Hats & Caps", "amazon_l3": "Medical Hair & Beard Covers"},
+      {"small_rank_category": "Women's Fashion", "amazon_l3": "Women's Fashion Headbands"},
+      {"small_rank_category": "Men's Fashion", "amazon_l3": "Medical Hair & Beard Covers"},
+      {"small_rank_category": "Women's Clothing", "amazon_l3": "Medical Uniforms & Scrubs"},
+      {"small_rank_category": "Sports & Outdoor Accessories", "amazon_l3": "Medical Hair & Beard Covers"},
+      {"small_rank_category": "Poly & Plastic Packaging Bags", "amazon_l3": "Medical Uniforms & Scrubs"},
+      {"small_rank_category": "Privacy Nursing Covers", "amazon_l3": "Medical Uniforms & Scrubs"}
+    ]
+  },
+
+  "all_own_brands": [
+    "Pureamor", "PUREAMOR", "LUXEA",
+    "PUREU",
+    "Purefittech", "purefittech",
+    "HoogaLife",
+    "CLASSY", "C CLASSY PERSONALIZED JEWELRY",
+    "Airpurelle", "AirPurelle",
+    "Pesova",
+    "Abamerica", "ABAMERICA",
+    "Burst Bird", "PUREFITINSOLES",
+    "Generic"
+  ],
+
+  "all_owners": [
+    "AMZ-L2-Alvin Yue",
+    "AMZ-L2-Luo",
+    "AMZ-L2-Abbott",
+    "AMZ-L3-Richer",
+    "AMZ-L3-Chong",
+    "DesL2-AMZL3-Stella"
+  ],
+
+  "data_sources": {
+    "amazon_own_products": {
+      "primary": "领星 MCP (LingXing) - erp_listing",
+      "method": "status=1 分页遍历(length=50)，按 parent_asin+marketplace 去重，从 small_rank JSON字段自动匹配 L3 品类",
+      "verified_total": "910 active listings → 122 parent ASINs"
+    },
+    "amazon_competitor": {
+      "primary": "卖酷 MCP - product_research(nodeIdPaths=[L3路径])",
+      "method": "按L3品类搜索，excludeBrands排除自有品牌，按reviews降序取Top5/Top20"
+    },
+    "amazon_listing_detail": {
+      "primary": "卖酷 MCP - asin_detail",
+      "fallback": "浏览器 navigate + javascript_tool 提取 bullet points"
+    },
+    "tiktok_own_products": {
+      "primary": "FastMoss MCP - shop_product_analysis(seller_id)",
+      "method": "按 seller_id 查询在售商品列表",
+      "verified_total": "56 active products across 2 shops"
+    },
+    "tiktok_competitor": {
+      "primary": "FastMoss MCP - product_rank_top_selling(category_path=[L1,L2,L3])",
+      "method": "按L3品类搜索，排除自有店铺seller_id"
+    }
+  }
+}
