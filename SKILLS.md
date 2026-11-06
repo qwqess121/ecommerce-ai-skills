@@ -22,6 +22,7 @@
 | 2 | [TK 竞品视频对比拆解](#2-tk-竞品视频对比拆解) | 我们的视频 vs 竞品爆款：差距在哪 | 两条视频链接 | Part A + Part B + 12维矩阵 |
 | 3 | [TK Listing 诊断](#3-tk-listing-诊断) | 给一个商品做六维度体检 | 商品链接或ID | 综合评分 + 诊断报告 |
 | 4 | [Listing 竞品全面分析](#4-listing-竞品全面分析) | Amazon/TK商品深度竞品分析 | 商品链接 | 11大维度分析报告 |
+| 5 | [领星物流费用回填](#5-领星物流费用回填) | 海运费用明细→领星ERP回填 | Excel表格 | 回填计划+写入确认 |
 
 ---
 
@@ -201,12 +202,44 @@ Claude 生成报告后会给出 Artifact 链接（`https://claude.ai/code/artifa
 
 ---
 
+## 5. 领星物流费用回填
+
+**入口文件**：`lingxing-logistics-backfill/SKILL.md`
+
+**触发方式**：
+```
+请读取 lingxing-logistics-backfill/SKILL.md，帮我回填海运费用明细表到领星ERP
+```
+
+**功能**：读取员工上传的海运费用明细 Excel，与领星 ERP 当前值比对，按规则回填五个字段（物流商单号、物流商、物流渠道、快递单号、金额）到三种发货类型（FBA / OWS / FBT）。
+
+**支持的发货类型**：
+
+| 类型 | 单号格式 | 写入接口 |
+|------|---------|---------|
+| FBA | SP26xxxxxx | updateListLogistics + STA updateShipmentTrack |
+| OWS | OWSxxxxxx | updateLogistics |
+| FBT | SP2026+11位 | updateLogistics |
+
+**字段规则**：
+- A类（F物流商单号/I物流商/H物流渠道）：以表格为准，不同则覆盖
+- B类（G快递单号/Q金额）：ERP为空时才写入
+
+**前提**：需配置环境变量 `LINGXING_APP_ID` 和 `LINGXING_APP_SECRET`
+
+---
+
 ## 目录结构
 
 ```
 skill/
 ├── SKILLS.md                   ← 本文件（主索引，非 skill）
 ├── README.md                   ← 技术使用说明
+│
+├── lingxing-logistics-backfill/ ← 工作流5（领星物流费用回填）
+│   ├── SKILL.md                ← 主入口（完整接口文档+回填逻辑）
+│   └── scripts/
+│       └── backfill_logistics.py ← 解析/读取/计划/写入/校验脚本
 │
 ├── tk视频拆解/                  ← 工作流3（TK 视频拆解）
 │   ├── v3-tk-workflow/
