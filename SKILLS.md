@@ -23,6 +23,7 @@
 | 3 | [TK Listing 诊断](#3-tk-listing-诊断) | 给一个商品做六维度体检 | 商品链接或ID | 综合评分 + 诊断报告 |
 | 4 | [Listing 竞品全面分析](#4-listing-竞品全面分析) | Amazon/TK商品深度竞品分析 | 商品链接 | 11大维度分析报告 |
 | 5 | [领星物流费用回填](#5-领星物流费用回填) | 海运费用明细→领星ERP回填 | Excel表格 | 回填计划+写入确认 |
+| 6 | [Open to B 日报表填充](#6-open-to-b-日报表填充) | 领星数据填充三张明细表 + 生成汇总透视表 | 领星ERP数据 + 源工作簿 | 填充后的工作簿（带透视表） |
 
 ---
 
@@ -229,6 +230,32 @@ Claude 生成报告后会给出 Artifact 链接（`https://claude.ai/code/artifa
 
 ---
 
+## 6. Open to B 日报表填充
+
+**入口文件**：`open-to-b-daily-report/SKILL.md`
+
+**触发方式**：
+```
+请读取 open-to-b-daily-report/SKILL.md，帮我填充 Open to B 日报表
+```
+
+**功能**：按 SKU 从领星 ERP 拉取数据，填充「产品管理 - 库存」「亚马逊销售」「Tiktok 销售」三张明细表的彩色字段；三张汇总表（亚马逊销售汇总、Tiktok 销售汇总、产品管理 - 库存汇总）为 Excel 真透视表，由明细数据生成。
+
+**关键规则**：
+- 销售类字段必须 T+1 拉取（当天拉会漏单）
+- 只填彩色列，白色列不抓；公式列以工作簿实际公式为准
+- 单价列（产品管理 U）为手工填写，不自动填
+- 加工单 AB/AD 通过 OpenAPI 直连 `StorageProcess/getOrderLists` 取得，整单数量聚合
+
+**参考文件**：
+- `references/field_mapping.md`：逐列填写方式、接口、返回字段
+- `references/api_schemas.md`：接口参数与签名说明
+- `references/pitfalls.md`：踩坑记录
+
+**前提**：需配置环境变量 `LINGXING_APP_ID` 和 `LINGXING_APP_SECRET`；需安装 Excel（用于公式重算和透视表生成）
+
+---
+
 ## 目录结构
 
 ```
@@ -240,6 +267,13 @@ skill/
 │   ├── SKILL.md                ← 主入口（完整接口文档+回填逻辑）
 │   └── scripts/
 │       └── backfill_logistics.py ← 解析/读取/计划/写入/校验脚本
+│
+├── open-to-b-daily-report/     ← 工作流6（Open to B 日报表填充）
+│   ├── SKILL.md                ← 主入口（流程、规则、汇总表口径）
+│   └── references/
+│       ├── field_mapping.md    ← 逐列字段填写方式与接口
+│       ├── api_schemas.md      ← 接口参数与签名
+│       └── pitfalls.md         ← 踩坑记录
 │
 ├── tk视频拆解/                  ← 工作流3（TK 视频拆解）
 │   ├── v3-tk-workflow/
