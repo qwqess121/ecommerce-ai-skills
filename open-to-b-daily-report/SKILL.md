@@ -38,12 +38,12 @@ metadata: {"owner":"AB America Corp / HOOGALIFE","status":"verified","last_verif
 |---|---|---|
 | 产品属性 D–S（产品管理） | MCP `products_list` | 分页 length≤500，is_aux=0，product_type∈[1,2]；约 3850 条 |
 | 采购量/待到货/到货（Y/Z/AA，国内仓采购单） | MCP `products_purchase_history` | 2026 全年，按季度分 4 段（单次≤90天），按记录 ID 去重，同 SKU 多供应商求和 |
-| 平台拆分采购量/时间（BO–BV） | MCP `products_purchase_history` | 按平台过滤：亚马逊 / TK / 供应链 |
+| 平台拆分采购量/时间（BO–BV） | 固定值/手填（11.10 原表） | BO/BQ 为固定采购量，BP/BR/BT/BV 为固定日期，BS=BM-BO，BU=BM-BQ |
 | 本地仓/海外仓库存与库龄 | MCP `inventory_detail_list` | 海外仓用 wid_list=海外仓 ID；`max_process_num` 不在返回字段中 |
 | 加工单 AB/AD | **OpenAPI 直连** `/erp/sc/routing/inventoryReceipt/StorageProcess/getOrderLists` | type=1 加工单、type=2 拆分单；分页；见 pitfalls #35 |
 | 亚马逊产品表现（E–BT、CF–CI、CS、CG、CR 等） | MCP `query_product_performance_asin_lists` | summary_field=sku，summary_field_level2=mid，sids 逗号分隔，同币种店铺一起查；按店铺展开 |
 | Listing（BU–CQ） | MCP `erp_listing` | 按 (SKU, 店铺名/seller_name) 匹配，不用 sid；多条取售价非 0 |
-| FBA 库存与库龄（CR–DV、DW–DZ） | MCP `get_fba_stock_list` | 按 (SKU, seller_name) 匹配；多条取可用量最大 |
+| FBA 库存与库龄（CR–DW、DX–EA，11.10 起库龄从 DH 开始） | MCP `get_fba_stock_list` | 按 (SKU, seller_name) 匹配；多条取可用量最大 |
 | TikTok 产品表现（D、K–AL、AM–BD 等） | MCP `platform_tiktok_product_analysis_list` | dimension_type=3（SKU）；记录在 `data.data.data`，总数 `data.data.count`；主键 local_sku；分页 page_num/page_size |
 | TikTok 平台费用（BE–BW） | MCP `finance_settlement_profit_list` | queryMode=1，summaryField="4"（SKU），camelCase 字段；只覆盖当天有结算单的 SKU，其余保留原值 |
 | 店铺列表 | MCP `get_multi_platform_shop_list` | platform_code：10001 亚马逊，10011 TikTok；TK 店铺用长 store_id（s_id 全为 0） |
@@ -92,33 +92,44 @@ metadata: {"owner":"AB America Corp / HOOGALIFE","status":"verified","last_verif
 - 交付文件放在下载目录，名称带日期；源文件不改。
 - 发给他人前确认：没有遗留的 `~$` 锁文件，没有残留的旧版本文件。
 
-## 五、时点列（采购时间 / 到货时间 / 发货时间）
+## 五、时点列（采购时间 / 到货时间 / 发货时间）— 11.10 版
 
-这些列不是查出来的日期，是用「可售天数」倒推的时点。基准日 = **获取数据当天**。
+这些列不是查出来的日期，是用「可售天数」倒推的时点。基准日 = **获取数据当天**（DATE(2026,11,9)）。
 
-| 平台 | 30日销量 | 总库存 | 可售天数 | 70天余量 |
-|---|---|---|---|---|
-| 亚马逊 | CG | CW = CS+CT+CU+CV | CY = CW/CG×30 | CZ = CY−70 |
-| TikTok | L | Z = W+AI | Y = Z/(L/30) | AB = Y−70 |
+| 平台 | 30日销量 | 总库存 | 可售天数 | 70天余量 | 触发条件 |
+|---|---|---|---|---|---|
+| 亚马逊 | CG | CW = CS+CT+CU+CV | CY = CW/CG×30 | CZ = CY−70 | DA = IF(CZ≤7, CZ, "") |
+| TikTok | L | Z = W+AI | Y = Z/(L/30) | AB = Y−70 | AC = IF(AB≤7, AB, "") |
 
-- **采购时间** = 基准日 + (可售天数 − 45)。若结果 ≤ 0，取基准日 + 45。若 > 365 天，留空。
-- **到货时间** = 基准日 + (可售天数 − 77)。若 ≤ 0，取基准日 + 7。若 > 365 天，留空。
-- **发货时间**：仅当 可售天数 ≤ 7 时，取下周一。
+**亚马逊时间字段链（DB~DG）**：
+- DB 发货时间 = 基准日（2026-11-09），仅 DA 有值时。公式：`=IF(DA3<>"",DATE(2026,11,9),"")`
+- DC 到货时间（发货时间+40天）= 11.10 原表未填公式（列头已加，单元格为空）。
+- DD 发货数量 = (7−DA) × CG/30（补满 7 天周期）。
+- DE 采购量 = CG/30 × 15（**仅当 DA/DB/DD 均有值时才生效**）。
+- DF 到货时间 = 11.10 原表未填公式（为空）。
+- DG 采购时间 = 11.10 原表未填公式（为空）。
+
+**TikTok 时间字段链（AD~AH）**：
+- AD 发货时间 = 基准日（2026-11-09），仅 AC 有值时。公式：`=IF(AC3<>"",DATE(2026,11,9),"")`
+- AE 发货数量 = (7−AC) × L/30。
+- AF 采购量 = L/30 × 15（**仅当 AC/AD/AE 均有值时才生效**，与亚马逊统一）。
+- AG 到货时间 = 11.10 原表为固定值（如 2026-11-16），手填。
+- AH 采购时间 = 11.10 原表为固定值（如 2026-12-24），手填。
+
 - 30日销量为 0 时留空，避免除零。
-- 派生公式统一加守卫：`=IFERROR(IF(AND(ISNUMBER(...),...>0,...<阈值),计算,""),"")`。
 
 ## 六、汇总表口径（透视表）
 
 | 汇总表 | 行字段 | 值字段 | 说明 |
 |---|---|---|---|
-| 亚马逊销售汇总 | SKU | 最早发货时间（发货时间 DB，MIN）、发货数量合计（DC，SUM）、发货金额合计（SUM） | 发货金额 = 发货数量 × PM 单价（U 按 SKU 取） |
+| 亚马逊销售汇总 | SKU | 最早发货时间（发货时间 DB，MIN）、发货数量合计（DD，SUM）、发货金额合计（SUM） | 发货金额 = 发货数量 × PM 单价（U 按 SKU 取） |
 | Tiktok 销售汇总 | SKU | 最早发货时间（AD，MIN）、发货数量合计（AE，SUM）、发货金额合计（SUM） | 同上 |
-| 产品管理 - 库存汇总 | 时间、SKU；筛选「是否有采购=是」 | 亚马逊采购量合计（SUMIFS DD）、亚马逊最早采购时间（MINIFS DF）、TikTok采购量合计（SUMIFS AF）、TikTok最早采购时间（MINIFS AH）、采购金额合计（AG） | 时间 = 2026-11-09（DATE 公式） |
+| 产品管理 - 库存汇总 | 时间、SKU；筛选「是否有采购=是」 | 亚马逊采购量合计（SUMIFS DE）、亚马逊最早采购时间（MINIFS DG）、TikTok采购量合计（SUMIFS AF）、TikTok最早采购时间（MINIFS AH）、采购金额合计（AG） | 时间 = 2026-11-09（DATE 公式） |
 
 **发货金额口径（用户已确认）**：明细表中没有该列，按「发货数量 × PM 单价」计算。
 
 **注意**：
-- 采购时间取 DF/AH（采购时间列），**不是** DB/AD（发货时间列）。曾误用发货时间列，已修正。
+- 采购时间取 DG/AH（采购时间列），**不是** DB/AD（发货时间列）。曾误用发货时间列，已修正。
 - 日期字段的数字格式使用 `yyyy-mm-dd;;`，使无值的 0 显示为空白。
 - 透视表不能直接用 openpyxl 创建，必须通过 Excel COM。
 
@@ -140,3 +151,61 @@ metadata: {"owner":"AB America Corp / HOOGALIFE","status":"verified","last_verif
 - 白色列、公式列、模板原值改动前先备份。
 - `字段数据来源` 与工作簿公式冲突时，以工作簿为准；与本 skill 冲突时，以本 skill 的实测结论为准。
 - 派生的采购时间、发货时间等列依赖「今天」，每次运行的结果会不同。
+
+## 九、调用方式（MCP / OpenAPI 直连）
+
+**MCP（领星 LingXing-MCP）**
+- 所有 MCP 接口通过 `mcp__LingXing-MCP__action` 调用，参数为 `toolId`（接口名）和 `params`（业务参数）。
+- 调用前用 `mcp__LingXing-MCP__help`（按名称或描述搜索）找到 toolId，再用 `mcp__LingXing-MCP__search`（传 toolId）获取完整 inputSchema。
+- 返回很大（单次常超 25 万字符），会落盘到 tool-results 目录。用脚本读取该文件并解析 JSON，不要直接读进上下文。
+- 只用读类接口（toolType=read）。`settings_exchange_rate_update` 等 write 类接口不用于取数。
+
+**OpenAPI 直连（加工单等 MCP 不完整的接口）**
+- 域名：`openapi.lingxing.com`。先用 AppID/AppSecret 换取 access token（有效期约 2 小时）。
+- 签名：参数按 key 排序拼接（空值跳过），MD5 转大写，再用 AppID 做 AES（ECB，PKCS7）加密，Base64 编码。
+- 直连时不走本地代理（代理下 SSL 握手常超时）。
+- 实现见 `C:\Users\Administrator\领星自动化\lingxing_direct.py`。
+
+**环境变量**：`LINGXING_APP_ID`、`LINGXING_APP_SECRET`，只从环境变量读取。
+
+## 十、公式列详情（写入后必须全表重算）
+
+**产品管理 - 库存**
+- Q、T、V、W、X、AC、AE、AF、AG、AH、AI、AJ、AT、BH、BM、BN：按工作簿公式保留。
+- BO、BP、BQ、BR、BT、BV：11.10 原表为固定值/手填，不由脚本写入。
+- BS = BM−BO，BU = BM−BQ。
+
+**亚马逊销售**
+- CW = CS+CT+CU+CV（FBA 总库存）；CY = CW/CG×30（预估可售天数）；CZ = ROUND(CY−70)。
+- DA = IF(CZ≤7, CZ, "")（周快照，只保留 ≤7 天的值）。
+- DB 发货时间 = 基准日（2026-11-09），DA 有值时；DC 11.10 原表为空；DD 发货数量 = (7−DA)×CG/30。
+- DE 采购量 = CG/30×15（**仅当 DA/DB/DD 均有值时才生效**）。
+- DF、DG：11.10 原表为空。
+
+**Tiktok 销售**
+- I = AP−U−BC，J = AQ−V−BD。
+- Y（可售天数）、Z、AA、AB = ROUND(Y−70)、AC = IF(AB≤7, AB, "")。
+- AD 发货时间 = 基准日（2026-11-09），AC 有值时；AE 发货数量 = (7−AC)×L/30。
+- AF 采购量 = L/30×15（**仅当 AC/AD/AE 均有值时才生效**）。
+- AG、AH：11.10 原表为固定值/手填。
+
+## 十一、补数顺序（每次填充）
+
+1. 产品属性 → 产品管理 D–S。
+2. 采购报表 → 产品管理 Y/Z/AA（2026 全年，季度分段）。
+3. 加工单（直连）→ 产品管理 AB/AD。
+4. 库存明细 → 本地仓、海外仓列（AK–BL）。
+5. 亚马逊产品表现 + Listing + FBA → 亚马逊销售（同一时点的 FBA 数据一次取完）。
+6. TikTok 产品表现 → Tiktok 销售；TikTok 平台费用 → BE–BW。
+7. 写入公式列（按行号重写），全表 CalculateFull 重算。
+8. 派生列：DB/DD/DE（亚马逊）、AD/AE/AF（TK），产品管理 BS/BU。
+9. 核对（见第十二节），通过后再交付。
+
+## 十二、核对清单
+
+- **币种**：汇总前检查亚马逊（CNY）与 TK（USD）金额是否已换算。汇率 = 7.0（2026-11-10 实测）。
+- **版本间单调性**：采购量、待到货、到货量只增不减；减少说明时间窗、去重或店铺展开有误。
+- **抽样对比**：每张表抽约 30 个 SKU，只比对彩色字段，与领星当前数据逐项对比，目标 95%+。
+- **FBA 快照**：同一行的 CR–CV 应来自同一次拉取。
+- **空值**：接口整列返回空时保留原值，不清空；`None` 不覆盖已有值。
+- **主表与销售表 SKU 并集**：销售表里的 SKU 不一定在库存主表里（2026-11-10 发现 40 个，合计约 4.7 万销售额）。
