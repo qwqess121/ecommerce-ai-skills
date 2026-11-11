@@ -12,7 +12,7 @@
 | 表 | 列 | 正确规则 | 说明 |
 |---|---|---|---|
 | 亚马逊销售 | DB 发货时间 | `=IF(DA<>"",DATE(2026,11,9),"")` | DA 有值时填基准日（2026-11-09） |
-| 亚马逊销售 | DC 到货时间（发货+40天） | 空（11.10 未填） | 11.10 新增列头，但原表单元格为空 |
+| 亚马逊销售 | DC 到货时间（发货+40天） | `=IF(DB<>"",DB+40,"")` | 发货时间 +40 天，仅 DB 有值时（11.10 无图版已按此公式） |
 | 亚马逊销售 | DD 发货数量 | `=IF(DA<>"",(7-DA)*(CG/30),"")` | 补满 7 天周期的发货量 |
 | 亚马逊销售 | DE 采购量（15天） | `=IF(AND(DA<>"",DB<>"",DD<>""),CG/30*15,"")` | **关键**：DA/DB/DD 均有值才生效 |
 | 亚马逊销售 | DF 到货时间 | `=IF(DB<>"",DB+7,"")` | 发货时间 +7 天（11.10 原表 155 行为 +7） |
@@ -122,7 +122,7 @@
 | B | 品名 | 标识列，不抓 | — | — |  |
 | C | 店铺 | 标识列，不抓 | — | — |  |
 | D | 国家 | 标识列，不抓 | — | — |  |
-| E | 自动标签 | 留空 | （无源） | auto_tags 全账号为空 | 账号未配自动标签规则，不要用其它标签冒充；自动打标签 |
+| E | 自动标签（Listing 标签） | API写入 | sales_relation_tag_list（bindDetail: relationId=该店铺的 seller_sku（MSKU），sid=店铺ID），MSKU 来自 `/erp/sc/routing/listing/lists`（按 local_sku + seller_name 匹配） | tagInfos[].tagName | 一个 (SKU, 店铺) 有多个 MSKU 时取 total_volume 最大的那个；接口不返回记录的 MSKU 表示无标签，E 留空；多个标签逗号拼接；ruleContentList 为空表示手动绑定；performance 接口的 auto_tags 字段全空，不用。11.10 无图版：911 行中 860 行有标签，51 行留空 |
 | F | 产品标签 | API写入 + 兜底 | products_list（global_tags） | global_tags[].tagName | product_tags 全账号为空；用产品库 global_tags 兜底（ruleContentList 为空的是手动标签）；手动产品标签 |
 | G | 负责人 | API写入 | query_product_performance_asin_lists | principal_names | ASIN负责人 |
 | H | 创建时间 | API写入 | query_product_performance_asin_lists | product_create_time | 产品创建时间 |
@@ -224,7 +224,7 @@
 | CZ | 在途+FBA可售取70天 | 公式（工作簿实际） | （公式） | =IF(CY3<>"",ROUND(CY3-70,0),"") |  |
 | DA | 在途+FBA可售取70天(每周三抓取） | 公式（工作簿实际） | （公式） | =IF(AND(CZ3<>"",CZ3<=7),CZ3,"") |  |
 | DB | 发货时间 | 公式（工作簿实际） | （公式） | =IF(DA3<>"",DATE(2026,11,9),"") | DA 有值时填基准日（2026-11-09） |
-| DC | 到货时间（发货时间+40天） | 空（11.10 未填） | — | （原表为空） | 11.10 新增列头，但原表未填公式 |
+| DC | 到货时间（发货时间+40天） | 公式 | （公式） | =IF(DB3<>"",DB3+40,"") | 发货时间 +40 天 |
 | DD | 发货数量(7天发一次） | 公式（工作簿实际） | （公式） | =IF(DA3<>"",(7-DA3)*(CG3/30),"") | 补满 7 天周期的发货量 |
 | DE | 采购量（采购频率15天） | 公式（工作簿实际） | （公式） | =IF(AND(DA3<>"",DB3<>"",DD3<>""),CG3/30*15,"") | **DA/DB/DD 均有值才生效**；15 天采购周期 |
 | DF | 到货时间 | 公式 | （公式） | =IF(DB3<>"",DB3+7,"") | 发货时间 +7 天 |

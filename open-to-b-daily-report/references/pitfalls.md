@@ -112,7 +112,7 @@
 新表新增：各表 `2026年*` 累计字段、昨日/30日系列、平台拆分采购量(亚马逊/TK/供应链)、国内仓+海外仓总采购量/金额/已付款/未付款/采购ToC利润、本地/海外/总库存、总货值、FBA 14 档库龄(含成本)、AWD 四列、TikTok 订单利润块(BC–BW)。这些都要按各自口径取数，部分标 `NEW-待确认` 口径待定。
 
 ### 19. 特殊指令列勿当 API 填
-亚马逊 DE/DF、TikTok AD/AG/AH 单元格写的是文字指令（如"抓取CZ列为7的日期"），DC/AE 是 ÷7 类公式且可能出 `#VALUE!`。按文字指令计算写入，不要用 API 覆盖。
+11.10 原表中 DA–DG、AD–AH 的时间与采购列是公式或固定日期（见 SKILL 第五节），不要用 API 覆盖；公式列按行号重写。
 
 ### 20. 数据来源 sheet 与 skill 冲突时
 以工作簿内 `字段数据来源` sheet 为准（它由制表人在 Excel 内维护，最新）。
@@ -173,7 +173,7 @@
 
 ### 31. `auto_tags` / `product_tags` / `out_stock_date` 全账号为空
 amz 产品表现 1433 条记录里这三个字段 **0 条非空**；`settings_tag_page_list(subType=110)` 只有 5 个 Listing 标签且 `ruleContentList` 全为 null（=账号没配自动标签规则）。处理方式：
-- **E 自动标签**：确实无源，留空（不要拿别的标签冒充）。
+- **E 自动标签**：`auto_tags` 字段确实全空，但 Listing 标签可用 `sales_relation_tag_list`（bindDetail 按 SKU + sid）取得。relationId 必须是该店铺的 seller_sku（MSKU），不是本地 SKU。例：HG-OL24-V54 / sid 17195 → Best Seller；本地 SKU HG-FG-CF-V54-08-CL-2P / sid 17191 查不到，而其 MSKU OL-2024-046 / sid 17191 → Best Seller。
 - **F 产品标签**：用产品库 `products.json → global_tags[].tagName`（`ruleContentList` 为空的是手动标签）兜底，可覆盖 901/911 行。
 - **AM 断货时间**：接口无值 → 写公式 `=IFERROR(IF(AND(ISNUMBER($AF3),$AF3>0),TODAY()+ROUND($AF3,0),""),"")`（今天+FBA可售天数）。
 

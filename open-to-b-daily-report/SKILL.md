@@ -26,11 +26,14 @@ metadata: {"owner":"AB America Corp / HOOGALIFE","status":"verified","last_verif
 4. **单价 U 列手工填写**：`产品管理 - 库存` U 列（采购单详情/供应链成本）是白色手填列，不要用 `products_list.cg_price` 代替。U 为空时 T/V/W/X/AC/AE 为 0，发货金额也为 0。
 5. **时间窗三类**：
    - 昨日单日：销售类字段，取前一日。
-   - 2026 全年累计：列名带「2026年」的字段，以及采购量/待到货量/到货量、加工单（AB/AD）、平台拆分采购量（BO/BP/BQ/BR/BT/BV）。窗口为 2026-01-01 ~ 昨日。
+   - 2026 全年累计：列名带「2026年」的字段，以及采购量/待到货量/到货量、加工单（AB/AD）。窗口为 2026-01-01 ~ 昨日。（BO–BV 为手填/固定值，不在此列。）
    - 最新快照：产品属性、库存、库龄、期望量、安全库存。
 6. **接口返回空 ≠ 不支持**：空数组或空串表示未填写，不能判定为 API 不支持。字段存在但为空，标记为「可查询，空值=未填写」。
 7. **只读领星**：所有操作只读，不向领星写入任何数据。
 8. **凭据**：AppID/AppSecret 只从环境变量 `LINGXING_APP_ID` / `LINGXING_APP_SECRET` 读取，不写入任何文件、不打印。
+9. **店铺 SKU 用 MSKU**：按店铺查 Listing 相关接口（如 `sales_relation_tag_list`）时，`relationId` 必须是该店铺的 seller_sku（MSKU），不能用本地 SKU，否则查不到。本地 SKU → MSKU 用 Listing 列表 `/erp/sc/routing/listing/lists`（按 local_sku + seller_name 匹配）。
+10. **标签取 Listing 标签接口**：亚马逊 E 自动标签用 `sales_relation_tag_list`；`query_product_performance_asin_lists` 的 `auto_tags` 字段全账号为空，不用。
+11. **BO–BV 不走接口**：产品管理 BO–BV 为彩色列，但 11.10 原表是手填固定值/固定日期，脚本不写入。
 
 ## 三、数据源总表
 
@@ -43,6 +46,7 @@ metadata: {"owner":"AB America Corp / HOOGALIFE","status":"verified","last_verif
 | 加工单 AB/AD | **OpenAPI 直连** `/erp/sc/routing/inventoryReceipt/StorageProcess/getOrderLists` | type=1 加工单、type=2 拆分单；分页；见 pitfalls #35 |
 | 亚马逊产品表现（E–BT、CF–CI、CS、CG、CR 等） | MCP `query_product_performance_asin_lists` | summary_field=sku，summary_field_level2=mid，sids 逗号分隔，同币种店铺一起查；按店铺展开 |
 | Listing（BU–CQ） | MCP `erp_listing` | 按 (SKU, 店铺名/seller_name) 匹配，不用 sid；多条取售价非 0 |
+| 亚马逊 E 自动标签（Listing 标签） | MCP `sales_relation_tag_list` | bindDetail 按 (seller_sku/MSKU, sid) 查询，每次最多 100 组，不能用本地 SKU；取 tagInfos[].tagName，多个用逗号拼接；接口不返回记录即无标签，E 留空。MSKU 来自 `/erp/sc/routing/listing/lists`，一个 (SKU, 店铺) 有多个 MSKU 时取 total_volume 最大的 |
 | FBA 库存与库龄（CR–DW、DX–EA，11.10 起库龄从 DH 开始） | MCP `get_fba_stock_list` | 按 (SKU, seller_name) 匹配；多条取可用量最大 |
 | TikTok 产品表现（D、K–AL、AM–BD 等） | MCP `platform_tiktok_product_analysis_list` | dimension_type=3（SKU）；记录在 `data.data.data`，总数 `data.data.count`；主键 local_sku；分页 page_num/page_size |
 | TikTok 平台费用（BE–BW） | MCP `finance_settlement_profit_list` | queryMode=1，summaryField="4"（SKU），camelCase 字段；只覆盖当天有结算单的 SKU，其余保留原值 |
@@ -64,7 +68,7 @@ metadata: {"owner":"AB America Corp / HOOGALIFE","status":"verified","last_verif
 - 加工单：拉 type=1 与 type=2 全部记录，保留 `ware_house_name`、`status`、`product_list`。
 
 ### 步骤 3：写入明细表
-- 产品管理：按 SKU 写入 D–S、Y/Z/AA、AK–BL（本地仓）、AY–BL（海外仓）、BO–BV 等彩色列。AB/AD 按加工单聚合写入。
+- 产品管理：按 SKU 写入 D–S、Y/Z/AA、AK–BL（本地仓）、AY–BL（海外仓）等接口列。AB/AD 按加工单聚合写入。BO–BV 手填，不写入。
 - 亚马逊销售：按 (SKU, 店铺) 写入产品表现；店铺用 `store_id` 或店铺名映射到 sid。Listing 与 FBA 按 (SKU, 店铺名) 匹配。
 - Tiktok 销售：按 (SKU, 店铺 store_id) 写入；D 售价取 `base_info_list` 中该店铺的挂牌价。
 - 多行冲突：同 SKU 多供应商 → 采购量求和；同 (SKU, 店铺) 多条 FBA 库存 → 取可用量最大；Listing 多条 → 取售价非 0。
@@ -103,7 +107,7 @@ metadata: {"owner":"AB America Corp / HOOGALIFE","status":"verified","last_verif
 
 **亚马逊时间字段链（DB~DG）**：
 - DB 发货时间 = 基准日（2026-11-09），仅 DA 有值时。公式：`=IF(DA3<>"",DATE(2026,11,9),"")`
-- DC 到货时间（表头「发货时间+40天」）= 11.10 原表仅 1 个单元格有值，其余为空。规则待确认，暂不写入。
+- DC 到货时间 = 发货时间 + 40 天，仅 DB 有值时。公式：`=IF(DB3<>"",DB3+40,"")`（表头「到货时间（发货时间+40天）」）。
 - DD 发货数量 = (7−DA) × CG/30（补满 7 天周期）。
 - DE 采购量 = CG/30 × 15（**仅当 DA/DB/DD 均有值时才生效**）。
 - DF 到货时间 = 发货时间 + 7 天。公式：`=IF(DB3<>"",DB3+7,"")`
@@ -141,7 +145,7 @@ metadata: {"owner":"AB America Corp / HOOGALIFE","status":"verified","last_verif
 |---|---|---|
 | 加工单 AB/AD | 已解决（OpenAPI） | 见 pitfalls #35 |
 | 最大可加工量 AK/AY | 库存明细接口无此字段 | 保留原值，不用其它字段替代 |
-| 亚马逊 E 自动标签、断货时间 | 账号无源数据 | E 留空；AM 用公式代替 |
+| 亚马逊断货时间 | 账号无源数据 | AM 用公式代替 |
 | 亚马逊 F 产品标签 | product_tags 为空 | 用产品库 global_tags 兜底 |
 | TK BE–BW 平台费用 | 仅覆盖有结算单的 SKU | 其余保留原值 |
 | 亚马逊 V 2026年净销售额同比 | 字段数据来源未列出 | 待核实同比口径 |
@@ -180,7 +184,7 @@ metadata: {"owner":"AB America Corp / HOOGALIFE","status":"verified","last_verif
 **亚马逊销售**
 - CW = CS+CT+CU+CV（FBA 总库存）；CY = CW/CG×30（预估可售天数）；CZ = ROUND(CY−70)。
 - DA = IF(CZ≤7, CZ, "")（周快照，只保留 ≤7 天的值）。
-- DB 发货时间 = 基准日（2026-11-09），DA 有值时；DC 11.10 原表为空；DD 发货数量 = (7−DA)×CG/30。
+- DB 发货时间 = 基准日（2026-11-09），DA 有值时；DC = 发货时间 +40 天；DD 发货数量 = (7−DA)×CG/30。
 - DE 采购量 = CG/30×15（**仅当 DA/DB/DD 均有值时才生效**）。
 - DF：发货时间 +7 天；DG：发货时间 + (CZ+25)，CZ < -24 时 +45 天（见第五节）。
 
